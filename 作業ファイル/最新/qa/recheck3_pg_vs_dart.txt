@@ -1,0 +1,131 @@
+'カフェラテ'	dart=False	pg17(localfix)=f
+'ポークソテー'	dart=False	pg17(localfix)=f
+'ポークソーセージ'	dart=False	pg17(localfix)=f
+'ミルクソフト'	dart=False	pg17(localfix)=f
+'ブラックソース'	dart=False	pg17(localfix)=f
+'スモークソルト'	dart=False	pg17(localfix)=f
+'やくそう'	dart=False	pg17(localfix)=f
+'サンマンコ'	dart=False	pg17(localfix)=f
+'Cock tail'	dart=False	pg17(localfix)=f
+'rape seed oil'	dart=False	pg17(localfix)=f
+'cocktail'	dart=False	pg17(localfix)=f
+'rapeseed oil'	dart=False	pg17(localfix)=f
+'Cocktail sauce'	dart=False	pg17(localfix)=f
+'ちんぽ'	dart=True	pg17(localfix)=t
+'まんこ'	dart=True	pg17(localfix)=t
+'fuck'	dart=True	pg17(localfix)=t
+'FUCK'	dart=True	pg17(localfix)=t
+'ｆｕｃｋ'	dart=True	pg17(localfix)=t
+'f u c k'	dart=True	pg17(localfix)=t
+'fúck'	dart=True	pg17(localfix)=t
+'ﾁﾝﾎﾟ'	dart=True	pg17(localfix)=t
+'ﾁﾝﾎ'	dart=False	pg17(localfix)=f
+'チンポ'	dart=True	pg17(localfix)=t
+'うんこ'	dart=True	pg17(localfix)=t
+'くそ'	dart=True	pg17(localfix)=t
+'クソ'	dart=True	pg17(localfix)=t
+'フェラ'	dart=True	pg17(localfix)=t
+'エロ'	dart=True	pg17(localfix)=t
+'cock'	dart=True	pg17(localfix)=t
+'rape'	dart=True	pg17(localfix)=t
+'おまんこ'	dart=True	pg17(localfix)=t
+'クソまずい'	dart=False	pg17(localfix)=f
+'クソうまいカレー'	dart=False	pg17(localfix)=f
+'クソ うまい'	dart=True	pg17(localfix)=t
+'フェラチオ'	dart=True	pg17(localfix)=t
+'エロい'	dart=False	pg17(localfix)=f
+'エロ肉'	dart=False	pg17(localfix)=f
+'くそったれ'	dart=True	pg17(localfix)=t
+'ちんこ'	dart=True	pg17(localfix)=t
+'cock tail'	dart=False	pg17(localfix)=f
+'Cock-tail'	dart=False	pg17(localfix)=f
+'fuck rape seed oil'	dart=True	pg17(localfix)=t
+'rape seed'	dart=False	pg17(localfix)=f
+'shit cock tail'	dart=True	pg17(localfix)=t
+'cock tail cock'	dart=True	pg17(localfix)=t
+'カロリー100'	dart=False	pg17(localfix)=f
+'1日分の野菜'	dart=False	pg17(localfix)=f
+'S&B'	dart=False	pg17(localfix)=f
+'7種の具'	dart=False	pg17(localfix)=f
+'ドリンク5本'	dart=False	pg17(localfix)=f
+'エロンガ'	dart=False	pg17(localfix)=f
+'ベーコンエッグ'	dart=False	pg17(localfix)=f
+'チンゲン菜'	dart=False	pg17(localfix)=f
+'パチンコ玉'	dart=True	pg17(localfix)=t
+'ちんすこう'	dart=False	pg17(localfix)=f
+'豚まん'	dart=False	pg17(localfix)=f
+'ちくわ'	dart=False	pg17(localfix)=f
+"Dick's burger"	dart=True	pg17(localfix)=t
+'Hancock'	dart=False	pg17(localfix)=f
+'scunthorpe'	dart=False	pg17(localfix)=f
+'Shiitake'	dart=False	pg17(localfix)=f
+'Assam tea'	dart=False	pg17(localfix)=f
+'Bitchu'	dart=False	pg17(localfix)=f
+'Cocoa'	dart=False	pg17(localfix)=f
+'d1ck'	dart=True	pg17(localfix)=t
+'D!ck'	dart=True	pg17(localfix)=t
+'grape'	dart=False	pg17(localfix)=f
+'ｴﾛ'	dart=True	pg17(localfix)=t
+'ﾏﾝｺ'	dart=True	pg17(localfix)=t
+'ま ん こ'	dart=True	pg17(localfix)=t
+'マ・ン・コ'	dart=True	pg17(localfix)=t
+'ち ん ぽ'	dart=True	pg17(localfix)=t
+'ﾁﾝﾎﾞ'	dart=False	pg17(localfix)=f
+'ちんぼ'	dart=False	pg17(localfix)=f
+'チ〇ポ'	dart=False	pg17(localfix)=f
+'ちんﾎﾟ'	dart=True	pg17(localfix)=t
+'ｾｯｸｽ'	dart=True	pg17(localfix)=t
+'中出し'	dart=True	pg17(localfix)=t
+'中 出し'	dart=True	pg17(localfix)=t
+'fck'	dart=False	pg17(localfix)=f
+'phuck'	dart=False	pg17(localfix)=f
+'sh1t'	dart=True	pg17(localfix)=t
+'5h1t'	dart=True	pg17(localfix)=t
+'c0ck'	dart=True	pg17(localfix)=t
+'$hit'	dart=True	pg17(localfix)=t
+'オマンコ'	dart=True	pg17(localfix)=t
+'ﾌｪﾗﾁｵ'	dart=True	pg17(localfix)=t
+'エロ本'	dart=False	pg17(localfix)=f
+'イラマチオ'	dart=True	pg17(localfix)=t
+'クンニ'	dart=True	pg17(localfix)=t
+'パイズリ'	dart=True	pg17(localfix)=t
+'顔射'	dart=True	pg17(localfix)=t
+'ぶっかけ'	dart=True	pg17(localfix)=t
+'ぶっかけうどん'	dart=True	pg17(localfix)=t
+'冷やしぶっかけそば'	dart=True	pg17(localfix)=t
+'ぶっかけ飯'	dart=True	pg17(localfix)=t
+'ごっくん'	dart=True	pg17(localfix)=t
+'ごっくんゼリー'	dart=True	pg17(localfix)=t
+'ごっくん青汁'	dart=True	pg17(localfix)=t
+'飲むゼリー ごっくん'	dart=True	pg17(localfix)=t
+'ザーメン'	dart=True	pg17(localfix)=t
+'オナニー'	dart=True	pg17(localfix)=t
+'潮吹き'	dart=True	pg17(localfix)=t
+'潮吹き貝'	dart=True	pg17(localfix)=t
+'素股'	dart=True	pg17(localfix)=t
+'手コキ'	dart=True	pg17(localfix)=t
+'手マン'	dart=True	pg17(localfix)=t
+'肉便器'	dart=True	pg17(localfix)=t
+'fellatio'	dart=True	pg17(localfix)=t
+'cunnilingus'	dart=True	pg17(localfix)=t
+'クンニャン'	dart=True	pg17(localfix)=t
+'手マンゴー'	dart=True	pg17(localfix)=t
+'マンゴー'	dart=False	pg17(localfix)=f
+'手作りマンゴープリン'	dart=False	pg17(localfix)=f
+'手マンゴスチン'	dart=True	pg17(localfix)=t
+'素股肉'	dart=True	pg17(localfix)=t
+'潮吹きあさり'	dart=True	pg17(localfix)=t
+'ロッテ ごっくんヨーグルト'	dart=True	pg17(localfix)=t
+'ぶっかけ丼'	dart=True	pg17(localfix)=t
+'おろしぶっかけ'	dart=True	pg17(localfix)=t
+'顔射揚げ'	dart=True	pg17(localfix)=t
+'オナニ'	dart=False	pg17(localfix)=f
+'くさや'	dart=False	pg17(localfix)=f
+'さくそう'	dart=False	pg17(localfix)=f
+'エクレア'	dart=False	pg17(localfix)=f
+'エロティック'	dart=False	pg17(localfix)=f
+'ごっくんチョコ'	dart=True	pg17(localfix)=t
+'ごっくん馬路村'	dart=True	pg17(localfix)=t
+'讃岐ぶっかけ'	dart=True	pg17(localfix)=t
+'シオフキ'	dart=False	pg17(localfix)=f
+'潮吹貝'	dart=False	pg17(localfix)=f

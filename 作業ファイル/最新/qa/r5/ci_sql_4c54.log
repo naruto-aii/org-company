@@ -1,0 +1,920 @@
+2026-09-27T12:45:13.3684363Z Current runner version: '2.337.0'
+2026-09-27T12:45:13.3709999Z ##[group]Runner Image Provisioner
+2026-09-27T12:45:13.3710905Z Hosted Compute Agent
+2026-09-27T12:45:13.3711611Z Version: 20260828.587
+2026-09-27T12:45:13.3712275Z Commit: abac92662cab4cc7352de4f9f9d2e2419aad9c29
+2026-09-27T12:45:13.3713041Z Build Date: 2026-08-28T16:44:25Z
+2026-09-27T12:45:13.3713736Z Worker ID: {a163c493-9e76-41e5-a2e9-7361101a3df3}
+2026-09-27T12:45:13.3714480Z Azure Region: eastus
+2026-09-27T12:45:13.3715099Z ##[endgroup]
+2026-09-27T12:45:13.3716663Z ##[group]Operating System
+2026-09-27T12:45:13.3717282Z Ubuntu
+2026-09-27T12:45:13.3717893Z 24.04.5
+2026-09-27T12:45:13.3718408Z LTS
+2026-09-27T12:45:13.3718992Z ##[endgroup]
+2026-09-27T12:45:13.3719810Z ##[group]Runner Image
+2026-09-27T12:45:13.3720407Z Image: ubuntu-24.04
+2026-09-27T12:45:13.3721045Z Version: 20260920.314.1
+2026-09-27T12:45:13.3722322Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20260920.314/images/ubuntu/Ubuntu2404-Readme.md
+2026-09-27T12:45:13.3723978Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu24%2F20260920.314
+2026-09-27T12:45:13.3724928Z ##[endgroup]
+2026-09-27T12:45:13.3726146Z ##[group]GITHUB_TOKEN Permissions
+2026-09-27T12:45:13.3728414Z Contents: read
+2026-09-27T12:45:13.3729361Z Metadata: read
+2026-09-27T12:45:13.3730186Z Packages: read
+2026-09-27T12:45:13.3730809Z ##[endgroup]
+2026-09-27T12:45:13.3733238Z Secret source: Actions
+2026-09-27T12:45:13.3734392Z Cache mode: write
+2026-09-27T12:45:13.3735764Z Prepare workflow directory
+2026-09-27T12:45:13.4175426Z Prepare all required actions
+2026-09-27T12:45:13.4224918Z Getting action download info
+2026-09-27T12:45:13.6696963Z Download action repository 'actions/checkout@v4' (SHA:11d5960a326750d5838078e36cf38b85af677262)
+2026-09-27T12:45:13.8850284Z Complete job name: sql
+2026-09-27T12:45:13.9363924Z ##[group]Checking docker version
+2026-09-27T12:45:13.9381028Z ##[command]/usr/bin/docker version --format '{{.Server.APIVersion}}'
+2026-09-27T12:45:14.0506878Z '1.48'
+2026-09-27T12:45:14.0526907Z Docker daemon API version: '1.48'
+2026-09-27T12:45:14.0527684Z ##[command]/usr/bin/docker version --format '{{.Client.APIVersion}}'
+2026-09-27T12:45:14.0702608Z '1.48'
+2026-09-27T12:45:14.0715156Z Docker client API version: '1.48'
+2026-09-27T12:45:14.0723623Z ##[endgroup]
+2026-09-27T12:45:14.0727921Z ##[group]Clean up resources from previous jobs
+2026-09-27T12:45:14.0733673Z ##[command]/usr/bin/docker ps --all --quiet --no-trunc --filter "label=550d4a"
+2026-09-27T12:45:14.0915643Z ##[command]/usr/bin/docker network prune --force --filter "label=550d4a"
+2026-09-27T12:45:14.1050089Z ##[endgroup]
+2026-09-27T12:45:14.1050621Z ##[group]Create local container network
+2026-09-27T12:45:14.1060628Z ##[command]/usr/bin/docker network create --label 550d4a github_network_805cd2122c7e4e2bbee8021093d02788
+2026-09-27T12:45:14.1546105Z 6932179de6936701e65d365c042a1db3297ea9c90f18632802ed53a113af7350
+2026-09-27T12:45:14.1562899Z ##[endgroup]
+2026-09-27T12:45:14.1587531Z ##[group]Starting postgres service container
+2026-09-27T12:45:14.1609348Z ##[command]/usr/bin/docker pull postgres:17
+2026-09-27T12:45:14.4274535Z 17: Pulling from library/postgres
+2026-09-27T12:45:14.4932586Z 6b37362b3da7: Pulling fs layer
+2026-09-27T12:45:14.4933595Z 0725a8be915e: Pulling fs layer
+2026-09-27T12:45:14.4934496Z 71f55f60a786: Pulling fs layer
+2026-09-27T12:45:14.4935448Z 564dc3c4a6f9: Pulling fs layer
+2026-09-27T12:45:14.4936575Z 752819419f50: Pulling fs layer
+2026-09-27T12:45:14.4937687Z 8b51b9245051: Pulling fs layer
+2026-09-27T12:45:14.4938770Z 498b9ff7d682: Pulling fs layer
+2026-09-27T12:45:14.4940154Z 755a851127eb: Pulling fs layer
+2026-09-27T12:45:14.4941056Z bbe7b3469b20: Pulling fs layer
+2026-09-27T12:45:14.4941798Z 73872941ba23: Pulling fs layer
+2026-09-27T12:45:14.4942456Z 2f9b6cf2e417: Pulling fs layer
+2026-09-27T12:45:14.4943222Z 3feaebf93d15: Pulling fs layer
+2026-09-27T12:45:14.4943904Z 50e228e2fe6d: Pulling fs layer
+2026-09-27T12:45:14.4944549Z bed9376b51dc: Pulling fs layer
+2026-09-27T12:45:14.4945474Z bbe7b3469b20: Waiting
+2026-09-27T12:45:14.4946042Z 564dc3c4a6f9: Waiting
+2026-09-27T12:45:14.4946589Z 3feaebf93d15: Waiting
+2026-09-27T12:45:14.4947135Z 752819419f50: Waiting
+2026-09-27T12:45:14.4947687Z 50e228e2fe6d: Waiting
+2026-09-27T12:45:14.4948235Z 8b51b9245051: Waiting
+2026-09-27T12:45:14.4948792Z bed9376b51dc: Waiting
+2026-09-27T12:45:14.4949649Z 498b9ff7d682: Waiting
+2026-09-27T12:45:14.4950219Z 73872941ba23: Waiting
+2026-09-27T12:45:14.4950789Z 2f9b6cf2e417: Waiting
+2026-09-27T12:45:14.4951350Z 755a851127eb: Waiting
+2026-09-27T12:45:14.5218654Z 0725a8be915e: Verifying Checksum
+2026-09-27T12:45:14.5550599Z 0725a8be915e: Download complete
+2026-09-27T12:45:14.5551952Z 71f55f60a786: Verifying Checksum
+2026-09-27T12:45:14.5553698Z 71f55f60a786: Download complete
+2026-09-27T12:45:14.5641716Z 564dc3c4a6f9: Verifying Checksum
+2026-09-27T12:45:14.5643551Z 564dc3c4a6f9: Download complete
+2026-09-27T12:45:14.6192478Z 752819419f50: Verifying Checksum
+2026-09-27T12:45:14.6194074Z 752819419f50: Download complete
+2026-09-27T12:45:14.6249929Z 8b51b9245051: Verifying Checksum
+2026-09-27T12:45:14.6252273Z 8b51b9245051: Download complete
+2026-09-27T12:45:14.6331606Z 6b37362b3da7: Verifying Checksum
+2026-09-27T12:45:14.6334192Z 6b37362b3da7: Download complete
+2026-09-27T12:45:14.6524868Z 498b9ff7d682: Verifying Checksum
+2026-09-27T12:45:14.6527259Z 498b9ff7d682: Download complete
+2026-09-27T12:45:14.6536344Z 755a851127eb: Verifying Checksum
+2026-09-27T12:45:14.6539550Z 755a851127eb: Download complete
+2026-09-27T12:45:14.6793413Z 73872941ba23: Verifying Checksum
+2026-09-27T12:45:14.6795640Z 73872941ba23: Download complete
+2026-09-27T12:45:14.6967555Z 2f9b6cf2e417: Verifying Checksum
+2026-09-27T12:45:14.6969049Z 2f9b6cf2e417: Download complete
+2026-09-27T12:45:14.7428893Z 3feaebf93d15: Download complete
+2026-09-27T12:45:14.7628875Z 50e228e2fe6d: Verifying Checksum
+2026-09-27T12:45:14.7630833Z 50e228e2fe6d: Download complete
+2026-09-27T12:45:14.7740850Z bed9376b51dc: Verifying Checksum
+2026-09-27T12:45:14.7742106Z bed9376b51dc: Download complete
+2026-09-27T12:45:15.0668060Z bbe7b3469b20: Verifying Checksum
+2026-09-27T12:45:15.0669851Z bbe7b3469b20: Download complete
+2026-09-27T12:45:15.7566776Z 6b37362b3da7: Pull complete
+2026-09-27T12:45:16.0769163Z 0725a8be915e: Pull complete
+2026-09-27T12:45:16.2560883Z 71f55f60a786: Pull complete
+2026-09-27T12:45:16.2953178Z 564dc3c4a6f9: Pull complete
+2026-09-27T12:45:16.6014621Z 752819419f50: Pull complete
+2026-09-27T12:45:16.6812333Z 8b51b9245051: Pull complete
+2026-09-27T12:45:16.6886768Z 498b9ff7d682: Pull complete
+2026-09-27T12:45:16.7008138Z 755a851127eb: Pull complete
+2026-09-27T12:45:19.7402635Z bbe7b3469b20: Pull complete
+2026-09-27T12:45:19.7562778Z 73872941ba23: Pull complete
+2026-09-27T12:45:19.7656550Z 2f9b6cf2e417: Pull complete
+2026-09-27T12:45:19.7749716Z 3feaebf93d15: Pull complete
+2026-09-27T12:45:19.7845283Z 50e228e2fe6d: Pull complete
+2026-09-27T12:45:19.7939890Z bed9376b51dc: Pull complete
+2026-09-27T12:45:19.7979538Z Digest: sha256:d74eeac9a635390a49bc21bd49fccd973de707e2a53a76ac49b552b8712ec46f
+2026-09-27T12:45:19.7992816Z Status: Downloaded newer image for postgres:17
+2026-09-27T12:45:19.8000930Z docker.io/library/postgres:17
+2026-09-27T12:45:19.8062068Z ##[command]/usr/bin/docker create --name a3e8e639cf1542cb8113bde45be4c5b0_postgres17_aa8261 --label 550d4a --network github_network_805cd2122c7e4e2bbee8021093d02788 --network-alias postgres -p 5432:5432 --health-cmd "pg_isready -U postgres" --health-interval 5s --health-timeout 5s --health-retries 10 -e "POSTGRES_HOST_AUTH_METHOD=trust" -e "POSTGRES_USER=postgres" -e "POSTGRES_PASSWORD=postgres" -e GITHUB_ACTIONS=true -e CI=true postgres:17
+2026-09-27T12:45:19.8312764Z 2dd9339fbfb62f6beabbc3132d9310f43a90496977338017e6c2d3e015ea4394
+2026-09-27T12:45:19.8334870Z ##[command]/usr/bin/docker start 2dd9339fbfb62f6beabbc3132d9310f43a90496977338017e6c2d3e015ea4394
+2026-09-27T12:45:20.0728044Z 2dd9339fbfb62f6beabbc3132d9310f43a90496977338017e6c2d3e015ea4394
+2026-09-27T12:45:20.0761680Z ##[command]/usr/bin/docker ps --all --filter id=2dd9339fbfb62f6beabbc3132d9310f43a90496977338017e6c2d3e015ea4394 --filter status=running --no-trunc --format "{{.ID}} {{.Status}}"
+2026-09-27T12:45:20.0902583Z 2dd9339fbfb62f6beabbc3132d9310f43a90496977338017e6c2d3e015ea4394 Up Less than a second (health: starting)
+2026-09-27T12:45:20.0926122Z ##[command]/usr/bin/docker port 2dd9339fbfb62f6beabbc3132d9310f43a90496977338017e6c2d3e015ea4394
+2026-09-27T12:45:20.1064949Z 5432/tcp -> 0.0.0.0:5432
+2026-09-27T12:45:20.1065705Z 5432/tcp -> [::]:5432
+2026-09-27T12:45:20.1112344Z ##[endgroup]
+2026-09-27T12:45:20.1121394Z ##[group]Waiting for all services to be ready
+2026-09-27T12:45:20.1134527Z ##[command]/usr/bin/docker inspect --format="{{if .Config.Healthcheck}}{{print .State.Health.Status}}{{end}}" 2dd9339fbfb62f6beabbc3132d9310f43a90496977338017e6c2d3e015ea4394
+2026-09-27T12:45:20.1271680Z starting
+2026-09-27T12:45:20.1293891Z postgres service is starting, waiting 2 seconds before checking again.
+2026-09-27T12:45:22.1291495Z ##[command]/usr/bin/docker inspect --format="{{if .Config.Healthcheck}}{{print .State.Health.Status}}{{end}}" 2dd9339fbfb62f6beabbc3132d9310f43a90496977338017e6c2d3e015ea4394
+2026-09-27T12:45:22.1419203Z starting
+2026-09-27T12:45:22.1431939Z postgres service is starting, waiting 4 seconds before checking again.
+2026-09-27T12:45:26.5255856Z ##[command]/usr/bin/docker inspect --format="{{if .Config.Healthcheck}}{{print .State.Health.Status}}{{end}}" 2dd9339fbfb62f6beabbc3132d9310f43a90496977338017e6c2d3e015ea4394
+2026-09-27T12:45:26.5381218Z healthy
+2026-09-27T12:45:26.5397520Z postgres service is healthy.
+2026-09-27T12:45:26.5398255Z ##[endgroup]
+2026-09-27T12:45:26.5684061Z ##[group]Run actions/checkout@v4
+2026-09-27T12:45:26.5684629Z with:
+2026-09-27T12:45:26.5684847Z   repository: naruto-aii/AYG
+2026-09-27T12:45:26.5687342Z   token: ***
+2026-09-27T12:45:26.5687550Z   ssh-strict: true
+2026-09-27T12:45:26.5687755Z   ssh-user: git
+2026-09-27T12:45:26.5687967Z   persist-credentials: true
+2026-09-27T12:45:26.5688208Z   clean: true
+2026-09-27T12:45:26.5688435Z   sparse-checkout-cone-mode: true
+2026-09-27T12:45:26.5688691Z   fetch-depth: 1
+2026-09-27T12:45:26.5688886Z   fetch-tags: false
+2026-09-27T12:45:26.5689090Z   show-progress: true
+2026-09-27T12:45:26.5689573Z   lfs: false
+2026-09-27T12:45:26.5689770Z   submodules: false
+2026-09-27T12:45:26.5689982Z   set-safe-directory: true
+2026-09-27T12:45:26.5690232Z   allow-unsafe-pr-checkout: false
+2026-09-27T12:45:26.5690894Z ##[endgroup]
+2026-09-27T12:45:26.6801611Z Syncing repository: naruto-aii/AYG
+2026-09-27T12:45:26.6803369Z ##[group]Getting Git version info
+2026-09-27T12:45:26.6803964Z Working directory is '/home/runner/work/AYG/AYG'
+2026-09-27T12:45:26.6804742Z [command]/usr/bin/git version
+2026-09-27T12:45:26.6870070Z git version 2.55.0
+2026-09-27T12:45:26.6905182Z ##[endgroup]
+2026-09-27T12:45:26.6913534Z Temporarily overriding HOME='/home/runner/work/_temp/f0d625ee-6aea-41d8-870d-ab40c4ed5003' before making global git config changes
+2026-09-27T12:45:26.6932100Z Adding repository directory to the temporary git global config as a safe directory
+2026-09-27T12:45:26.6933073Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/AYG/AYG
+2026-09-27T12:45:26.6976926Z Deleting the contents of '/home/runner/work/AYG/AYG'
+2026-09-27T12:45:26.6982587Z ##[group]Initializing the repository
+2026-09-27T12:45:26.6987188Z [command]/usr/bin/git init /home/runner/work/AYG/AYG
+2026-09-27T12:45:26.7090158Z hint: Using 'master' as the name for the initial branch. This default branch name
+2026-09-27T12:45:26.7094304Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+2026-09-27T12:45:26.7095211Z hint: to use in all of your new repositories, which will suppress this warning,
+2026-09-27T12:45:26.7095862Z hint: call:
+2026-09-27T12:45:26.7096161Z hint:
+2026-09-27T12:45:26.7096675Z hint: 	git config --global init.defaultBranch <name>
+2026-09-27T12:45:26.7097221Z hint:
+2026-09-27T12:45:26.7097708Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+2026-09-27T12:45:26.7098852Z hint: 'development'. The just-created branch can be renamed via this command:
+2026-09-27T12:45:26.7099696Z hint:
+2026-09-27T12:45:26.7100010Z hint: 	git branch -m <name>
+2026-09-27T12:45:26.7100372Z hint:
+2026-09-27T12:45:26.7100890Z hint: Disable this message with "git config set advice.defaultBranchName false"
+2026-09-27T12:45:26.7101989Z Initialized empty Git repository in /home/runner/work/AYG/AYG/.git/
+2026-09-27T12:45:26.7105061Z [command]/usr/bin/git remote add origin https://github.com/naruto-aii/AYG
+2026-09-27T12:45:26.7169033Z ##[endgroup]
+2026-09-27T12:45:26.7169928Z ##[group]Disabling automatic garbage collection
+2026-09-27T12:45:26.7175336Z [command]/usr/bin/git config --local gc.auto 0
+2026-09-27T12:45:26.7208116Z ##[endgroup]
+2026-09-27T12:45:26.7208925Z ##[group]Setting up auth
+2026-09-27T12:45:26.7217172Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-09-27T12:45:26.7250134Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-09-27T12:45:26.7636264Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-09-27T12:45:26.7679432Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-09-27T12:45:26.7909504Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-09-27T12:45:26.7945887Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-09-27T12:45:26.8167978Z [command]/usr/bin/git config --local http.https://github.com/.extraheader AUTHORIZATION: basic ***
+2026-09-27T12:45:26.8209045Z ##[endgroup]
+2026-09-27T12:45:26.8210511Z ##[group]Fetching the repository
+2026-09-27T12:45:26.8219835Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +f188dcdeb0f64961aca4c22d7f1a18bb19d575a9:refs/remotes/pull/29/merge
+2026-09-27T12:45:27.3379776Z From https://github.com/naruto-aii/AYG
+2026-09-27T12:45:27.3380320Z  * [new ref]         f188dcdeb0f64961aca4c22d7f1a18bb19d575a9 -> pull/29/merge
+2026-09-27T12:45:27.3392473Z ##[endgroup]
+2026-09-27T12:45:27.3392908Z ##[group]Determining the checkout info
+2026-09-27T12:45:27.3393352Z ##[endgroup]
+2026-09-27T12:45:27.3395325Z [command]/usr/bin/git sparse-checkout disable
+2026-09-27T12:45:27.3452018Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+2026-09-27T12:45:27.3485527Z ##[group]Checking out the ref
+2026-09-27T12:45:27.3492229Z [command]/usr/bin/git checkout --progress --force refs/remotes/pull/29/merge
+2026-09-27T12:45:27.4779518Z Note: switching to 'refs/remotes/pull/29/merge'.
+2026-09-27T12:45:27.4780014Z 
+2026-09-27T12:45:27.4780379Z You are in 'detached HEAD' state. You can look around, make experimental
+2026-09-27T12:45:27.4781299Z changes and commit them, and you can discard any commits you make in this
+2026-09-27T12:45:27.4782151Z state without impacting any branches by switching back to a branch.
+2026-09-27T12:45:27.4782659Z 
+2026-09-27T12:45:27.4783109Z If you want to create a new branch to retain commits you create, you may
+2026-09-27T12:45:27.4783852Z do so (now or later) by using -c with the switch command. Example:
+2026-09-27T12:45:27.4784278Z 
+2026-09-27T12:45:27.4784442Z   git switch -c <new-branch-name>
+2026-09-27T12:45:27.4784721Z 
+2026-09-27T12:45:27.4784894Z Or undo this operation with:
+2026-09-27T12:45:27.4785159Z 
+2026-09-27T12:45:27.4785292Z   git switch -
+2026-09-27T12:45:27.4785573Z 
+2026-09-27T12:45:27.4785921Z Turn off this advice by setting config variable advice.detachedHead to false
+2026-09-27T12:45:27.4786431Z 
+2026-09-27T12:45:27.4787019Z HEAD is now at f188dcd Merge 4c54fc4e559281cd66b66cb293631be9bf0033d6 into dafac17bafc86d0884932f5d7544b31d6d786d91
+2026-09-27T12:45:27.4795625Z ##[endgroup]
+2026-09-27T12:45:27.4849931Z [command]/usr/bin/git log -1 --format=%H
+2026-09-27T12:45:27.4878279Z f188dcdeb0f64961aca4c22d7f1a18bb19d575a9
+2026-09-27T12:45:27.5087301Z ##[group]Run cid="$(docker ps -q --filter ancestor=postgres:17 | head -n 1)"
+2026-09-27T12:45:27.5087896Z [36;1mcid="$(docker ps -q --filter ancestor=postgres:17 | head -n 1)"[0m
+2026-09-27T12:45:27.5088288Z [36;1mtest -n "$cid"[0m
+2026-09-27T12:45:27.5088599Z [36;1msharedir="$(docker exec "$cid" pg_config --sharedir)"[0m
+2026-09-27T12:45:27.5089033Z [36;1mdocker cp supabase/tests/pg_ext/supabase_vault.control \[0m
+2026-09-27T12:45:27.5089787Z [36;1m  "$cid:${sharedir}/extension/supabase_vault.control"[0m
+2026-09-27T12:45:27.5090197Z [36;1mdocker cp supabase/tests/pg_ext/supabase_vault--1.0.sql \[0m
+2026-09-27T12:45:27.5090596Z [36;1m  "$cid:${sharedir}/extension/supabase_vault--1.0.sql"[0m
+2026-09-27T12:45:27.5304721Z shell: /usr/bin/bash -e {0}
+2026-09-27T12:45:27.5305038Z ##[endgroup]
+2026-09-27T12:45:27.6475706Z ##[group]Run sudo apt-get update && sudo apt-get install -y postgresql-client
+2026-09-27T12:45:27.6476319Z [36;1msudo apt-get update && sudo apt-get install -y postgresql-client[0m
+2026-09-27T12:45:27.6541725Z shell: /usr/bin/bash -e {0}
+2026-09-27T12:45:27.6542002Z ##[endgroup]
+2026-09-27T12:45:27.7430577Z Get:1 file:/etc/apt/apt-mirrors.txt Mirrorlist [144 B]
+2026-09-27T12:45:27.7745701Z Hit:2 http://azure.archive.ubuntu.com/ubuntu noble InRelease
+2026-09-27T12:45:27.7747096Z Get:6 https://packages.microsoft.com/ubuntu/24.04/prod noble InRelease [3600 B]
+2026-09-27T12:45:27.7762960Z Get:3 http://azure.archive.ubuntu.com/ubuntu noble-updates InRelease [126 kB]
+2026-09-27T12:45:27.7825767Z Get:4 http://azure.archive.ubuntu.com/ubuntu noble-backports InRelease [126 kB]
+2026-09-27T12:45:27.7839048Z Get:5 http://azure.archive.ubuntu.com/ubuntu noble-security InRelease [126 kB]
+2026-09-27T12:45:27.9046915Z Get:7 https://packages.microsoft.com/ubuntu/24.04/prod noble/main amd64 Packages [498 kB]
+2026-09-27T12:45:27.9210285Z Get:8 https://packages.microsoft.com/ubuntu/24.04/prod noble/main arm64 Packages [446 kB]
+2026-09-27T12:45:27.9587357Z Get:9 http://azure.archive.ubuntu.com/ubuntu noble-updates/main amd64 Packages [1319 kB]
+2026-09-27T12:45:27.9672946Z Get:10 http://azure.archive.ubuntu.com/ubuntu noble-updates/main Translation-en [299 kB]
+2026-09-27T12:45:27.9697354Z Get:11 http://azure.archive.ubuntu.com/ubuntu noble-updates/main amd64 Components [181 kB]
+2026-09-27T12:45:27.9712992Z Get:12 http://azure.archive.ubuntu.com/ubuntu noble-updates/universe amd64 Packages [1697 kB]
+2026-09-27T12:45:27.9813814Z Get:13 http://azure.archive.ubuntu.com/ubuntu noble-updates/universe Translation-en [340 kB]
+2026-09-27T12:45:27.9836832Z Get:14 http://azure.archive.ubuntu.com/ubuntu noble-updates/universe amd64 Components [388 kB]
+2026-09-27T12:45:27.9861700Z Get:15 http://azure.archive.ubuntu.com/ubuntu noble-updates/restricted amd64 Packages [1654 kB]
+2026-09-27T12:45:27.9942428Z Get:16 http://azure.archive.ubuntu.com/ubuntu noble-updates/restricted Translation-en [377 kB]
+2026-09-27T12:45:27.9972271Z Get:17 http://azure.archive.ubuntu.com/ubuntu noble-updates/multiverse amd64 Components [940 B]
+2026-09-27T12:45:28.0219520Z Get:18 http://azure.archive.ubuntu.com/ubuntu noble-backports/main amd64 Packages [40.6 kB]
+2026-09-27T12:45:28.0658499Z Get:19 http://azure.archive.ubuntu.com/ubuntu noble-backports/main amd64 Components [5760 B]
+2026-09-27T12:45:28.0670553Z Get:20 http://azure.archive.ubuntu.com/ubuntu noble-backports/universe amd64 Packages [31.0 kB]
+2026-09-27T12:45:28.0683713Z Get:21 http://azure.archive.ubuntu.com/ubuntu noble-backports/universe Translation-en [18.6 kB]
+2026-09-27T12:45:28.0686863Z Get:22 http://azure.archive.ubuntu.com/ubuntu noble-backports/universe amd64 Components [12.6 kB]
+2026-09-27T12:45:28.0851270Z Get:23 http://azure.archive.ubuntu.com/ubuntu noble-security/main amd64 Packages [1053 kB]
+2026-09-27T12:45:28.0903672Z Get:24 http://azure.archive.ubuntu.com/ubuntu noble-security/main Translation-en [219 kB]
+2026-09-27T12:45:28.0928945Z Get:25 http://azure.archive.ubuntu.com/ubuntu noble-security/main amd64 Components [46.5 kB]
+2026-09-27T12:45:28.0960900Z Get:26 http://azure.archive.ubuntu.com/ubuntu noble-security/universe amd64 Packages [1220 kB]
+2026-09-27T12:45:28.1023623Z Get:27 http://azure.archive.ubuntu.com/ubuntu noble-security/universe Translation-en [245 kB]
+2026-09-27T12:45:28.1037789Z Get:28 http://azure.archive.ubuntu.com/ubuntu noble-security/universe amd64 Components [76.3 kB]
+2026-09-27T12:45:28.1059667Z Get:29 http://azure.archive.ubuntu.com/ubuntu noble-security/restricted amd64 Packages [1535 kB]
+2026-09-27T12:45:28.1161603Z Get:30 http://azure.archive.ubuntu.com/ubuntu noble-security/restricted Translation-en [353 kB]
+2026-09-27T12:45:32.5827399Z Fetched 12.4 MB in 1s (9183 kB/s)
+2026-09-27T12:45:33.4551929Z Reading package lists...
+2026-09-27T12:45:33.4863511Z Reading package lists...
+2026-09-27T12:45:33.6888390Z Building dependency tree...
+2026-09-27T12:45:33.6896638Z Reading state information...
+2026-09-27T12:45:33.8613723Z The following NEW packages will be installed:
+2026-09-27T12:45:33.8614259Z   postgresql-client
+2026-09-27T12:45:33.8803611Z 0 upgraded, 1 newly installed, 0 to remove and 32 not upgraded.
+2026-09-27T12:45:33.8804275Z Need to get 11.6 kB of archives.
+2026-09-27T12:45:33.8804857Z After this operation, 17.4 kB of additional disk space will be used.
+2026-09-27T12:45:33.8805576Z Get:1 file:/etc/apt/apt-mirrors.txt Mirrorlist [144 B]
+2026-09-27T12:45:33.9882788Z Get:2 http://azure.archive.ubuntu.com/ubuntu noble-updates/main amd64 postgresql-client all 16+257build1.1 [11.6 kB]
+2026-09-27T12:45:34.2379763Z Fetched 11.6 kB in 0s (96.4 kB/s)
+2026-09-27T12:45:34.2585901Z Selecting previously unselected package postgresql-client.
+2026-09-27T12:45:34.2895442Z (Reading database ... 
+2026-09-27T12:45:34.2895973Z (Reading database ... 5%
+2026-09-27T12:45:34.2896440Z (Reading database ... 10%
+2026-09-27T12:45:34.2896926Z (Reading database ... 15%
+2026-09-27T12:45:34.2897397Z (Reading database ... 20%
+2026-09-27T12:45:34.2898016Z (Reading database ... 25%
+2026-09-27T12:45:34.2898467Z (Reading database ... 30%
+2026-09-27T12:45:34.2898919Z (Reading database ... 35%
+2026-09-27T12:45:34.2899510Z (Reading database ... 40%
+2026-09-27T12:45:34.2899788Z (Reading database ... 45%
+2026-09-27T12:45:34.2900052Z (Reading database ... 50%
+2026-09-27T12:45:34.2955563Z (Reading database ... 55%
+2026-09-27T12:45:34.4143753Z (Reading database ... 60%
+2026-09-27T12:45:34.6191484Z (Reading database ... 65%
+2026-09-27T12:45:34.8073612Z (Reading database ... 70%
+2026-09-27T12:45:34.9739083Z (Reading database ... 75%
+2026-09-27T12:45:35.1262671Z (Reading database ... 80%
+2026-09-27T12:45:35.3737259Z (Reading database ... 85%
+2026-09-27T12:45:35.5704429Z (Reading database ... 90%
+2026-09-27T12:45:35.7744793Z (Reading database ... 95%
+2026-09-27T12:45:35.7745187Z (Reading database ... 100%
+2026-09-27T12:45:35.7745670Z (Reading database ... 202190 files and directories currently installed.)
+2026-09-27T12:45:35.7787402Z Preparing to unpack .../postgresql-client_16+257build1.1_all.deb ...
+2026-09-27T12:45:35.7813788Z Unpacking postgresql-client (16+257build1.1) ...
+2026-09-27T12:45:35.8170377Z Setting up postgresql-client (16+257build1.1) ...
+2026-09-27T12:45:36.4847035Z 
+2026-09-27T12:45:36.4847623Z Running kernel seems to be up-to-date.
+2026-09-27T12:45:36.4847921Z 
+2026-09-27T12:45:36.4848044Z No services need to be restarted.
+2026-09-27T12:45:36.4848260Z 
+2026-09-27T12:45:36.4848384Z No containers need to be restarted.
+2026-09-27T12:45:36.4848611Z 
+2026-09-27T12:45:36.4848757Z No user sessions are running outdated binaries.
+2026-09-27T12:45:36.4849018Z 
+2026-09-27T12:45:36.4849573Z No VM guests are running outdated hypervisor (qemu) binaries on this host.
+2026-09-27T12:45:37.5300901Z ##[group]Run DATABASE_URL=postgres://postgres@127.0.0.1:5432/postgres bash supabase/tests/run_sql_smoke.sh
+2026-09-27T12:45:37.5301707Z [36;1mDATABASE_URL=postgres://postgres@127.0.0.1:5432/postgres bash supabase/tests/run_sql_smoke.sh[0m
+2026-09-27T12:45:37.5366179Z shell: /usr/bin/bash -e {0}
+2026-09-27T12:45:37.5366451Z ##[endgroup]
+2026-09-27T12:45:37.8002120Z pg17 syntax repro passed
+2026-09-27T12:45:37.8364006Z CREATE EXTENSION
+2026-09-27T12:45:37.8385246Z DO
+2026-09-27T12:45:37.8389825Z CREATE SCHEMA
+2026-09-27T12:45:37.8393001Z CREATE SCHEMA
+2026-09-27T12:45:37.8418478Z CREATE TABLE
+2026-09-27T12:45:37.8434968Z CREATE TABLE
+2026-09-27T12:45:37.8443623Z CREATE TABLE
+2026-09-27T12:45:37.8458984Z CREATE TABLE
+2026-09-27T12:45:37.8463833Z CREATE FUNCTION
+2026-09-27T12:45:37.8468013Z CREATE FUNCTION
+2026-09-27T12:45:37.8473974Z GRANT
+2026-09-27T12:45:37.8484746Z GRANT
+2026-09-27T12:45:37.8524936Z apply supabase/migrations/20260722130000_create_v1_1_schema.sql
+2026-09-27T12:45:37.8869771Z CREATE TABLE
+2026-09-27T12:45:37.8876407Z CREATE INDEX
+2026-09-27T12:45:37.8893620Z CREATE TABLE
+2026-09-27T12:45:37.8899573Z CREATE INDEX
+2026-09-27T12:45:37.8915127Z CREATE TABLE
+2026-09-27T12:45:37.8920809Z CREATE INDEX
+2026-09-27T12:45:37.8936563Z CREATE TABLE
+2026-09-27T12:45:37.8943085Z CREATE INDEX
+2026-09-27T12:45:37.8955646Z CREATE TABLE
+2026-09-27T12:45:37.8961517Z CREATE INDEX
+2026-09-27T12:45:37.8971924Z CREATE TABLE
+2026-09-27T12:45:37.8977674Z CREATE INDEX
+2026-09-27T12:45:37.8994899Z CREATE TABLE
+2026-09-27T12:45:37.9000734Z CREATE INDEX
+2026-09-27T12:45:37.9006981Z CREATE INDEX
+2026-09-27T12:45:37.9022059Z CREATE TABLE
+2026-09-27T12:45:37.9029046Z CREATE INDEX
+2026-09-27T12:45:37.9035451Z CREATE INDEX
+2026-09-27T12:45:37.9053900Z CREATE TABLE
+2026-09-27T12:45:37.9059865Z CREATE INDEX
+2026-09-27T12:45:37.9065430Z CREATE INDEX
+2026-09-27T12:45:37.9075118Z CREATE FUNCTION
+2026-09-27T12:45:37.9080415Z psql:supabase/migrations/20260722130000_create_v1_1_schema.sql:175: NOTICE:  trigger "set_profiles_updated_at" for relation "public.profiles" does not exist, skipping
+2026-09-27T12:45:37.9083008Z psql:supabase/migrations/20260722130000_create_v1_1_schema.sql:175: NOTICE:  trigger "set_goals_updated_at" for relation "public.goals" does not exist, skipping
+2026-09-27T12:45:37.9086180Z psql:supabase/migrations/20260722130000_create_v1_1_schema.sql:175: NOTICE:  trigger "set_nutrition_settings_updated_at" for relation "public.nutrition_settings" does not exist, skipping
+2026-09-27T12:45:37.9088601Z psql:supabase/migrations/20260722130000_create_v1_1_schema.sql:175: NOTICE:  trigger "set_health_snapshots_updated_at" for relation "public.health_snapshots" does not exist, skipping
+2026-09-27T12:45:37.9091306Z psql:supabase/migrations/20260722130000_create_v1_1_schema.sql:175: NOTICE:  trigger "set_app_settings_updated_at" for relation "public.app_settings" does not exist, skipping
+2026-09-27T12:45:37.9092601Z psql:supabase/migrations/20260722130000_create_v1_1_schema.sql:175: NOTICE:  trigger "set_food_entries_updated_at" for relation "public.food_entries" does not exist, skipping
+2026-09-27T12:45:37.9093840Z psql:supabase/migrations/20260722130000_create_v1_1_schema.sql:175: NOTICE:  trigger "set_exercise_entries_updated_at" for relation "public.exercise_entries" does not exist, skipping
+2026-09-27T12:45:37.9095059Z psql:supabase/migrations/20260722130000_create_v1_1_schema.sql:175: NOTICE:  trigger "set_weight_entries_updated_at" for relation "public.weight_entries" does not exist, skipping
+2026-09-27T12:45:37.9095781Z DO
+2026-09-27T12:45:37.9100249Z ALTER TABLE
+2026-09-27T12:45:37.9103487Z ALTER TABLE
+2026-09-27T12:45:37.9107306Z ALTER TABLE
+2026-09-27T12:45:37.9111499Z ALTER TABLE
+2026-09-27T12:45:37.9114971Z ALTER TABLE
+2026-09-27T12:45:37.9118378Z ALTER TABLE
+2026-09-27T12:45:37.9122099Z ALTER TABLE
+2026-09-27T12:45:37.9125645Z ALTER TABLE
+2026-09-27T12:45:37.9129017Z ALTER TABLE
+2026-09-27T12:45:37.9132575Z psql:supabase/migrations/20260722130000_create_v1_1_schema.sql:191: NOTICE:  policy "users_select_own" for relation "public.users" does not exist, skipping
+2026-09-27T12:45:37.9133284Z DROP POLICY
+2026-09-27T12:45:37.9137757Z CREATE POLICY
+2026-09-27T12:45:37.9140945Z psql:supabase/migrations/20260722130000_create_v1_1_schema.sql:196: NOTICE:  policy "users_insert_own" for relation "public.users" does not exist, skipping
+2026-09-27T12:45:37.9142098Z DROP POLICY
+2026-09-27T12:45:37.9144899Z CREATE POLICY
+2026-09-27T12:45:37.9148120Z psql:supabase/migrations/20260722130000_create_v1_1_schema.sql:201: NOTICE:  policy "users_update_own" for relation "public.users" does not exist, skipping
+2026-09-27T12:45:37.9148937Z DROP POLICY
+2026-09-27T12:45:37.9152445Z CREATE POLICY
+2026-09-27T12:45:37.9155576Z psql:supabase/migrations/20260722130000_create_v1_1_schema.sql:207: NOTICE:  policy "users_delete_own" for relation "public.users" does not exist, skipping
+2026-09-27T12:45:37.9156513Z DROP POLICY
+2026-09-27T12:45:37.9158475Z CREATE POLICY
+2026-09-27T12:45:37.9161771Z psql:supabase/migrations/20260722130000_create_v1_1_schema.sql:213: NOTICE:  policy "profiles_select_own" for relation "public.profiles" does not exist, skipping
+2026-09-27T12:45:37.9162805Z DROP POLICY
+2026-09-27T12:45:37.9164788Z CREATE POLICY
+2026-09-27T12:45:37.9167890Z psql:supabase/migrations/20260722130000_create_v1_1_schema.sql:218: NOTICE:  policy "profiles_insert_own" for relation "public.profiles" does not exist, skipping
+2026-09-27T12:45:37.9169326Z DROP POLICY
+2026-09-27T12:45:37.9172697Z CREATE POLICY
+2026-09-27T12:45:37.9175882Z psql:supabase/migrations/20260722130000_create_v1_1_schema.sql:223: NOTICE:  policy "profiles_update_own" for relation "public.profiles" does not exist, skipping
+2026-09-27T12:45:37.9176813Z DROP POLICY
+2026-09-27T12:45:37.9179475Z CREATE POLICY
+2026-09-27T12:45:37.9182543Z psql:supabase/migrations/20260722130000_create_v1_1_schema.sql:229: NOTICE:  policy "profiles_delete_own" for relation "public.profiles" does not exist, skipping
+2026-09-27T12:45:37.9183430Z DROP POLICY
+2026-09-27T12:45:37.9186061Z CREATE POLICY
+2026-09-27T12:45:37.9189704Z psql:supabase/migrations/20260722130000_create_v1_1_schema.sql:234: NOTICE:  policy "goals_select_own" for relation "public.goals" does not exist, skipping
+2026-09-27T12:45:37.9191065Z DROP POLICY
+2026-09-27T12:45:37.9193752Z CREATE POLICY
+2026-09-27T12:45:37.9197161Z psql:supabase/migrations/20260722130000_create_v1_1_schema.sql:239: NOTICE:  policy "goals_insert_own" for relation "public.goals" does not exist, skipping
+2026-09-27T12:45:37.9198537Z DROP POLICY
+2026-09-27T12:45:37.9199710Z CREATE POLICY
+2026-09-27T12:45:37.9203235Z psql:supabase/migrations/20260722130000_create_v1_1_schema.sql:244: NOTICE:  policy "goals_update_own" for relation "public.goals" does not exist, skipping
+2026-09-27T12:45:37.9204515Z DROP POLICY
+2026-09-27T12:45:37.9207328Z CREATE POLICY
+2026-09-27T12:45:37.9211273Z psql:supabase/migrations/20260722130000_create_v1_1_schema.sql:250: NOTICE:  policy "goals_delete_own" for relation "public.goals" does not exist, skipping
+2026-09-27T12:45:37.9211971Z DROP POLICY
+2026-09-27T12:45:37.9214048Z CREATE POLICY
+2026-09-27T12:45:37.9217158Z psql:supabase/migrations/20260722130000_create_v1_1_schema.sql:255: NOTICE:  policy "nutrition_settings_select_own" for relation "public.nutrition_settings" does not exist, skipping
+2026-09-27T12:45:37.9218162Z DROP POLICY
+2026-09-27T12:45:37.9220038Z CREATE POLICY
+2026-09-27T12:45:37.9223561Z psql:supabase/migrations/20260722130000_create_v1_1_schema.sql:260: NOTICE:  policy "nutrition_settings_insert_own" for relation "public.nutrition_settings" does not exist, skipping
+2026-09-27T12:45:37.9224621Z DROP POLICY
+2026-09-27T12:45:37.9226099Z CREATE POLICY
+2026-09-27T12:45:37.9229631Z psql:supabase/migrations/20260722130000_create_v1_1_schema.sql:265: NOTICE:  policy "nutrition_settings_update_own" for relation "public.nutrition_settings" does not exist, skipping
+2026-09-27T12:45:37.9231168Z DROP POLICY
+2026-09-27T12:45:37.9233918Z CREATE POLICY
+2026-09-27T12:45:37.9237526Z psql:supabase/migrations/20260722130000_create_v1_1_schema.sql:271: NOTICE:  policy "nutrition_settings_delete_own" for relation "public.nutrition_settings" does not exist, skipping
+2026-09-27T12:45:37.9238991Z DROP POLICY
+2026-09-27T12:45:37.9240741Z CREATE POLICY
+2026-09-27T12:45:37.9243839Z psql:supabase/migrations/20260722130000_create_v1_1_schema.sql:276: NOTICE:  policy "health_snapshots_select_own" for relation "public.health_snapshots" does not exist, skipping
+2026-09-27T12:45:37.9245276Z DROP POLICY
+2026-09-27T12:45:37.9246877Z CREATE POLICY
+2026-09-27T12:45:37.9250184Z psql:supabase/migrations/20260722130000_create_v1_1_schema.sql:281: NOTICE:  policy "health_snapshots_insert_own" for relation "public.health_snapshots" does not exist, skipping
+2026-09-27T12:45:37.9251585Z DROP POLICY
+2026-09-27T12:45:37.9253145Z CREATE POLICY
+2026-09-27T12:45:37.9256418Z psql:supabase/migrations/20260722130000_create_v1_1_schema.sql:286: NOTICE:  policy "health_snapshots_update_own" for relation "public.health_snapshots" does not exist, skipping
+2026-09-27T12:45:37.9257744Z DROP POLICY
+2026-09-27T12:45:37.9260418Z CREATE POLICY
+2026-09-27T12:45:37.9263969Z psql:supabase/migrations/20260722130000_create_v1_1_schema.sql:292: NOTICE:  policy "health_snapshots_delete_own" for relation "public.health_snapshots" does not exist, skipping
+2026-09-27T12:45:37.9265317Z DROP POLICY
+2026-09-27T12:45:37.9267051Z CREATE POLICY
+2026-09-27T12:45:37.9270151Z psql:supabase/migrations/20260722130000_create_v1_1_schema.sql:297: NOTICE:  policy "app_settings_select_own" for relation "public.app_settings" does not exist, skipping
+2026-09-27T12:45:37.9270885Z DROP POLICY
+2026-09-27T12:45:37.9274889Z CREATE POLICY
+2026-09-27T12:45:37.9278391Z psql:supabase/migrations/20260722130000_create_v1_1_schema.sql:302: NOTICE:  policy "app_settings_insert_own" for relation "public.app_settings" does not exist, skipping
+2026-09-27T12:45:37.9279978Z DROP POLICY
+2026-09-27T12:45:37.9280803Z CREATE POLICY
+2026-09-27T12:45:37.9284199Z psql:supabase/migrations/20260722130000_create_v1_1_schema.sql:307: NOTICE:  policy "app_settings_update_own" for relation "public.app_settings" does not exist, skipping
+2026-09-27T12:45:37.9284931Z DROP POLICY
+2026-09-27T12:45:37.9287881Z CREATE POLICY
+2026-09-27T12:45:37.9290867Z psql:supabase/migrations/20260722130000_create_v1_1_schema.sql:313: NOTICE:  policy "app_settings_delete_own" for relation "public.app_settings" does not exist, skipping
+2026-09-27T12:45:37.9292072Z DROP POLICY
+2026-09-27T12:45:37.9294033Z CREATE POLICY
+2026-09-27T12:45:37.9297163Z psql:supabase/migrations/20260722130000_create_v1_1_schema.sql:318: NOTICE:  policy "food_entries_select_own" for relation "public.food_entries" does not exist, skipping
+2026-09-27T12:45:37.9298060Z DROP POLICY
+2026-09-27T12:45:37.9300190Z CREATE POLICY
+2026-09-27T12:45:37.9303475Z psql:supabase/migrations/20260722130000_create_v1_1_schema.sql:323: NOTICE:  policy "food_entries_insert_own" for relation "public.food_entries" does not exist, skipping
+2026-09-27T12:45:37.9304190Z DROP POLICY
+2026-09-27T12:45:37.9306197Z CREATE POLICY
+2026-09-27T12:45:37.9309561Z psql:supabase/migrations/20260722130000_create_v1_1_schema.sql:328: NOTICE:  policy "food_entries_update_own" for relation "public.food_entries" does not exist, skipping
+2026-09-27T12:45:37.9310700Z DROP POLICY
+2026-09-27T12:45:37.9313470Z CREATE POLICY
+2026-09-27T12:45:37.9317393Z psql:supabase/migrations/20260722130000_create_v1_1_schema.sql:334: NOTICE:  policy "food_entries_delete_own" for relation "public.food_entries" does not exist, skipping
+2026-09-27T12:45:37.9318147Z DROP POLICY
+2026-09-27T12:45:37.9319433Z CREATE POLICY
+2026-09-27T12:45:37.9322649Z psql:supabase/migrations/20260722130000_create_v1_1_schema.sql:339: NOTICE:  policy "exercise_entries_select_own" for relation "public.exercise_entries" does not exist, skipping
+2026-09-27T12:45:37.9323770Z DROP POLICY
+2026-09-27T12:45:37.9325771Z CREATE POLICY
+2026-09-27T12:45:37.9328828Z psql:supabase/migrations/20260722130000_create_v1_1_schema.sql:344: NOTICE:  policy "exercise_entries_insert_own" for relation "public.exercise_entries" does not exist, skipping
+2026-09-27T12:45:37.9330347Z DROP POLICY
+2026-09-27T12:45:37.9332107Z CREATE POLICY
+2026-09-27T12:45:37.9335383Z psql:supabase/migrations/20260722130000_create_v1_1_schema.sql:349: NOTICE:  policy "exercise_entries_update_own" for relation "public.exercise_entries" does not exist, skipping
+2026-09-27T12:45:37.9336898Z DROP POLICY
+2026-09-27T12:45:37.9342223Z CREATE POLICY
+2026-09-27T12:45:37.9345998Z psql:supabase/migrations/20260722130000_create_v1_1_schema.sql:355: NOTICE:  policy "exercise_entries_delete_own" for relation "public.exercise_entries" does not exist, skipping
+2026-09-27T12:45:37.9347159Z DROP POLICY
+2026-09-27T12:45:37.9349925Z CREATE POLICY
+2026-09-27T12:45:37.9352702Z psql:supabase/migrations/20260722130000_create_v1_1_schema.sql:360: NOTICE:  policy "weight_entries_select_own" for relation "public.weight_entries" does not exist, skipping
+2026-09-27T12:45:37.9353942Z DROP POLICY
+2026-09-27T12:45:37.9356191Z CREATE POLICY
+2026-09-27T12:45:37.9359290Z psql:supabase/migrations/20260722130000_create_v1_1_schema.sql:365: NOTICE:  policy "weight_entries_insert_own" for relation "public.weight_entries" does not exist, skipping
+2026-09-27T12:45:37.9360459Z DROP POLICY
+2026-09-27T12:45:37.9362764Z CREATE POLICY
+2026-09-27T12:45:37.9399794Z psql:supabase/migrations/20260722130000_create_v1_1_schema.sql:370: NOTICE:  policy "weight_entries_update_own" for relation "public.weight_entries" does not exist, skipping
+2026-09-27T12:45:37.9401347Z DROP POLICY
+2026-09-27T12:45:37.9402445Z psql:supabase/migrations/20260722130000_create_v1_1_schema.sql:376: NOTICE:  policy "weight_entries_delete_own" for relation "public.weight_entries" does not exist, skipping
+2026-09-27T12:45:37.9403656Z CREATE POLICY
+2026-09-27T12:45:37.9403983Z DROP POLICY
+2026-09-27T12:45:37.9404292Z CREATE POLICY
+2026-09-27T12:45:37.9404802Z apply supabase/migrations/20260723120000_add_food_master_public_v1_1.sql
+2026-09-27T12:45:37.9708907Z BEGIN
+2026-09-27T12:45:37.9715906Z CREATE FUNCTION
+2026-09-27T12:45:37.9718274Z CREATE FUNCTION
+2026-09-27T12:45:37.9760612Z CREATE TABLE
+2026-09-27T12:45:37.9765347Z CREATE INDEX
+2026-09-27T12:45:37.9770362Z CREATE INDEX
+2026-09-27T12:45:37.9775450Z CREATE INDEX
+2026-09-27T12:45:37.9782063Z CREATE INDEX
+2026-09-27T12:45:37.9801389Z CREATE TABLE
+2026-09-27T12:45:37.9806203Z CREATE INDEX
+2026-09-27T12:45:37.9811005Z CREATE INDEX
+2026-09-27T12:45:37.9834085Z CREATE TABLE
+2026-09-27T12:45:37.9839029Z CREATE INDEX
+2026-09-27T12:45:37.9844389Z CREATE INDEX
+2026-09-27T12:45:37.9867042Z CREATE TABLE
+2026-09-27T12:45:37.9872853Z CREATE INDEX
+2026-09-27T12:45:37.9877496Z CREATE INDEX
+2026-09-27T12:45:37.9894807Z CREATE TABLE
+2026-09-27T12:45:37.9922567Z CREATE TABLE
+2026-09-27T12:45:37.9927310Z CREATE INDEX
+2026-09-27T12:45:37.9932400Z CREATE INDEX
+2026-09-27T12:45:37.9945926Z CREATE TABLE
+2026-09-27T12:45:37.9950248Z CREATE INDEX
+2026-09-27T12:45:37.9964763Z CREATE TABLE
+2026-09-27T12:45:37.9970613Z CREATE INDEX
+2026-09-27T12:45:37.9973077Z CREATE FUNCTION
+2026-09-27T12:45:37.9976542Z CREATE FUNCTION
+2026-09-27T12:45:37.9982359Z ALTER TABLE
+2026-09-27T12:45:37.9987905Z ALTER TABLE
+2026-09-27T12:45:37.9992531Z ALTER TABLE
+2026-09-27T12:45:37.9997908Z ALTER TABLE
+2026-09-27T12:45:38.0001342Z ALTER TABLE
+2026-09-27T12:45:38.0003949Z ALTER TABLE
+2026-09-27T12:45:38.0007071Z ALTER TABLE
+2026-09-27T12:45:38.0010043Z ALTER TABLE
+2026-09-27T12:45:38.0012977Z ALTER TABLE
+2026-09-27T12:45:38.0022604Z CREATE FUNCTION
+2026-09-27T12:45:38.0025379Z CREATE TRIGGER
+2026-09-27T12:45:38.0028516Z CREATE FUNCTION
+2026-09-27T12:45:38.0031667Z CREATE TRIGGER
+2026-09-27T12:45:38.0035603Z CREATE FUNCTION
+2026-09-27T12:45:38.0038048Z CREATE TRIGGER
+2026-09-27T12:45:38.0041696Z CREATE FUNCTION
+2026-09-27T12:45:38.0046573Z CREATE FUNCTION
+2026-09-27T12:45:38.0049748Z CREATE FUNCTION
+2026-09-27T12:45:38.0052680Z CREATE FUNCTION
+2026-09-27T12:45:38.0059869Z CREATE FUNCTION
+2026-09-27T12:45:38.0061734Z REVOKE
+2026-09-27T12:45:38.0064693Z GRANT
+2026-09-27T12:45:38.0068895Z CREATE FUNCTION
+2026-09-27T12:45:38.0072588Z CREATE TRIGGER
+2026-09-27T12:45:38.0075685Z CREATE FUNCTION
+2026-09-27T12:45:38.0078713Z psql:supabase/migrations/20260723120000_add_food_master_public_v1_1.sql:747: NOTICE:  trigger "sync_saved_foods_report_count" for relation "public.food_reports" does not exist, skipping
+2026-09-27T12:45:38.0080478Z DROP TRIGGER
+2026-09-27T12:45:38.0080852Z CREATE TRIGGER
+2026-09-27T12:45:38.0084488Z CREATE FUNCTION
+2026-09-27T12:45:38.0086680Z CREATE TRIGGER
+2026-09-27T12:45:38.0092143Z CREATE FUNCTION
+2026-09-27T12:45:38.0094613Z CREATE TRIGGER
+2026-09-27T12:45:38.0097228Z CREATE TRIGGER
+2026-09-27T12:45:38.0099495Z CREATE TRIGGER
+2026-09-27T12:45:38.0101936Z CREATE TRIGGER
+2026-09-27T12:45:38.0104238Z CREATE TRIGGER
+2026-09-27T12:45:38.0106560Z CREATE TRIGGER
+2026-09-27T12:45:38.0108962Z ALTER TABLE
+2026-09-27T12:45:38.0111801Z ALTER TABLE
+2026-09-27T12:45:38.0114148Z ALTER TABLE
+2026-09-27T12:45:38.0116964Z ALTER TABLE
+2026-09-27T12:45:38.0119650Z ALTER TABLE
+2026-09-27T12:45:38.0122032Z ALTER TABLE
+2026-09-27T12:45:38.0124527Z ALTER TABLE
+2026-09-27T12:45:38.0126863Z ALTER TABLE
+2026-09-27T12:45:38.0129671Z REVOKE
+2026-09-27T12:45:38.0133332Z CREATE POLICY
+2026-09-27T12:45:38.0136859Z CREATE POLICY
+2026-09-27T12:45:38.0139950Z CREATE POLICY
+2026-09-27T12:45:38.0143750Z CREATE POLICY
+2026-09-27T12:45:38.0146719Z CREATE POLICY
+2026-09-27T12:45:38.0149638Z CREATE POLICY
+2026-09-27T12:45:38.0152996Z CREATE POLICY
+2026-09-27T12:45:38.0155689Z CREATE POLICY
+2026-09-27T12:45:38.0158324Z CREATE POLICY
+2026-09-27T12:45:38.0162392Z CREATE POLICY
+2026-09-27T12:45:38.0165478Z CREATE POLICY
+2026-09-27T12:45:38.0168386Z CREATE POLICY
+2026-09-27T12:45:38.0171596Z CREATE POLICY
+2026-09-27T12:45:38.0175122Z CREATE POLICY
+2026-09-27T12:45:38.0178135Z CREATE POLICY
+2026-09-27T12:45:38.0183099Z CREATE POLICY
+2026-09-27T12:45:38.0186607Z CREATE POLICY
+2026-09-27T12:45:38.0192206Z CREATE POLICY
+2026-09-27T12:45:38.0195264Z CREATE POLICY
+2026-09-27T12:45:38.0198609Z CREATE POLICY
+2026-09-27T12:45:38.0201686Z CREATE POLICY
+2026-09-27T12:45:38.0204552Z REVOKE
+2026-09-27T12:45:38.0207333Z GRANT
+2026-09-27T12:45:38.0210121Z GRANT
+2026-09-27T12:45:38.0212791Z GRANT
+2026-09-27T12:45:38.0216009Z GRANT
+2026-09-27T12:45:38.0218825Z GRANT
+2026-09-27T12:45:38.0221917Z GRANT
+2026-09-27T12:45:38.0224869Z GRANT
+2026-09-27T12:45:38.0232349Z COMMIT
+2026-09-27T12:45:38.0257928Z apply supabase/migrations/20260727120000_add_saved_foods_version.sql
+2026-09-27T12:45:38.0596744Z BEGIN
+2026-09-27T12:45:38.0612731Z ALTER TABLE
+2026-09-27T12:45:38.0615600Z COMMENT
+2026-09-27T12:45:38.0619525Z COMMIT
+2026-09-27T12:45:38.0627458Z apply supabase/migrations/20260728120000_add_workout_templates_v1.sql
+2026-09-27T12:45:38.0980507Z CREATE TABLE
+2026-09-27T12:45:38.0986207Z CREATE INDEX
+2026-09-27T12:45:38.1012145Z CREATE TABLE
+2026-09-27T12:45:38.1018346Z CREATE INDEX
+2026-09-27T12:45:38.1022565Z ALTER TABLE
+2026-09-27T12:45:38.1026278Z ALTER TABLE
+2026-09-27T12:45:38.1030168Z psql:supabase/migrations/20260728120000_add_workout_templates_v1.sql:52: NOTICE:  policy "workout_templates_own" for relation "public.workout_templates" does not exist, skipping
+2026-09-27T12:45:38.1031017Z DROP POLICY
+2026-09-27T12:45:38.1033799Z CREATE POLICY
+2026-09-27T12:45:38.1037193Z psql:supabase/migrations/20260728120000_add_workout_templates_v1.sql:58: NOTICE:  policy "workout_template_items_own" for relation "public.workout_template_items" does not exist, skipping
+2026-09-27T12:45:38.1038184Z DROP POLICY
+2026-09-27T12:45:38.1039840Z CREATE POLICY
+2026-09-27T12:45:38.1043526Z REVOKE
+2026-09-27T12:45:38.1047296Z REVOKE
+2026-09-27T12:45:38.1051673Z GRANT
+2026-09-27T12:45:38.1054949Z GRANT
+2026-09-27T12:45:38.1067443Z apply supabase/migrations/20260729120000_add_saved_foods_serving_unit_label.sql
+2026-09-27T12:45:38.1388288Z BEGIN
+2026-09-27T12:45:38.1397280Z ALTER TABLE
+2026-09-27T12:45:38.1401771Z COMMENT
+2026-09-27T12:45:38.1405625Z COMMIT
+2026-09-27T12:45:38.1414927Z apply supabase/migrations/20260801120000_create_alcohol_entries.sql
+2026-09-27T12:45:38.1859025Z CREATE TABLE
+2026-09-27T12:45:38.1865346Z CREATE INDEX
+2026-09-27T12:45:38.1871243Z CREATE INDEX
+2026-09-27T12:45:38.1874147Z psql:supabase/migrations/20260801120000_create_alcohol_entries.sql:24: NOTICE:  trigger "set_alcohol_entries_updated_at" for relation "public.alcohol_entries" does not exist, skipping
+2026-09-27T12:45:38.1875160Z DROP TRIGGER
+2026-09-27T12:45:38.1878833Z CREATE TRIGGER
+2026-09-27T12:45:38.1882915Z ALTER TABLE
+2026-09-27T12:45:38.1886099Z psql:supabase/migrations/20260801120000_create_alcohol_entries.sql:31: NOTICE:  policy "alcohol_entries_select_own" for relation "public.alcohol_entries" does not exist, skipping
+2026-09-27T12:45:38.1887526Z DROP POLICY
+2026-09-27T12:45:38.1891193Z CREATE POLICY
+2026-09-27T12:45:38.1894474Z psql:supabase/migrations/20260801120000_create_alcohol_entries.sql:36: NOTICE:  policy "alcohol_entries_insert_own" for relation "public.alcohol_entries" does not exist, skipping
+2026-09-27T12:45:38.1895341Z DROP POLICY
+2026-09-27T12:45:38.1897730Z CREATE POLICY
+2026-09-27T12:45:38.1901712Z psql:supabase/migrations/20260801120000_create_alcohol_entries.sql:41: NOTICE:  policy "alcohol_entries_update_own" for relation "public.alcohol_entries" does not exist, skipping
+2026-09-27T12:45:38.1902872Z DROP POLICY
+2026-09-27T12:45:38.1906279Z CREATE POLICY
+2026-09-27T12:45:38.1910881Z psql:supabase/migrations/20260801120000_create_alcohol_entries.sql:47: NOTICE:  policy "alcohol_entries_delete_own" for relation "public.alcohol_entries" does not exist, skipping
+2026-09-27T12:45:38.1912034Z DROP POLICY
+2026-09-27T12:45:38.1912770Z CREATE POLICY
+2026-09-27T12:45:38.1916812Z GRANT
+2026-09-27T12:45:38.1928073Z apply supabase/migrations/20260801180000_add_exercise_entry_calculation_columns.sql
+2026-09-27T12:45:38.2283528Z ALTER TABLE
+2026-09-27T12:45:38.2294173Z CREATE INDEX
+2026-09-27T12:45:38.2302460Z CREATE INDEX
+2026-09-27T12:45:38.2310992Z apply supabase/migrations/20260801200000_tighten_public_grants_v1.sql
+2026-09-27T12:45:38.2628992Z BEGIN
+2026-09-27T12:45:38.2640289Z CREATE FUNCTION
+2026-09-27T12:45:38.2662574Z DO
+2026-09-27T12:45:38.2665426Z GRANT
+2026-09-27T12:45:38.2667430Z GRANT
+2026-09-27T12:45:38.2671086Z GRANT
+2026-09-27T12:45:38.2672797Z GRANT
+2026-09-27T12:45:38.2674712Z GRANT
+2026-09-27T12:45:38.2677033Z GRANT
+2026-09-27T12:45:38.2679053Z GRANT
+2026-09-27T12:45:38.2681143Z GRANT
+2026-09-27T12:45:38.2683036Z GRANT
+2026-09-27T12:45:38.2685164Z GRANT
+2026-09-27T12:45:38.2687302Z GRANT
+2026-09-27T12:45:38.2689478Z GRANT
+2026-09-27T12:45:38.2691562Z GRANT
+2026-09-27T12:45:38.2693627Z GRANT
+2026-09-27T12:45:38.2695748Z GRANT
+2026-09-27T12:45:38.2697898Z GRANT
+2026-09-27T12:45:38.2700106Z GRANT
+2026-09-27T12:45:38.2703186Z REVOKE
+2026-09-27T12:45:38.2705390Z REVOKE
+2026-09-27T12:45:38.2707318Z GRANT
+2026-09-27T12:45:38.2709509Z GRANT
+2026-09-27T12:45:38.2712138Z REVOKE
+2026-09-27T12:45:38.2713961Z REVOKE
+2026-09-27T12:45:38.2715850Z GRANT
+2026-09-27T12:45:38.2717816Z GRANT
+2026-09-27T12:45:38.2720303Z REVOKE
+2026-09-27T12:45:38.2722705Z REVOKE
+2026-09-27T12:45:38.2773916Z DO
+2026-09-27T12:45:38.2776554Z GRANT
+2026-09-27T12:45:38.2779436Z GRANT
+2026-09-27T12:45:38.2782582Z GRANT
+2026-09-27T12:45:38.2784848Z GRANT
+2026-09-27T12:45:38.2787003Z ALTER DEFAULT PRIVILEGES
+2026-09-27T12:45:38.2788655Z ALTER DEFAULT PRIVILEGES
+2026-09-27T12:45:38.2793437Z ALTER DEFAULT PRIVILEGES
+2026-09-27T12:45:38.2795142Z ALTER DEFAULT PRIVILEGES
+2026-09-27T12:45:38.2797125Z ALTER DEFAULT PRIVILEGES
+2026-09-27T12:45:38.2799088Z ALTER DEFAULT PRIVILEGES
+2026-09-27T12:45:38.2801017Z ALTER DEFAULT PRIVILEGES
+2026-09-27T12:45:38.2802749Z ALTER DEFAULT PRIVILEGES
+2026-09-27T12:45:38.2807287Z DO
+2026-09-27T12:45:38.2812306Z COMMIT
+2026-09-27T12:45:38.2823445Z apply supabase/migrations/20260802120000_add_goal_pace_to_goals.sql
+2026-09-27T12:45:38.3149784Z ALTER TABLE
+2026-09-27T12:45:38.3152438Z psql:supabase/migrations/20260802120000_add_goal_pace_to_goals.sql:8: NOTICE:  constraint "goals_goal_pace_check" of relation "goals" does not exist, skipping
+2026-09-27T12:45:38.3153559Z ALTER TABLE
+2026-09-27T12:45:38.3161289Z ALTER TABLE
+2026-09-27T12:45:38.3166096Z COMMENT
+2026-09-27T12:45:38.3176056Z apply supabase/migrations/20260920120000_delete_own_account_keep_public_foods.sql
+2026-09-27T12:45:38.3496121Z BEGIN
+2026-09-27T12:45:38.3503947Z ALTER TABLE
+2026-09-27T12:45:38.3517089Z CREATE FUNCTION
+2026-09-27T12:45:38.3519196Z REVOKE
+2026-09-27T12:45:38.3521761Z REVOKE
+2026-09-27T12:45:38.3523951Z REVOKE
+2026-09-27T12:45:38.3526809Z GRANT
+2026-09-27T12:45:38.3532106Z COMMIT
+2026-09-27T12:45:38.3540813Z apply supabase/migrations/20260927120000_reject_banned_public_food_names.sql
+2026-09-27T12:45:38.3877927Z CREATE FUNCTION
+2026-09-27T12:45:38.3885562Z CREATE FUNCTION
+2026-09-27T12:45:38.3893094Z CREATE FUNCTION
+2026-09-27T12:45:38.3898256Z CREATE FUNCTION
+2026-09-27T12:45:38.3903128Z CREATE FUNCTION
+2026-09-27T12:45:38.3907813Z CREATE FUNCTION
+2026-09-27T12:45:38.3914782Z CREATE FUNCTION
+2026-09-27T12:45:38.3917904Z REVOKE
+2026-09-27T12:45:38.3921036Z REVOKE
+2026-09-27T12:45:38.3924368Z REVOKE
+2026-09-27T12:45:38.3927381Z REVOKE
+2026-09-27T12:45:38.3931197Z REVOKE
+2026-09-27T12:45:38.3934330Z REVOKE
+2026-09-27T12:45:38.3937287Z REVOKE
+2026-09-27T12:45:38.3941231Z GRANT
+2026-09-27T12:45:38.3944879Z GRANT
+2026-09-27T12:45:38.3947925Z GRANT
+2026-09-27T12:45:38.3951038Z GRANT
+2026-09-27T12:45:38.3954155Z GRANT
+2026-09-27T12:45:38.3957265Z GRANT
+2026-09-27T12:45:38.3960375Z GRANT
+2026-09-27T12:45:38.3966420Z CREATE FUNCTION
+2026-09-27T12:45:38.3976573Z CREATE FUNCTION
+2026-09-27T12:45:38.3985693Z apply supabase/migrations/20260927140000_subscription_events.sql
+2026-09-27T12:45:38.4304374Z BEGIN
+2026-09-27T12:45:38.4341704Z CREATE TABLE
+2026-09-27T12:45:38.4345986Z CREATE INDEX
+2026-09-27T12:45:38.4354753Z CREATE FUNCTION
+2026-09-27T12:45:38.4357789Z psql:supabase/migrations/20260927140000_subscription_events.sql:43: NOTICE:  trigger "subscription_events_force_row" for relation "public.subscription_events" does not exist, skipping
+2026-09-27T12:45:38.4359038Z DROP TRIGGER
+2026-09-27T12:45:38.4359742Z CREATE TRIGGER
+2026-09-27T12:45:38.4362381Z ALTER TABLE
+2026-09-27T12:45:38.4365836Z psql:supabase/migrations/20260927140000_subscription_events.sql:50: NOTICE:  policy "subscription_events_insert_own" for relation "public.subscription_events" does not exist, skipping
+2026-09-27T12:45:38.4367252Z DROP POLICY
+2026-09-27T12:45:38.4368549Z CREATE POLICY
+2026-09-27T12:45:38.4371591Z REVOKE
+2026-09-27T12:45:38.4374022Z GRANT
+2026-09-27T12:45:38.4376579Z GRANT
+2026-09-27T12:45:38.4379851Z CREATE FUNCTION
+2026-09-27T12:45:38.4381880Z REVOKE
+2026-09-27T12:45:38.4383852Z REVOKE
+2026-09-27T12:45:38.4385884Z GRANT
+2026-09-27T12:45:38.4390094Z COMMIT
+2026-09-27T12:45:38.4401108Z apply supabase/migrations/20260927150000_protect_owner_deleted_and_revoke_sessions.sql
+2026-09-27T12:45:38.4724807Z BEGIN
+2026-09-27T12:45:38.4737131Z ALTER TABLE
+2026-09-27T12:45:38.4741337Z COMMENT
+2026-09-27T12:45:38.4754630Z CREATE FUNCTION
+2026-09-27T12:45:38.4756552Z REVOKE
+2026-09-27T12:45:38.4760501Z REVOKE
+2026-09-27T12:45:38.4762619Z REVOKE
+2026-09-27T12:45:38.4765930Z GRANT
+2026-09-27T12:45:38.4768964Z REVOKE
+2026-09-27T12:45:38.4770656Z REVOKE
+2026-09-27T12:45:38.4772418Z REVOKE
+2026-09-27T12:45:38.4773911Z REVOKE
+2026-09-27T12:45:38.4780976Z GRANT
+2026-09-27T12:45:38.4783309Z GRANT
+2026-09-27T12:45:38.4786718Z CREATE FUNCTION
+2026-09-27T12:45:38.4792436Z psql:supabase/migrations/20260927150000_protect_owner_deleted_and_revoke_sessions.sql:212: NOTICE:  trigger "saved_foods_reject_owner_deleted_change" for relation "public.saved_foods" does not exist, skipping
+2026-09-27T12:45:38.4794939Z DROP TRIGGER
+2026-09-27T12:45:38.4795286Z CREATE TRIGGER
+2026-09-27T12:45:38.4799074Z COMMIT
+2026-09-27T12:45:38.4808866Z apply supabase/migrations/20260927160000_delete_subscription_events_on_account_deletion.sql
+2026-09-27T12:45:38.5136368Z BEGIN
+2026-09-27T12:45:38.5153153Z CREATE FUNCTION
+2026-09-27T12:45:38.5154346Z REVOKE
+2026-09-27T12:45:38.5158219Z REVOKE
+2026-09-27T12:45:38.5161217Z REVOKE
+2026-09-27T12:45:38.5165053Z GRANT
+2026-09-27T12:45:38.5168917Z COMMIT
+2026-09-27T12:45:38.5178033Z apply supabase/migrations/20260927170000_store_apple_refresh_tokens.sql
+2026-09-27T12:45:38.5498912Z BEGIN
+2026-09-27T12:45:38.5543902Z DO
+2026-09-27T12:45:38.5547804Z CREATE FUNCTION
+2026-09-27T12:45:38.5550862Z CREATE FUNCTION
+2026-09-27T12:45:38.5553548Z CREATE FUNCTION
+2026-09-27T12:45:38.5556014Z REVOKE
+2026-09-27T12:45:38.5558554Z REVOKE
+2026-09-27T12:45:38.5560750Z REVOKE
+2026-09-27T12:45:38.5563618Z GRANT
+2026-09-27T12:45:38.5565725Z REVOKE
+2026-09-27T12:45:38.5567742Z REVOKE
+2026-09-27T12:45:38.5570137Z REVOKE
+2026-09-27T12:45:38.5572570Z GRANT
+2026-09-27T12:45:38.5574568Z REVOKE
+2026-09-27T12:45:38.5576482Z REVOKE
+2026-09-27T12:45:38.5578656Z REVOKE
+2026-09-27T12:45:38.5581950Z GRANT
+2026-09-27T12:45:38.5584671Z COMMIT
+2026-09-27T12:45:38.5593029Z apply supabase/migrations/20260927180000_delete_own_account_service_role_only.sql
+2026-09-27T12:45:38.5913426Z BEGIN
+2026-09-27T12:45:38.5918922Z DROP FUNCTION
+2026-09-27T12:45:38.5932944Z CREATE FUNCTION
+2026-09-27T12:45:38.5935146Z REVOKE
+2026-09-27T12:45:38.5937684Z REVOKE
+2026-09-27T12:45:38.5939456Z REVOKE
+2026-09-27T12:45:38.5942659Z GRANT
+2026-09-27T12:45:38.5946409Z COMMIT
+2026-09-27T12:45:38.6281889Z CREATE SCHEMA
+2026-09-27T12:45:38.6285620Z GRANT
+2026-09-27T12:45:38.6297066Z CREATE FUNCTION
+2026-09-27T12:45:38.6300668Z CREATE FUNCTION
+2026-09-27T12:45:38.6304017Z CREATE FUNCTION
+2026-09-27T12:45:38.6307648Z CREATE FUNCTION
+2026-09-27T12:45:38.6311428Z CREATE FUNCTION
+2026-09-27T12:45:38.6317861Z CREATE FUNCTION
+2026-09-27T12:45:38.6325215Z GRANT
+2026-09-27T12:45:38.6676291Z DO
+2026-09-27T12:45:38.7578608Z DO
+2026-09-27T12:45:38.8215320Z DO
+2026-09-27T12:45:38.8225729Z sql smoke passed
+2026-09-27T12:45:38.8354666Z Post job cleanup.
+2026-09-27T12:45:38.9264029Z [command]/usr/bin/git version
+2026-09-27T12:45:38.9308942Z git version 2.55.0
+2026-09-27T12:45:38.9352971Z Temporarily overriding HOME='/home/runner/work/_temp/80504722-3e32-4bd3-b6de-9bc740961013' before making global git config changes
+2026-09-27T12:45:38.9354313Z Adding repository directory to the temporary git global config as a safe directory
+2026-09-27T12:45:38.9360273Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/AYG/AYG
+2026-09-27T12:45:38.9403081Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-09-27T12:45:38.9441412Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-09-27T12:45:38.9692704Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-09-27T12:45:38.9723995Z http.https://github.com/.extraheader
+2026-09-27T12:45:38.9736230Z [command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
+2026-09-27T12:45:38.9782821Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-09-27T12:45:39.0051663Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-09-27T12:45:39.0094138Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-09-27T12:45:39.0482192Z Print service container logs: a3e8e639cf1542cb8113bde45be4c5b0_postgres17_aa8261
+2026-09-27T12:45:39.0486700Z ##[command]/usr/bin/docker logs --details 2dd9339fbfb62f6beabbc3132d9310f43a90496977338017e6c2d3e015ea4394
+2026-09-27T12:45:39.0617187Z  The files belonging to this database system will be owned by user "postgres".
+2026-09-27T12:45:39.0618853Z  This user must also own the server process.
+2026-09-27T12:45:39.0621108Z  ********************************************************************************
+2026-09-27T12:45:39.0621590Z  WARNING: POSTGRES_HOST_AUTH_METHOD has been set to "trust". This will allow
+2026-09-27T12:45:39.0622117Z           anyone with access to the Postgres port to access your database without
+2026-09-27T12:45:39.0622614Z           a password, even if POSTGRES_PASSWORD is set. See PostgreSQL
+2026-09-27T12:45:39.0623001Z           documentation about "trust":
+2026-09-27T12:45:39.0623727Z           https://www.postgresql.org/docs/current/auth-trust.html
+2026-09-27T12:45:39.0624252Z           In Docker's default configuration, this is effectively any other
+2026-09-27T12:45:39.0624628Z           container on the same system.
+2026-09-27T12:45:39.0624881Z  
+2026-09-27T12:45:39.0625165Z           It is not recommended to use POSTGRES_HOST_AUTH_METHOD=trust. Replace
+2026-09-27T12:45:39.0625664Z           it with "-e POSTGRES_PASSWORD=password" instead to set a password in
+2026-09-27T12:45:39.0626034Z           "docker run".
+2026-09-27T12:45:39.0626292Z  ********************************************************************************
+2026-09-27T12:45:39.0626704Z  initdb: warning: enabling "trust" authentication for local connections
+2026-09-27T12:45:39.0627404Z  initdb: hint: You can change this by editing pg_hba.conf or using the option -A, or --auth-local and --auth-host, the next time you run initdb.
+2026-09-27T12:45:39.0628375Z  2026-09-27 12:45:20.944 UTC [1] LOG:  starting PostgreSQL 17.11 (Debian 17.11-1.pgdg13+2) on x86_64-pc-linux-gnu, compiled by gcc (Debian 14.2.0-19) 14.2.0, 64-bit
+2026-09-27T12:45:39.0629390Z  2026-09-27 12:45:20.944 UTC [1] LOG:  listening on IPv4 address "0.0.0.0", port 5432
+2026-09-27T12:45:39.0629876Z  2026-09-27 12:45:20.944 UTC [1] LOG:  listening on IPv6 address "::", port 5432
+2026-09-27T12:45:39.0630396Z  2026-09-27 12:45:20.945 UTC [1] LOG:  listening on Unix socket "/var/run/postgresql/.s.PGSQL.5432"
+2026-09-27T12:45:39.0630956Z  2026-09-27 12:45:20.948 UTC [63] LOG:  database system was shut down at 2026-09-27 12:45:20 UTC
+2026-09-27T12:45:39.0631465Z  2026-09-27 12:45:20.951 UTC [1] LOG:  database system is ready to accept connections
+2026-09-27T12:45:39.0632088Z  2026-09-27 12:45:37.687 UTC [101] ERROR:  function pg_catalog.coalesce(text, unknown) does not exist at character 8
+2026-09-27T12:45:39.0632860Z  2026-09-27 12:45:37.687 UTC [101] HINT:  No function matches the given name and argument types. You might need to add explicit type casts.
+2026-09-27T12:45:39.0633551Z  2026-09-27 12:45:37.687 UTC [101] STATEMENT:  select pg_catalog.coalesce(null::text,'x')
+2026-09-27T12:45:39.0634168Z  2026-09-27 12:45:37.720 UTC [102] ERROR:  function pg_catalog.greatest(integer, integer) does not exist at character 8
+2026-09-27T12:45:39.0634941Z  2026-09-27 12:45:37.720 UTC [102] HINT:  No function matches the given name and argument types. You might need to add explicit type casts.
+2026-09-27T12:45:39.0635593Z  2026-09-27 12:45:37.720 UTC [102] STATEMENT:  select pg_catalog.greatest(1,2)
+2026-09-27T12:45:39.0636138Z  2026-09-27 12:45:37.765 UTC [103] ERROR:  missing FROM-clause entry for table "pg_catalog" at character 24
+2026-09-27T12:45:39.0636748Z  2026-09-27 12:45:37.765 UTC [103] STATEMENT:  select 'a'::text where pg_catalog.current_user = 'x'
+2026-09-27T12:45:39.0637382Z  2026-09-27 12:45:37.799 UTC [104] ERROR:  type "pg_catalog.normalization_form" does not exist at character 16
+2026-09-27T12:45:39.0637987Z  2026-09-27 12:45:37.799 UTC [104] STATEMENT:  select 'NFKC'::pg_catalog.normalization_form
+2026-09-27T12:45:39.0639768Z  
+2026-09-27T12:45:39.0640613Z  The database cluster will be initialized with locale "en_US.utf8".
+2026-09-27T12:45:39.0641403Z  The default database encoding has accordingly been set to "UTF8".
+2026-09-27T12:45:39.0642142Z  The default text search configuration will be set to "english".
+2026-09-27T12:45:39.0642744Z  
+2026-09-27T12:45:39.0643066Z  Data page checksums are disabled.
+2026-09-27T12:45:39.0643485Z  
+2026-09-27T12:45:39.0643967Z  fixing permissions on existing directory /var/lib/postgresql/data ... ok
+2026-09-27T12:45:39.0644592Z  creating subdirectories ... ok
+2026-09-27T12:45:39.0645106Z  selecting dynamic shared memory implementation ... posix
+2026-09-27T12:45:39.0645714Z  selecting default "max_connections" ... 100
+2026-09-27T12:45:39.0646233Z  selecting default "shared_buffers" ... 128MB
+2026-09-27T12:45:39.0646713Z  selecting default time zone ... Etc/UTC
+2026-09-27T12:45:39.0647173Z  creating configuration files ... ok
+2026-09-27T12:45:39.0647809Z  running bootstrap script ... ok
+2026-09-27T12:45:39.0648334Z  performing post-bootstrap initialization ... ok
+2026-09-27T12:45:39.0648851Z  syncing data to disk ... ok
+2026-09-27T12:45:39.0649426Z  
+2026-09-27T12:45:39.0649701Z  
+2026-09-27T12:45:39.0650077Z  Success. You can now start the database server using:
+2026-09-27T12:45:39.0650571Z  
+2026-09-27T12:45:39.0650959Z      pg_ctl -D /var/lib/postgresql/data -l logfile start
+2026-09-27T12:45:39.0651457Z  
+2026-09-27T12:45:39.0652708Z  waiting for server to start....2026-09-27 12:45:20.707 UTC [49] LOG:  starting PostgreSQL 17.11 (Debian 17.11-1.pgdg13+2) on x86_64-pc-linux-gnu, compiled by gcc (Debian 14.2.0-19) 14.2.0, 64-bit
+2026-09-27T12:45:39.0654099Z  2026-09-27 12:45:20.707 UTC [49] LOG:  listening on Unix socket "/var/run/postgresql/.s.PGSQL.5432"
+2026-09-27T12:45:39.0654706Z  2026-09-27 12:45:20.710 UTC [52] LOG:  database system was shut down at 2026-09-27 12:45:20 UTC
+2026-09-27T12:45:39.0655228Z  2026-09-27 12:45:20.713 UTC [49] LOG:  database system is ready to accept connections
+2026-09-27T12:45:39.0655640Z   done
+2026-09-27T12:45:39.0655834Z  server started
+2026-09-27T12:45:39.0656028Z  
+2026-09-27T12:45:39.0656351Z  /usr/local/bin/docker-entrypoint.sh: ignoring /docker-entrypoint-initdb.d/*
+2026-09-27T12:45:39.0656746Z  
+2026-09-27T12:45:39.0657111Z  waiting for server to shut down...2026-09-27 12:45:20.824 UTC [49] LOG:  received fast shutdown request
+2026-09-27T12:45:39.0657661Z  .2026-09-27 12:45:20.825 UTC [49] LOG:  aborting any active transactions
+2026-09-27T12:45:39.0658280Z  2026-09-27 12:45:20.826 UTC [49] LOG:  background worker "logical replication launcher" (PID 55) exited with exit code 1
+2026-09-27T12:45:39.0658827Z  2026-09-27 12:45:20.827 UTC [50] LOG:  shutting down
+2026-09-27T12:45:39.0659573Z  2026-09-27 12:45:20.827 UTC [50] LOG:  checkpoint starting: shutdown immediate
+2026-09-27T12:45:39.0660697Z  2026-09-27 12:45:20.829 UTC [50] LOG:  checkpoint complete: wrote 3 buffers (0.0%); 0 WAL file(s) added, 0 removed, 0 recycled; write=0.001 s, sync=0.001 s, total=0.003 s; sync files=2, longest=0.001 s, average=0.001 s; distance=0 kB, estimate=0 kB; lsn=0/14EF800, redo lsn=0/14EF800
+2026-09-27T12:45:39.0661767Z  2026-09-27 12:45:20.833 UTC [49] LOG:  database system is shut down
+2026-09-27T12:45:39.0662434Z   done
+2026-09-27T12:45:39.0662719Z  server stopped
+2026-09-27T12:45:39.0663064Z  
+2026-09-27T12:45:39.0663453Z  PostgreSQL init process complete; ready for start up.
+2026-09-27T12:45:39.0663834Z  
+2026-09-27T12:45:39.0671464Z Stop and remove container: a3e8e639cf1542cb8113bde45be4c5b0_postgres17_aa8261
+2026-09-27T12:45:39.0676634Z ##[command]/usr/bin/docker rm --force 2dd9339fbfb62f6beabbc3132d9310f43a90496977338017e6c2d3e015ea4394
+2026-09-27T12:45:39.5197463Z 2dd9339fbfb62f6beabbc3132d9310f43a90496977338017e6c2d3e015ea4394
+2026-09-27T12:45:39.5224623Z Remove container network: github_network_805cd2122c7e4e2bbee8021093d02788
+2026-09-27T12:45:39.5228780Z ##[command]/usr/bin/docker network rm github_network_805cd2122c7e4e2bbee8021093d02788
+2026-09-27T12:45:39.6345154Z github_network_805cd2122c7e4e2bbee8021093d02788
+2026-09-27T12:45:39.6418461Z Cleaning up orphan processes
+2026-09-27T12:45:39.6749772Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@v4. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/

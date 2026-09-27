@@ -1,0 +1,4 @@
+comment = 'local stand-in for the Supabase Vault extension'
+default_version = '1.0'
+relocatable = false
+schema = vault

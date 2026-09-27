@@ -1,0 +1,25 @@
+ORIGIN https://naruto-aii.github.io allowed=true
+ORIGIN https://naruto-aii.github.io.evil.com allowed=false
+ORIGIN https://evil.com allowed=false
+ORIGIN http://localhost:3000 allowed=true
+ORIGIN http://127.0.0.1:8080 allowed=true
+ORIGIN https://localhost allowed=false
+ORIGIN http://localhost.evil.com allowed=false
+ORIGIN null allowed=false
+ORIGIN http://user:pw@localhost allowed=false
+PROBE OPTIONS allowed: status=204 ACAO=https://naruto-aii.github.io body= calls= log=
+PROBE OPTIONS evil: status=403 ACAO=null body= calls= log=
+PROBE POST evil origin good auth: status=200 ACAO=null body={"ok":true} calls=read>delete>revoke:tok>deltok log=
+PROBE POST allowed no auth: status=401 ACAO=https://naruto-aii.github.io body={"ok":false} calls= log=
+PROBE POST allowed bad auth: status=401 ACAO=https://naruto-aii.github.io body={"ok":false} calls= log=
+PROBE GET allowed: status=405 ACAO=https://naruto-aii.github.io body={"ok":false} calls= log=
+PROBE normal: status=200 ACAO=null body={"ok":true} calls=read>delete>revoke:tok>deltok log=
+PROBE revoke fails after delete: status=200 ACAO=null body={"ok":true,"apple_revoke_failed":true} calls=read>delete>deltok log=apple token revoke failed status=400 code=invalid_grant
+PROBE revoke throws: status=200 ACAO=null body={"ok":true,"apple_revoke_failed":true} calls=read>delete>deltok log=apple token revoke failed
+PROBE delete fails: status=500 ACAO=null body={"ok":false} calls=read log=delete_own_account failed
+PROBE no token, apple linked: status=200 ACAO=null body={"ok":true,"apple_revoke_failed":true} calls=linked>delete>deltok log=apple token missing for linked account
+PROBE no token, not linked: status=200 ACAO=null body={"ok":true} calls=delete>deltok log=apple token revoke skipped
+PROBE read throws, linked lookup fails: status=200 ACAO=null body={"ok":true} calls=delete>deltok log=apple refresh token read failed|apple identity lookup failed|apple token revoke skipped
+PROBE deleteStoredToken fails: status=200 ACAO=null body={"ok":true} calls=read>delete>revoke:tok log=apple refresh token delete failed
+qa probes ... [0m[32mok[0m [0m[38;5;245m(28ms)[0m
+[0m[32mok[0m | 1 passed | 0 failed [0m[38;5;245m(31ms)[0m

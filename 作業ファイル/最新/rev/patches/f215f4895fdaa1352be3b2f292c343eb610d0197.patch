@@ -1,0 +1,104 @@
+From f215f4895fdaa1352be3b2f292c343eb610d0197 Mon Sep 17 00:00:00 2001
+From: Cursor Agent <cursoragent@cursor.com>
+Date: Sun, 20 Sep 2026 01:59:40 +0000
+Subject: [PATCH] docs: refresh remaining launch tasks after Apple sign-in
+
+Mark console and app Apple work as done. Next is the production delete SQL, then store products, then device QA.
+
+Co-authored-by: naruto.futuree <naruto.futuree@gmail.com>
+---
+ docs/01_Project.md                             |  8 +++++---
+ docs/legal/README.md                           | 18 ++++++++++++++----
+ .../09_Food_Master_v1_2_Decision_Log.md        |  7 +------
+ 3 files changed, 20 insertions(+), 13 deletions(-)
+
+diff --git a/docs/01_Project.md b/docs/01_Project.md
+index 268ecb0..4264322 100644
+--- a/docs/01_Project.md
++++ b/docs/01_Project.md
+@@ -233,7 +233,7 @@ github.io の `/AYG/` が必要なのは、Web プレビュー自身の Google 
+ |------|-------------------|---------------------------|
+ | ログイン方式 | Google **または** Apple ID | — |
+ | Google ログイン | Version 1.1 正式スコープに含む | **実装済み** |
+-| Apple ログイン | Version 1.1 正式スコープに含む | **実装済み**（実機確認は未完） |
++| Apple ログイン | Version 1.1 正式スコープに含む | **実装済み** |
+ 
+ 未実装であることは、正式スコープから外れる理由ではない。
+ 
+@@ -399,11 +399,13 @@ Core Value は、プロダクト一言定義 **「エネルギー管理におけ
+ 
+ | # | タスク | 【Current Implementation】 |
+ |---|--------|---------------------------|
+-| 1 | **Apple ログイン** | Developer / Supabase / アプリ実装済み。実機確認は未完 |
++| 1 | **アカウント削除 RPC** | アプリ実装済み。本番 SQL 未適用 |
+ | 2 | **カロナビ+（380円 / 4,180円）** | 無料枠と購入画面は実装済み。Store 商品は未作成 |
+-| 3 | **アカウント削除 RPC** | アプリ実装済み。本番 SQL 未適用 |
++| 3 | **実機確認** | Apple ログインを含む。未完 |
+ | 4 | **App Store 掲載・TestFlight** | 未完了 |
+ 
++推奨着手順の本文は `docs/legal/README.md`。
++
+ ---
+ 
+ ## App Store 公開に向けたリリース目標
+diff --git a/docs/legal/README.md b/docs/legal/README.md
+index 23339b2..54dbbb1 100644
+--- a/docs/legal/README.md
++++ b/docs/legal/README.md
+@@ -51,19 +51,29 @@ Owner が本番 Supabase の SQL Editor で適用する。エージェントは
+ 
+ App Store Connect で上記 Product ID の自動更新サブスクリプションを作るのは Owner 作業。
+ 
++## 済んでいるもの
++
++- 法務 HTML とアプリ内全画面表示
++- Sign in with Apple（Developer Key、Supabase Apple Enabled、アプリ配線）。Web プレビューでは使えない
++- アカウント削除 UI と RPC コード（本番 SQL は未適用）
++- カロナビ+ のアプリ側（380円 / 4,180円、無料枠 5 / 3 / 3）
++- 公開食品の作成者欄「削除済みユーザー」
++- 通報・作成者ブロック
++
+ ## 残タスク（推奨着手順）
+ 
+-提出を止めるものから先。括弧は主担当。
++提出を止めるものから先。括弧は主担当。次は 1。
+ 
+ 1. **本番 Supabase に削除 SQL を適用**（Owner）
+    - `supabase/migrations/20260920120000_delete_own_account_keep_public_foods.sql`
+-   - 適用前にバックアップ。未適用だとアプリ内削除がメール頼みになる
++   - SQL Editor で適用する。エージェントは本番に適用しない
++   - 適用前にバックアップ。未適用だとアプリ内削除がメール頼みになり、審査 5.1.1(v) で止まる
+ 2. **App Store Connect でカロナビ+ を作る**（Owner）
+    - グループ: カロナビ+
+    - `calonavi_plus_monthly` 380円 / 1ヶ月
+    - `calonavi_plus_yearly` 4,180円 / 1年
+ 3. **実機確認**（Owner、不具合はエージェント）
+-   - Sign in with Apple は Developer / Supabase / アプリ配線まで済み。Web プレビューでは使えない
++   - 1 と 2 のあとで一度通す。Apple ログインだけ先に見るのは今すぐ可能
+    - Google / Apple ログイン、アカウント削除、公開食品の「削除済みユーザー」、検索5回とテンプレ3件の上限、カロナビ+ 購入と復元、Health
+ 4. **App Store Connect の掲載情報**（Owner）
+    - プライバシー / 利用規約 / アカウント削除 URL
+@@ -74,4 +84,4 @@ App Store Connect で上記 Product ID の自動更新サブスクリプショ
+    - `calonavi.ayg.support@gmail.com` を見る。住所・電話請求と削除依頼は本人確認のうえ遅滞なく返す
+    - 番地・私用電話を公開ページに載せない
+ 
+-初回にやらなくてよい: Google Play、法人名義、体重タブ本格 UI、Health Workout の運動反映、写真解析。
++初回にやらなくてよい: Google Play、法人名義、体重タブ本格 UI、Health Workout の運動反映、写真解析、Apple token 失効、レシートのサーバ検証。
+diff --git a/docs/specifications/09_Food_Master_v1_2_Decision_Log.md b/docs/specifications/09_Food_Master_v1_2_Decision_Log.md
+index 4a8e315..46e0ca0 100644
+--- a/docs/specifications/09_Food_Master_v1_2_Decision_Log.md
++++ b/docs/specifications/09_Food_Master_v1_2_Decision_Log.md
+@@ -22,12 +22,7 @@
+ 
+ ### Version 1.1 残タスク（DB 外 — App Store 公開前）
+ 
+-- アプリ内運営連絡先表示（`OFF_CONTACT_EMAIL` 案）
+-- Support URL
+-- Privacy Policy
+-- 利用規約 / コミュニティルール（公開食品・禁止投稿・通報対応方針）
+-- 公開食品詳細からの通報 UI
+-- 食品作成者ブロック UI
++法務 URL・アプリ内表示・通報 / ブロック UI は済み。公開前の残作業は `docs/legal/README.md`。
+ 
+ ---
+ 

@@ -1,0 +1,36 @@
+From 1810c27c4cd506d689c0eb4f4db93d4c82ed9fb7 Mon Sep 17 00:00:00 2001
+From: Cursor Agent <cursoragent@cursor.com>
+Date: Sun, 20 Sep 2026 16:56:48 +0000
+Subject: [PATCH] fix: auto-repair local dart_defines JSON before flutter run
+
+Owner edits were dropping the comma after SUPABASE_URL and blocking
+device QA. Rewrite the file from extracted keys first.
+
+Co-authored-by: naruto.futuree <naruto.futuree@gmail.com>
+---
+ tool/run_ios.sh | 5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
+
+diff --git a/tool/run_ios.sh b/tool/run_ios.sh
+index f5fff01..2987429 100755
+--- a/tool/run_ios.sh
++++ b/tool/run_ios.sh
+@@ -12,6 +12,7 @@ cd "$ROOT_DIR"
+ LOCAL_DEFINES="${ROOT_DIR}/tool/dart_defines.local.json"
+ 
+ if [ -f "$LOCAL_DEFINES" ]; then
++  python3 "${ROOT_DIR}/tool/repair_local_defines.py" "$LOCAL_DEFINES"
+   python3 - "$LOCAL_DEFINES" <<'PY'
+ import json, sys
+ path = sys.argv[1]
+@@ -24,10 +25,6 @@ except json.JSONDecodeError as error:
+         f" {error}",
+         file=sys.stderr,
+     )
+-    print(
+-        "直し方: Finder で tool/repair_local_defines.command をダブルクリックしてください。",
+-        file=sys.stderr,
+-    )
+     raise SystemExit(1)
+ PY
+ fi

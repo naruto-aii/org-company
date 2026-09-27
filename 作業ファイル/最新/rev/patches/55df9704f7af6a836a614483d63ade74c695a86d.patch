@@ -1,0 +1,72 @@
+From 55df9704f7af6a836a614483d63ade74c695a86d Mon Sep 17 00:00:00 2001
+From: Cursor Agent <cursoragent@cursor.com>
+Date: Sun, 20 Sep 2026 01:56:56 +0000
+Subject: [PATCH] docs: treat Apple Supabase setup as already done
+
+Owner confirmed the .p8 and Apple provider are in place. Remaining Apple work is device QA.
+
+Co-authored-by: naruto.futuree <naruto.futuree@gmail.com>
+---
+ docs/01_Project.md   |  4 ++--
+ docs/legal/README.md | 17 +++++++----------
+ 2 files changed, 9 insertions(+), 12 deletions(-)
+
+diff --git a/docs/01_Project.md b/docs/01_Project.md
+index f404aba..268ecb0 100644
+--- a/docs/01_Project.md
++++ b/docs/01_Project.md
+@@ -233,7 +233,7 @@ github.io の `/AYG/` が必要なのは、Web プレビュー自身の Google 
+ |------|-------------------|---------------------------|
+ | ログイン方式 | Google **または** Apple ID | — |
+ | Google ログイン | Version 1.1 正式スコープに含む | **実装済み** |
+-| Apple ログイン | Version 1.1 正式スコープに含む | **実装済み**（実機・コンソール確認は未完） |
++| Apple ログイン | Version 1.1 正式スコープに含む | **実装済み**（実機確認は未完） |
+ 
+ 未実装であることは、正式スコープから外れる理由ではない。
+ 
+@@ -399,7 +399,7 @@ Core Value は、プロダクト一言定義 **「エネルギー管理におけ
+ 
+ | # | タスク | 【Current Implementation】 |
+ |---|--------|---------------------------|
+-| 1 | **Apple ログイン** | アプリ実装済み。Services ID Return URL と Supabase Apple プロバイダは Owner 確認 |
++| 1 | **Apple ログイン** | Developer / Supabase / アプリ実装済み。実機確認は未完 |
+ | 2 | **カロナビ+（380円 / 4,180円）** | 無料枠と購入画面は実装済み。Store 商品は未作成 |
+ | 3 | **アカウント削除 RPC** | アプリ実装済み。本番 SQL 未適用 |
+ | 4 | **App Store 掲載・TestFlight** | 未完了 |
+diff --git a/docs/legal/README.md b/docs/legal/README.md
+index a39f2e1..23339b2 100644
+--- a/docs/legal/README.md
++++ b/docs/legal/README.md
+@@ -55,25 +55,22 @@ App Store Connect で上記 Product ID の自動更新サブスクリプショ
+ 
+ 提出を止めるものから先。括弧は主担当。
+ 
+-1. **Sign in with Apple のコンソール仕上げと実機確認**（Owner）
+-   - アプリの `loginWithApple()` と iOS entitlement は実装済み。Web プレビューでは使えない
+-   - Services ID の Configure で Return URL を `https://<Supabaseプロジェクト>.supabase.co/auth/v1/callback` にする
+-   - Supabase Auth の Apple を Enabled にし、Client IDs に `com.narutoaii.ayg` と `com.narutoaii.ayg.web` を入れる。`.p8` はリポジトリに置かない
+-2. **本番 Supabase に削除 SQL を適用**（Owner）
++1. **本番 Supabase に削除 SQL を適用**（Owner）
+    - `supabase/migrations/20260920120000_delete_own_account_keep_public_foods.sql`
+    - 適用前にバックアップ。未適用だとアプリ内削除がメール頼みになる
+-3. **App Store Connect でカロナビ+ を作る**（Owner）
++2. **App Store Connect でカロナビ+ を作る**（Owner）
+    - グループ: カロナビ+
+    - `calonavi_plus_monthly` 380円 / 1ヶ月
+    - `calonavi_plus_yearly` 4,180円 / 1年
+-4. **実機確認**（Owner、不具合はエージェント）
++3. **実機確認**（Owner、不具合はエージェント）
++   - Sign in with Apple は Developer / Supabase / アプリ配線まで済み。Web プレビューでは使えない
+    - Google / Apple ログイン、アカウント削除、公開食品の「削除済みユーザー」、検索5回とテンプレ3件の上限、カロナビ+ 購入と復元、Health
+-5. **App Store Connect の掲載情報**（Owner）
++4. **App Store Connect の掲載情報**（Owner）
+    - プライバシー / 利用規約 / アカウント削除 URL
+    - Privacy Nutrition Labels（Health は目標計算のみ。広告・マーケティングに使わない）
+    - 年齢、スクリーンショット、審査メモ（公開食品が残ること、削除手順、Health の用途）
+-6. **TestFlight → 審査提出**（Owner）
+-7. **日常運用**（Owner）
++5. **TestFlight → 審査提出**（Owner）
++6. **日常運用**（Owner）
+    - `calonavi.ayg.support@gmail.com` を見る。住所・電話請求と削除依頼は本人確認のうえ遅滞なく返す
+    - 番地・私用電話を公開ページに載せない
+ 

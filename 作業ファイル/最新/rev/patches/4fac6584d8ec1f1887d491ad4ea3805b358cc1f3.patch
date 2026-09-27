@@ -1,0 +1,25 @@
+From 4fac6584d8ec1f1887d491ad4ea3805b358cc1f3 Mon Sep 17 00:00:00 2001
+From: Cursor Agent <cursoragent@cursor.com>
+Date: Sun, 20 Sep 2026 17:00:31 +0000
+Subject: [PATCH] fix: add HealthKit entitlement for device Health reads
+
+Device QA logged a missing com.apple.developer.healthkit entitlement.
+Apple Sign-In and the rest of the app are unaffected; Health fetch is not.
+
+Co-authored-by: naruto.futuree <naruto.futuree@gmail.com>
+---
+ ios/Runner/Runner.entitlements | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/ios/Runner/Runner.entitlements b/ios/Runner/Runner.entitlements
+index a812db5..b1b75f6 100644
+--- a/ios/Runner/Runner.entitlements
++++ b/ios/Runner/Runner.entitlements
+@@ -6,5 +6,7 @@
+ 	<array>
+ 		<string>Default</string>
+ 	</array>
++	<key>com.apple.developer.healthkit</key>
++	<true/>
+ </dict>
+ </plist>

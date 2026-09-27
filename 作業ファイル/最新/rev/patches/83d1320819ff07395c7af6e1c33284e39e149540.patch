@@ -1,0 +1,238 @@
+From 83d1320819ff07395c7af6e1c33284e39e149540 Mon Sep 17 00:00:00 2001
+From: Cursor Agent <cursoragent@cursor.com>
+Date: Sun, 20 Sep 2026 15:42:27 +0000
+Subject: [PATCH] fix: repair malformed local dart_defines JSON before iOS run
+
+The device QA path was dying on a missing comma in dart_defines.local.json.
+Validate first, rewrite the file from extracted keys, and leave the iOS Google client empty so Apple Sign-In can be tested first.
+
+Co-authored-by: naruto.futuree <naruto.futuree@gmail.com>
+---
+ tool/configure_google_signin_ios.sh  |  21 ++++--
+ tool/dart_defines.local.json.example |   2 +-
+ tool/repair_local_defines.command    |   7 ++
+ tool/repair_local_defines.py         | 100 +++++++++++++++++++++++++++
+ tool/run_ios.sh                      |  21 ++++++
+ tool/setup_local_defines.command     |   5 +-
+ 6 files changed, 149 insertions(+), 7 deletions(-)
+ create mode 100755 tool/repair_local_defines.command
+ create mode 100755 tool/repair_local_defines.py
+
+diff --git a/tool/configure_google_signin_ios.sh b/tool/configure_google_signin_ios.sh
+index 21b646a..681b1bb 100755
+--- a/tool/configure_google_signin_ios.sh
++++ b/tool/configure_google_signin_ios.sh
+@@ -24,12 +24,25 @@ key, path = sys.argv[1], sys.argv[2]
+ try:
+     with open(path, encoding="utf-8") as f:
+         data = json.load(f)
+-    value = data.get(key, "")
+-    if value is None:
+-        value = ""
+-    print(value)
+ except FileNotFoundError:
+     print("")
++    raise SystemExit(0)
++except json.JSONDecodeError as error:
++    print(
++        "error: tool/dart_defines.local.json の JSON が壊れています。"
++        f" {error}",
++        file=sys.stderr,
++    )
++    print(
++        "直し方: Finder で tool/repair_local_defines.command をダブルクリックするか、"
++        "GOOGLE_WEB_CLIENT_ID の行の末尾にカンマがあるか確認してください。",
++        file=sys.stderr,
++    )
++    raise SystemExit(1)
++value = data.get(key, "")
++if value is None:
++    value = ""
++print(value)
+ PY
+ }
+ 
+diff --git a/tool/dart_defines.local.json.example b/tool/dart_defines.local.json.example
+index bdd1fe7..2669ae1 100644
+--- a/tool/dart_defines.local.json.example
++++ b/tool/dart_defines.local.json.example
+@@ -2,7 +2,7 @@
+   "SUPABASE_URL": "https://YOUR_PROJECT.supabase.co",
+   "SUPABASE_ANON_KEY": "YOUR_SUPABASE_ANON_OR_PUBLISHABLE_KEY",
+   "GOOGLE_WEB_CLIENT_ID": "YOUR_WEB_CLIENT_ID.apps.googleusercontent.com",
+-  "GOOGLE_IOS_CLIENT_ID": "YOUR_IOS_CLIENT_ID.apps.googleusercontent.com",
++  "GOOGLE_IOS_CLIENT_ID": "",
+   "OFF_CONTACT_EMAIL": "your-contact@example.com",
+   "SUPPORT_EMAIL": "your-support@example.com"
+ }
+diff --git a/tool/repair_local_defines.command b/tool/repair_local_defines.command
+new file mode 100755
+index 0000000..298997c
+--- /dev/null
++++ b/tool/repair_local_defines.command
+@@ -0,0 +1,7 @@
++#!/bin/bash
++# Double-click on Mac. Rewrites tool/dart_defines.local.json into valid JSON.
++set -eu
++cd "$(dirname "$0")/.."
++python3 tool/repair_local_defines.py tool/dart_defines.local.json
++open -e tool/dart_defines.local.json
++osascript -e 'display dialog "設定ファイルの形を直しました。\n\nすでに入っている値はそのままです。GOOGLE_IOS_CLIENT_ID は空で問題ありません。\n\nTextEdit で中身を見て、Command+S で保存して閉じてください。\nそのあと Terminal に戻って ./tool/run_ios.sh を実行します。" buttons {"OK"} default button "OK" with title "カロナビ 実機起動"'
+diff --git a/tool/repair_local_defines.py b/tool/repair_local_defines.py
+new file mode 100755
+index 0000000..8219c45
+--- /dev/null
++++ b/tool/repair_local_defines.py
+@@ -0,0 +1,100 @@
++#!/usr/bin/env python3
++"""Rewrite tool/dart_defines.local.json into valid JSON without asking for secrets."""
++
++from __future__ import annotations
++
++import json
++import re
++import sys
++from pathlib import Path
++
++KEYS = (
++    "SUPABASE_URL",
++    "SUPABASE_ANON_KEY",
++    "GOOGLE_WEB_CLIENT_ID",
++    "GOOGLE_IOS_CLIENT_ID",
++    "OFF_CONTACT_EMAIL",
++    "SUPPORT_EMAIL",
++)
++
++DEFAULTS = {
++    "SUPABASE_URL": "https://vdzzuoqsymetlejcnkeb.supabase.co",
++    "SUPABASE_ANON_KEY": "",
++    "GOOGLE_WEB_CLIENT_ID": "",
++    "GOOGLE_IOS_CLIENT_ID": "",
++    "OFF_CONTACT_EMAIL": "calonavi.ayg.support@gmail.com",
++    "SUPPORT_EMAIL": "calonavi.ayg.support@gmail.com",
++}
++
++QUOTE_TRANSLATION = str.maketrans(
++    {
++        "\u201c": '"',
++        "\u201d": '"',
++        "\u2018": "'",
++        "\u2019": "'",
++        "\uff02": '"',
++    }
++)
++
++KEY_PATTERN = re.compile(
++    r'["\'](%s)["\']\s*:\s*["\']([^"\']*)["\']' % "|".join(KEYS)
++)
++
++
++def normalize_quotes(text: str) -> str:
++    return text.translate(QUOTE_TRANSLATION)
++
++
++def extract_values(text: str) -> dict[str, str]:
++    data = dict(DEFAULTS)
++    try:
++        parsed = json.loads(normalize_quotes(text))
++    except json.JSONDecodeError:
++        parsed = {}
++        for key, value in KEY_PATTERN.findall(normalize_quotes(text)):
++            parsed[key] = value
++    if not isinstance(parsed, dict):
++        parsed = {}
++    for key in KEYS:
++        value = parsed.get(key, data[key])
++        if value is None:
++            value = ""
++        data[key] = str(value).strip()
++    return data
++
++
++def render(data: dict[str, str]) -> str:
++    return json.dumps({key: data[key] for key in KEYS}, indent=2, ensure_ascii=False) + "\n"
++
++
++def repair(path: Path) -> tuple[bool, str]:
++    if not path.exists():
++        path.write_text(render(dict(DEFAULTS)), encoding="utf-8")
++        return True, "created"
++    original = path.read_text(encoding="utf-8")
++    rewritten = render(extract_values(original))
++    if rewritten == original:
++        try:
++            json.loads(original)
++        except json.JSONDecodeError as error:
++            path.write_text(rewritten, encoding="utf-8")
++            return True, str(error)
++        return False, "already-valid"
++    path.write_text(rewritten, encoding="utf-8")
++    return True, "rewritten"
++
++
++def main(argv: list[str]) -> int:
++    path = Path(argv[1] if len(argv) > 1 else Path(__file__).resolve().parent / "dart_defines.local.json")
++    changed, reason = repair(path)
++    if reason == "already-valid":
++        print(f"OK: {path} is valid JSON.")
++        return 0
++    print(f"Wrote valid JSON to {path} ({reason}).")
++    if changed:
++        print("GOOGLE_IOS_CLIENT_ID is empty on purpose. Test Apple Sign-In first.")
++    return 0
++
++
++if __name__ == "__main__":
++    raise SystemExit(main(sys.argv))
+diff --git a/tool/run_ios.sh b/tool/run_ios.sh
+index 52013a8..f5fff01 100755
+--- a/tool/run_ios.sh
++++ b/tool/run_ios.sh
+@@ -11,6 +11,27 @@ ROOT_DIR="$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)"
+ cd "$ROOT_DIR"
+ LOCAL_DEFINES="${ROOT_DIR}/tool/dart_defines.local.json"
+ 
++if [ -f "$LOCAL_DEFINES" ]; then
++  python3 - "$LOCAL_DEFINES" <<'PY'
++import json, sys
++path = sys.argv[1]
++try:
++    with open(path, encoding="utf-8") as handle:
++        json.load(handle)
++except json.JSONDecodeError as error:
++    print(
++        "error: tool/dart_defines.local.json の JSON が壊れています。"
++        f" {error}",
++        file=sys.stderr,
++    )
++    print(
++        "直し方: Finder で tool/repair_local_defines.command をダブルクリックしてください。",
++        file=sys.stderr,
++    )
++    raise SystemExit(1)
++PY
++fi
++
+ chmod +x "${ROOT_DIR}/tool/configure_google_signin_ios.sh"
+ "${ROOT_DIR}/tool/configure_google_signin_ios.sh"
+ 
+diff --git a/tool/setup_local_defines.command b/tool/setup_local_defines.command
+index 193056c..903b013 100755
+--- a/tool/setup_local_defines.command
++++ b/tool/setup_local_defines.command
+@@ -10,7 +10,7 @@ if [ ! -f "$DEST" ]; then
+   "SUPABASE_URL": "https://vdzzuoqsymetlejcnkeb.supabase.co",
+   "SUPABASE_ANON_KEY": "PASTE_ANON_KEY_HERE",
+   "GOOGLE_WEB_CLIENT_ID": "PASTE_WEB_CLIENT_ID.apps.googleusercontent.com",
+-  "GOOGLE_IOS_CLIENT_ID": "PASTE_IOS_CLIENT_ID.apps.googleusercontent.com",
++  "GOOGLE_IOS_CLIENT_ID": "",
+   "OFF_CONTACT_EMAIL": "calonavi.ayg.support@gmail.com",
+   "SUPPORT_EMAIL": "calonavi.ayg.support@gmail.com"
+ }
+@@ -18,4 +18,5 @@ EOF
+ fi
+ 
+ open -e "$DEST"
+-echo "Opened $DEST in TextEdit. Fill the three PASTE_ fields, save, then close."
++echo "Opened $DEST in TextEdit. Fill SUPABASE_ANON_KEY and GOOGLE_WEB_CLIENT_ID, save, then close."
++echo "Leave GOOGLE_IOS_CLIENT_ID as empty quotes. Test Apple Sign-In first."

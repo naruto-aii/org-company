@@ -1,0 +1,134 @@
+name: Publish Pages
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "docs/index.html"
+      - "docs/styles.css"
+      - "docs/.nojekyll"
+      - "docs/robots.txt"
+      - "docs/sitemap.xml"
+      - "docs/assets/**"
+      - "docs/legal/**"
+      - "tool/assemble_pages_site.sh"
+      - ".github/workflows/publish-pages.yml"
+      - ".github/workflows/deploy-web-preview.yml"
+  workflow_dispatch:
+  workflow_call:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# One site, one deploy. Do not share this group with a caller workflow or the run deadlocks.
+concurrency:
+  group: github-pages-site
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout web preview
+        uses: actions/checkout@v4
+        with:
+          # アプリ本体は main に merge しない。Pages のルートは常に web-preview。
+          ref: web-preview
+
+      - name: Checkout landing page
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          path: landing
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Validate secrets
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_PUBLISHABLE_KEY: ${{ secrets.SUPABASE_PUBLISHABLE_KEY }}
+          OFF_CONTACT_EMAIL: ${{ secrets.OFF_CONTACT_EMAIL }}
+          SUPPORT_EMAIL: ${{ secrets.SUPPORT_EMAIL }}
+        run: |
+          if [ -z "$SUPABASE_URL" ] || [ -z "$SUPABASE_PUBLISHABLE_KEY" ]; then
+            echo "Missing required GitHub Secrets: SUPABASE_URL and/or SUPABASE_PUBLISHABLE_KEY"
+            exit 1
+          fi
+          if [ -z "$SUPPORT_EMAIL" ] && [ -z "$OFF_CONTACT_EMAIL" ]; then
+            echo "Missing GitHub Secrets: SUPPORT_EMAIL and OFF_CONTACT_EMAIL"
+            exit 1
+          fi
+
+      - name: Build web
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_PUBLISHABLE_KEY: ${{ secrets.SUPABASE_PUBLISHABLE_KEY }}
+          GOOGLE_WEB_CLIENT_ID: ${{ secrets.GOOGLE_WEB_CLIENT_ID }}
+          OFF_CONTACT_EMAIL: ${{ secrets.OFF_CONTACT_EMAIL }}
+          SUPPORT_EMAIL: ${{ secrets.SUPPORT_EMAIL }}
+        run: |
+          python3 <<'PY'
+          import json
+          import os
+
+          # Flutter Web は開発用プレビュー。アプリはこれに依存しない。
+          # 法務ページは LP と同じくサイト直下 /legal/ のまま。
+          pages_base = "https://naruto-aii.github.io/AYG"
+          support_email = os.environ.get("SUPPORT_EMAIL", "").strip()
+          off_contact_email = os.environ.get("OFF_CONTACT_EMAIL", "").strip()
+          config = {
+              "SUPABASE_URL": os.environ["SUPABASE_URL"],
+              "SUPABASE_ANON_KEY": os.environ["SUPABASE_PUBLISHABLE_KEY"],
+              "GOOGLE_WEB_CLIENT_ID": os.environ.get("GOOGLE_WEB_CLIENT_ID", ""),
+              "OFF_CONTACT_EMAIL": off_contact_email,
+              "SUPPORT_EMAIL": support_email or off_contact_email,
+              "TERMS_URL": f"{pages_base}/legal/terms.html",
+              "PRIVACY_URL": f"{pages_base}/legal/privacy.html",
+              "SUPPORT_URL": f"{pages_base}/legal/support.html",
+              "ACCOUNT_DELETION_URL": f"{pages_base}/legal/account-deletion.html",
+              "TOKUSHOHO_URL": f"{pages_base}/legal/tokushoho.html",
+          }
+          with open("dart_defines.ci.json", "w", encoding="utf-8") as handle:
+              json.dump(config, handle)
+          PY
+          flutter build web --release \
+            --base-href "/AYG/" \
+            --target lib/main_web.dart \
+            --dart-define-from-file=dart_defines.ci.json
+
+      - name: Assemble Pages site
+        # web-preview を先にルートへ checkout するので、スクリプトは main 側の landing/ にある。
+        run: bash landing/tool/assemble_pages_site.sh build/web landing/docs _site
+
+      - name: Upload preview artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: web-preview-build
+          path: build/web
+          if-no-files-found: error
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

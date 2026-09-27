@@ -1,0 +1,82 @@
+From 93e595c466ff567fe52b19b5100276c157ec804c Mon Sep 17 00:00:00 2001
+From: Cursor Agent <cursoragent@cursor.com>
+Date: Sun, 20 Sep 2026 03:38:26 +0000
+Subject: [PATCH] docs: mark Calonavi+ App Store products as created
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Store listing name is カロナビ - 食事と運動. Next is device QA including Sandbox purchase.
+
+Co-authored-by: naruto.futuree <naruto.futuree@gmail.com>
+---
+ docs/01_Project.md   |  7 +++----
+ docs/legal/README.md | 20 ++++++++------------
+ 2 files changed, 11 insertions(+), 16 deletions(-)
+
+diff --git a/docs/01_Project.md b/docs/01_Project.md
+index a8fc1a9..1160390 100644
+--- a/docs/01_Project.md
++++ b/docs/01_Project.md
+@@ -399,10 +399,9 @@ Core Value は、プロダクト一言定義 **「エネルギー管理におけ
+ 
+ | # | レーン | タスク | 【Current Implementation】 |
+ |---|--------|--------|---------------------------|
+-| 1 | 今できる | **カロナビ+ Store 商品** | アプリ実装済み。ASC 未作成 |
+-| 2 | 今できる | **実機の機能確認** | 未完。仮デザインのままでよい |
+-| 3 | 今できる | **掲載テキスト** | URL / 年齢 / Privacy Labels / 審査メモ |
+-| 4 | デザイン後 | **見た目・アイコン・スクショ・TestFlight** | デザイナー待ち |
++| 1 | 今できる | **実機の機能確認** | 未完。仮デザインのまま。購入含む |
++| 2 | 今できる | **掲載テキスト** | URL / 年齢 / Privacy Labels / 審査メモ |
++| 3 | デザイン後 | **見た目・アイコン・スクショ・TestFlight** | デザイナー待ち |
+ 
+ 推奨着手順の本文は `docs/legal/README.md`。基本タスク完了のたびに「今できる / デザイン後」を出し直す。
+ 
+diff --git a/docs/legal/README.md b/docs/legal/README.md
+index 6041a42..ad2efd1 100644
+--- a/docs/legal/README.md
++++ b/docs/legal/README.md
+@@ -48,14 +48,15 @@
+ - 加入中は3つとも無制限
+ - 記録・Health・バーコード・公開投稿は無料のまま
+ 
+-App Store Connect で上記 Product ID の自動更新サブスクリプションを作るのは Owner 作業。
++App Store Connect の商品は作成済み。初回提出はアプリのバージョンと一緒。ストアのアプリ名は `カロナビ - 食事と運動`（`カロナビ` 単体は使用済み）。ホーム画面とアプリ内はカロナビのまま。
+ 
+ ## 済んでいるもの
+ 
+ - 法務 HTML とアプリ内全画面表示
+ - Sign in with Apple（Developer Key、Supabase Apple Enabled、アプリ配線）。Web プレビューでは使えない
+ - アカウント削除 UI と本番 RPC（`delete_own_account`、authenticated から実行可）
+-- カロナビ+ のアプリ側（380円 / 4,180円、無料枠 5 / 3 / 3）
++- カロナビ+ のアプリ側と App Store Connect 商品（`calonavi_plus_monthly` 380円 / `calonavi_plus_yearly` 4,180円、同じ Level 1）
++- ストアのアプリ枠（名前は `カロナビ - 食事と運動`）
+ - 公開食品の作成者欄「削除済みユーザー」
+ - 通報・作成者ブロック
+ 
+@@ -65,20 +66,15 @@ App Store Connect で上記 Product ID の自動更新サブスクリプショ
+ 
+ 見た目の納品を待たなくてよい。括弧は主担当。次は 1。
+ 
+-1. **App Store Connect でカロナビ+ を作る**（Owner）
+-   - グループ: カロナビ+
+-   - `calonavi_plus_monthly` 380円 / 1ヶ月
+-   - `calonavi_plus_yearly` 4,180円 / 1年
+-   - 商品名・説明は文言だけ。Figma 不要
+-2. **実機の機能確認**（Owner、不具合はエージェント）
++1. **実機の機能確認**（Owner、不具合はエージェント）
+    - 今の仮デザインのままでよい。見た目の直しはデザイン後
+-   - 今すぐ: Google / Apple ログイン、アカウント削除、公開食品の「削除済みユーザー」、検索5回とテンプレ3件の上限、Health
+-   - 1 のあと: カロナビ+ の購入と復元
+-3. **掲載のテキストだけ先に入れる**（Owner）
++   - Google / Apple ログイン、アカウント削除、公開食品の「削除済みユーザー」、検索5回とテンプレ3件の上限、Health
++   - カロナビ+ の購入と復元（Sandbox。Add for Review はまだ押さない）
++2. **掲載のテキストだけ先に入れる**（Owner）
+    - プライバシー / 利用規約 / アカウント削除 URL
+    - Privacy Nutrition Labels（Health は目標計算のみ。広告・マーケティングに使わない）
+    - 年齢、審査メモ（公開食品が残ること、削除手順、Health の用途）
+-   - スクリーンショットとアイコンは空のまま
++   - スクリーンショットとアイコンは空のまま。ストア名は `カロナビ - 食事と運動`
+ 
+ 公開窓口は `calonavi.ayg.support@gmail.com`。新しい仕組みは作らない。その Gmail を見られればよい。
+ 

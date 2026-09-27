@@ -1,0 +1,1155 @@
+### FILE docs/legal/README.md (modified)
+@@ -45,7 +45,7 @@
+ ## 課金（2026-09-20 決定）
+ 
+ 商品名: カロナビ+
+-- 月額 380円 / 年額 4,180円（月額×11、1ヶ月分お得）
++- 月額 380円 / 年額 4,180円（月額×11、1ヶ月分お得）。公開の特商法ページは金額を固定せず、App Store の購入画面に表示される税込価格を正とする。ここにある金額は社内の商品決定のメモ
+ - Product ID: `calonavi_plus_monthly` / `calonavi_plus_yearly`
+ - 無料枠: 公開食品検索 5回/日、食事テンプレート 3件、運動テンプレート 3件
+ - 加入中は3つとも無制限
+### FILE legal/privacy.html (modified)
+@@ -15,7 +15,7 @@
+         <a href="support.html">サポート</a>
+       </nav>
+       <h1>プライバシーポリシー</h1>
+-      <p class="meta">最終更新日: 2026-09-20 / アプリ: カロナビ / 運営: 麹池成</p>
++      <p class="meta">最終更新日: 2026-09-27 / アプリ: カロナビ / 運営: 麹池成</p>
+     </header>
+     <main>
+       <h2>1. 個人情報取扱事業者</h2>
+@@ -56,6 +56,9 @@ <h2>3. 取得する情報</h2>
+         <li>公開食品への評価（Good / Bad）、通報、ブロック</li>
+         <li>問い合わせ時に、利用者がメールで送った内容</li>
+         <li>アプリ内課金を利用した場合の、ストアから届く購入状態（レシート等）。カード番号は取得しません</li>
++        <li>
++          利用状況。無料枠の上限に達したこと、および有料プランへ切り替えたこと。ユーザーIDに紐づけて記録します
++        </li>
+       </ul>
+       <p>
+         広告識別子の取得や、広告目的の Cookie 利用は行いません。
+@@ -69,6 +72,7 @@ <h2>4. 利用目的</h2>
+         <li>Health 連携時の目標計算の補助</li>
+         <li>有料機能の提供と購入状態の確認</li>
+         <li>問い合わせ対応</li>
++        <li>サービスの改善（無料枠の上限到達と有料プランへの切り替えの把握。広告配信には使いません）</li>
+         <li>不正利用の防止とサービスの維持</li>
+         <li>本規約・本ポリシーの変更など重要なお知らせ</li>
+       </ul>
+@@ -130,6 +134,9 @@ <h2>10. 保管と削除</h2>
+           食事・運動・体重などの個人の記録、非公開の保存食品、プロフィール、目標は、アカウント削除後に削除します。
+         </li>
+         <li>公開食品は、上記のとおり残します。</li>
++        <li>
++          利用状況（上限到達と有料プランへの切り替え）は、アカウント削除時に削除します。
++        </li>
+         <li>問い合わせメールは、対応に必要な期間保管します。</li>
+         <li>法令で保管が必要な場合は、その期間保管します。</li>
+       </ul>
+### FILE legal/tokushoho.html (modified)
+@@ -14,7 +14,7 @@
+         <a href="privacy.html">プライバシー</a>
+       </nav>
+       <h1>特定商取引法に基づく表記</h1>
+-      <p class="meta">最終更新日: 2026-09-20 / アプリ: カロナビ / 販売業者: 麹池成</p>
++      <p class="meta">最終更新日: 2026-09-27 / アプリ: カロナビ / 販売業者: 麹池成</p>
+     </header>
+     <main>
+       <ul>
+@@ -35,7 +35,7 @@ <h1>特定商取引法に基づく表記</h1>
+           >
+         </li>
+         <li>
+-          販売価格: カロナビ+ 月額 380円、年額 4,180円（年額は1ヶ月分お得）。いずれも税込。購入画面の表示が正です
++          販売価格: カロナビ+ の税込価格は、App Store の購入画面に表示される価格です。このページでは金額を定めません
+         </li>
+         <li>数量: 各購入画面に表示します</li>
+         <li>送料: かかりません（デジタル役務です）</li>
+### FILE lib/app.dart (modified)
+@@ -1,3 +1,5 @@
++import 'dart:async';
++
+ import 'package:flutter/material.dart';
+ 
+ import 'constants/app_strings.dart';
+@@ -7,6 +9,7 @@ import 'screens/auth/login_screen.dart';
+ import 'screens/onboarding/health_setup_screen.dart';
+ import 'screens/shell/main_shell_screen.dart';
+ import 'services/open_food_facts_service.dart';
++import 'repositories/subscription_repository.dart';
+ import 'state/app_controller.dart';
+ import 'screens/splash/splash_screen.dart';
+ import 'theme/app_theme.dart';
+@@ -35,13 +38,16 @@ class AygApp extends StatelessWidget {
+ 
+   @override
+   Widget build(BuildContext context) {
+-    return MaterialApp(
+-      title: AppStrings.appTitle,
+-      theme: AppTheme.light,
+-      builder: (context, child) {
+-        return AppKeyboardHost(child: child ?? const SizedBox.shrink());
+-      },
+-      home: _buildHome(),
++    return _EntitlementRefreshHost(
++      repository: controller.subscriptionRepository,
++      child: MaterialApp(
++        title: AppStrings.appTitle,
++        theme: AppTheme.light,
++        builder: (context, child) {
++          return AppKeyboardHost(child: child ?? const SizedBox.shrink());
++        },
++        home: _buildHome(),
++      ),
+     );
+   }
+ 
+@@ -107,6 +113,45 @@ class AygApp extends StatelessWidget {
+   }
+ }
+ 
++class _EntitlementRefreshHost extends StatefulWidget {
++  const _EntitlementRefreshHost({
++    required this.repository,
++    required this.child,
++  });
++
++  final SubscriptionRepository repository;
++  final Widget child;
++
++  @override
++  State<_EntitlementRefreshHost> createState() =>
++      _EntitlementRefreshHostState();
++}
++
++class _EntitlementRefreshHostState extends State<_EntitlementRefreshHost>
++    with WidgetsBindingObserver {
++  @override
++  void initState() {
++    super.initState();
++    WidgetsBinding.instance.addObserver(this);
++  }
++
++  @override
++  void dispose() {
++    WidgetsBinding.instance.removeObserver(this);
++    super.dispose();
++  }
++
++  @override
++  void didChangeAppLifecycleState(AppLifecycleState state) {
++    if (state == AppLifecycleState.resumed) {
++      unawaited(widget.repository.refreshEntitlement());
++    }
++  }
++
++  @override
++  Widget build(BuildContext context) => widget.child;
++}
++
+ /// 起動直後にスプラッシュ演出を流し、終わったら本編へディゾルブする。
+ class _SplashGate extends StatefulWidget {
+   const _SplashGate({required this.child});
+### FILE lib/constants/app_strings.dart (modified)
+@@ -60,6 +60,11 @@ class AppStrings {
+   static const plusLead = '公開食品検索とテンプレートの上限を外します。記録・Health・バーコードはこれまでどおり無料です。';
+   static const plusFreeQuota = '無料枠: 公開食品検索 5回/日、食事テンプレート 3件、運動テンプレート 3件。';
+   static const plusRestore = '購入を復元';
++  static const plusRestoreSuccess = '購入を復元しました';
++  static const plusRestoreEmpty = '復元できる購入が見つかりませんでした';
++  static const plusRestoreFailed = '購入を復元できませんでした。時間をおいて再度お試しください。';
++  static const plusPurchaseSuccess = '購入が完了しました';
++  static const plusPurchaseFailed = '購入できませんでした。時間をおいて再度お試しください。';
+   static const plusPurchaseUnavailable = 'この画面では購入できません。iPhone のアプリから購入してください。';
+   static const plusAutoRenew = 'サブスクリプションは、解約するまで自動更新されます。';
+   static const plusCancelHow =
+### FILE lib/repositories/storekit_subscription_repository.dart (modified)
+@@ -49,6 +49,7 @@ class StoreKitSubscriptionRepository extends SubscriptionRepository {
+   final SubscriptionEntitlementState _entitlement =
+       SubscriptionEntitlementState();
+   StreamSubscription<List<PurchaseDetails>>? _purchaseSubscription;
++  Timer? _expiryTimer;
+   bool _plus = false;
+ 
+   @override
+@@ -132,6 +133,15 @@ class StoreKitSubscriptionRepository extends SubscriptionRepository {
+     await _refreshEntitlement();
+   }
+ 
++  @override
++  Future<void> refreshEntitlement() async {
++    try {
++      await _refreshEntitlement();
++    } catch (_) {
++      await _persist();
++    }
++  }
++
+   @override
+   Future<void> purchaseMonthly() {
+     return _buy(SubscriptionCatalog.monthlyProductId);
+@@ -180,12 +190,17 @@ class StoreKitSubscriptionRepository extends SubscriptionRepository {
+     for (final purchase in purchases) {
+       if (purchase.status == PurchaseStatus.purchased ||
+           purchase.status == PurchaseStatus.restored) {
+-        _entitlement.apply(
+-          SubscriptionEntitlementRecord(
+-            productId: purchase.productID,
+-            expiresAt: _expiryOf(purchase),
+-          ),
+-        );
++        if (parseStoreRevocationDate(
++              purchase.verificationData.localVerificationData,
++            ) ==
++            null) {
++          _entitlement.apply(
++            SubscriptionEntitlementRecord(
++              productId: purchase.productID,
++              expiresAt: _expiryOf(purchase),
++            ),
++          );
++        }
+       }
+       if (purchase.pendingCompletePurchase && store != null) {
+         await store.completePurchase(purchase);
+@@ -198,7 +213,7 @@ class StoreKitSubscriptionRepository extends SubscriptionRepository {
+     final load = _loadEntitlements ?? _loadStoreEntitlements;
+     final result = await load();
+     if (!result.authoritative) {
+-      _plus = _entitlement.isActive(_clock());
++      await _persist();
+       return;
+     }
+     _entitlement.replaceAll(result.records);
+@@ -216,10 +231,12 @@ class StoreKitSubscriptionRepository extends SubscriptionRepository {
+       return EntitlementLoad(
+         records: [
+           for (final transaction in transactions)
+-            SubscriptionEntitlementRecord(
+-              productId: transaction.productId,
+-              expiresAt: parseStoreExpiryMillis(transaction.expirationDate),
+-            ),
++            if (parseStoreRevocationDate(transaction.jsonRepresentation) ==
++                null)
++              SubscriptionEntitlementRecord(
++                productId: transaction.productId,
++                expiresAt: parseStoreExpiryMillis(transaction.expirationDate),
++              ),
+         ],
+         authoritative: true,
+       );
+@@ -280,6 +297,7 @@ class StoreKitSubscriptionRepository extends SubscriptionRepository {
+     } else {
+       await prefs.setInt(expiryKey, expiry.millisecondsSinceEpoch);
+     }
++    _scheduleExpiryCheck();
+     final active = _entitlement.isActive(_clock());
+     if (active == _plus) {
+       return;
+@@ -290,11 +308,28 @@ class StoreKitSubscriptionRepository extends SubscriptionRepository {
+     }
+   }
+ 
++  void _scheduleExpiryCheck() {
++    _expiryTimer?.cancel();
++    _expiryTimer = null;
++    final expiry = _entitlement.latestExpiry;
++    if (expiry == null) {
++      return;
++    }
++    final remaining = expiry.difference(_clock());
++    if (remaining <= Duration.zero) {
++      return;
++    }
++    _expiryTimer = Timer(remaining, () {
++      unawaited(_persist());
++    });
++  }
++
+   Future<SharedPreferences> _prefs() async {
+     return _preferences ?? await SharedPreferences.getInstance();
+   }
+ 
+   Future<void> dispose() async {
++    _expiryTimer?.cancel();
+     await _purchaseSubscription?.cancel();
+     await _plusController.close();
+   }
+### FILE lib/repositories/subscription_repository.dart (modified)
+@@ -11,6 +11,10 @@ abstract class SubscriptionRepository {
+ 
+   Future<void> restore();
+ 
++  /// Re-read the store, then recompute Plus from the clock.
++  /// A no-op where there is no store.
++  Future<void> refreshEntitlement();
++
+   Future<void> purchaseMonthly();
+ 
+   Future<void> purchaseYearly();
+### FILE lib/repositories/unavailable_subscription_repository.dart (modified)
+@@ -18,6 +18,9 @@ class UnavailableSubscriptionRepository extends SubscriptionRepository {
+   @override
+   Future<void> restore() async {}
+ 
++  @override
++  Future<void> refreshEntitlement() async {}
++
+   @override
+   Future<void> purchaseMonthly() {
+     throw SubscriptionPurchaseUnavailableException();
+### FILE lib/screens/subscription/calonavi_plus_screen.dart (modified)
+@@ -81,37 +81,70 @@ class _CalonaviPlusScreenState extends State<CalonaviPlusScreen> {
+     });
+   }
+ 
+-  Future<void> _run(Future<void> Function() action) async {
+-    setState(() => _busy = true);
+-    try {
++  Future<void> _purchase(Future<void> Function() action) async {
++    await _guarded(() async {
+       await action();
+       if (!mounted) {
+         return;
+       }
+-      if (widget.repository.isPlusActive && Navigator.of(context).canPop()) {
+-        Navigator.of(context).pop();
++      if (widget.repository.isPlusActive) {
++        _showMessage(AppStrings.plusPurchaseSuccess);
++        _closeIfPossible();
++      }
++    }, failureMessage: AppStrings.plusPurchaseFailed);
++  }
++
++  Future<void> _restore() async {
++    await _guarded(() async {
++      await widget.repository.restore();
++      if (!mounted) {
++        return;
++      }
++      if (widget.repository.isPlusActive) {
++        _showMessage(AppStrings.plusRestoreSuccess);
++        _closeIfPossible();
++      } else {
++        _showMessage(AppStrings.plusRestoreEmpty);
+       }
++    }, failureMessage: AppStrings.plusRestoreFailed);
++  }
++
++  Future<void> _guarded(
++    Future<void> Function() action, {
++    required String failureMessage,
++  }) async {
++    setState(() => _busy = true);
++    try {
++      await action();
+     } on SubscriptionPurchaseUnavailableException {
+       if (!mounted) {
+         return;
+       }
+-      ScaffoldMessenger.of(context).showSnackBar(
+-        const SnackBar(content: Text(AppStrings.plusPurchaseUnavailable)),
+-      );
+-    } catch (error) {
++      _showMessage(AppStrings.plusPurchaseUnavailable);
++    } catch (_) {
+       if (!mounted) {
+         return;
+       }
+-      ScaffoldMessenger.of(
+-        context,
+-      ).showSnackBar(SnackBar(content: Text('$error')));
++      _showMessage(failureMessage);
+     } finally {
+       if (mounted) {
+         setState(() => _busy = false);
+       }
+     }
+   }
+ 
++  void _showMessage(String message) {
++    ScaffoldMessenger.of(
++      context,
++    ).showSnackBar(SnackBar(content: Text(message)));
++  }
++
++  void _closeIfPossible() {
++    if (Navigator.of(context).canPop()) {
++      Navigator.of(context).pop();
++    }
++  }
++
+   @override
+   Widget build(BuildContext context) {
+     final body = Theme.of(context).textTheme.bodyMedium;
+@@ -169,14 +202,14 @@ class _CalonaviPlusScreenState extends State<CalonaviPlusScreen> {
+                     loading: _busy,
+                     onPressed: _busy
+                         ? null
+-                        : () => _run(widget.repository.purchaseMonthly),
++                        : () => _purchase(widget.repository.purchaseMonthly),
+                   ),
+                 if (yearly != null && yearly.canPurchase)
+                   SecondaryButton(
+                     label: yearly.buttonLabel,
+                     onPressed: _busy
+                         ? null
+-                        : () => _run(widget.repository.purchaseYearly),
++                        : () => _purchase(widget.repository.purchaseYearly),
+                   ),
+                 if (monthly?.canPurchase != true && yearly?.canPurchase != true)
+                   Text(AppStrings.plusPriceUnavailable, style: body),
+@@ -188,7 +221,7 @@ class _CalonaviPlusScreenState extends State<CalonaviPlusScreen> {
+               ],
+               const SizedBox(height: AppSpacing.sm),
+               TextButton(
+-                onPressed: _busy ? null : () => _run(widget.repository.restore),
++                onPressed: _busy ? null : _restore,
+                 child: const Text(AppStrings.plusRestore),
+               ),
+               const SizedBox(height: AppSpacing.md),
+### FILE lib/services/subscription_entitlement.dart (modified)
+@@ -1,3 +1,5 @@
++import 'dart:convert';
++
+ import '../config/subscription_catalog.dart';
+ 
+ class SubscriptionEntitlementRecord {
+@@ -64,3 +66,40 @@ DateTime? parseStoreExpiryMillis(String? raw) {
+   }
+   return DateTime.fromMillisecondsSinceEpoch(millis);
+ }
++
++/// Apple's Transaction.jsonRepresentation `revocationDate`.
++/// A value means the transaction was refunded or revoked and must not grant Plus.
++DateTime? parseStoreRevocationDate(String? jsonRepresentation) {
++  if (jsonRepresentation == null || jsonRepresentation.isEmpty) {
++    return null;
++  }
++  Object? decoded;
++  try {
++    decoded = jsonDecode(jsonRepresentation);
++  } catch (_) {
++    return null;
++  }
++  if (decoded is! Map) {
++    return null;
++  }
++  final raw = decoded['revocationDate'];
++  if (raw == null) {
++    return null;
++  }
++  if (raw is num) {
++    return _dateFromEpoch(raw);
++  }
++  if (raw is String) {
++    final asNum = num.tryParse(raw);
++    if (asNum != null) {
++      return _dateFromEpoch(asNum);
++    }
++    return DateTime.tryParse(raw);
++  }
++  return null;
++}
++
++DateTime _dateFromEpoch(num value) {
++  final millis = value.abs() >= 1000000000000 ? value : value * 1000;
++  return DateTime.fromMillisecondsSinceEpoch(millis.round(), isUtc: true);
++}
+### FILE lib/state/app_controller.dart (modified)
+@@ -1544,7 +1544,7 @@ class AppController extends ChangeNotifier {
+     )) {
+       return;
+     }
+-    await _noteFreeLimitHit();
++    _noteFreeLimitHit();
+     throw SubscriptionLimitExceededException(
+       SubscriptionLimitKind.mealTemplate,
+     );
+@@ -1557,7 +1557,7 @@ class AppController extends ChangeNotifier {
+     )) {
+       return;
+     }
+-    await _noteFreeLimitHit();
++    _noteFreeLimitHit();
+     throw SubscriptionLimitExceededException(
+       SubscriptionLimitKind.workoutTemplate,
+     );
+@@ -1575,7 +1575,7 @@ class AppController extends ChangeNotifier {
+       isPlus: false,
+       usedToday: used,
+     )) {
+-      await _noteFreeLimitHit();
++      _noteFreeLimitHit();
+       throw SubscriptionLimitExceededException(
+         SubscriptionLimitKind.publicFoodSearch,
+       );
+@@ -1586,9 +1586,13 @@ class AppController extends ChangeNotifier {
+     );
+   }
+ 
+-  Future<void> _noteFreeLimitHit() {
+-    return _subscriptionEventReporter.recordFreeLimitHit(
+-      _authenticationRepository?.currentUser?.id,
++  void _noteFreeLimitHit() {
++    final userId = _authenticationRepository?.currentUser?.id;
++    unawaited(
++      _subscriptionEventReporter
++          .recordFreeLimitHit(userId)
++          .timeout(const Duration(seconds: 2))
++          .then((_) {}, onError: (Object _) {}),
+     );
+   }
+ 
+### FILE supabase/migrations/20260927160000_delete_subscription_events_on_account_deletion.sql (added)
+@@ -0,0 +1,102 @@
++-- Deletes this user's subscription_events when the account is deleted.
++-- Not applied to production by this change.
++--
++-- 20260927150000 already replaces delete_own_account and may be applied
++-- before this file. Editing that file would not run again, so this later
++-- migration replaces the function once more.
++-- The table's user_id foreign key does not fire: delete_own_account
++-- anonymizes public.users instead of deleting the row.
++-- to_regclass keeps the function valid if the table is dropped later.
++
++begin;
++
++create or replace function public.delete_own_account()
++returns void
++language plpgsql
++security definer
++set search_path = ''
++as $$
++declare
++  uid pg_catalog.uuid := auth.uid();
++begin
++  if uid is null then
++    raise exception 'not authenticated';
++  end if;
++
++  delete from public.meal_template_items where user_id = uid;
++  delete from public.meal_templates where user_id = uid;
++
++  if pg_catalog.to_regclass('public.workout_template_items') is not null then
++    execute 'delete from public.workout_template_items where user_id = $1' using uid;
++  end if;
++  if pg_catalog.to_regclass('public.workout_templates') is not null then
++    execute 'delete from public.workout_templates where user_id = $1' using uid;
++  end if;
++
++  delete from public.food_ratings where rater_user_id = uid;
++  delete from public.food_reports where reporter_user_id = uid;
++  delete from public.blocked_food_creators
++    where blocker_user_id = uid or blocked_user_id = uid;
++
++  delete from public.saved_foods
++    where user_id = uid
++      and visibility is distinct from 'public';
++
++  update public.saved_foods
++  set owner_deleted = true
++  where user_id = uid
++    and visibility = 'public';
++
++  delete from public.food_entries where user_id = uid;
++  delete from public.exercise_entries where user_id = uid;
++  delete from public.weight_entries where user_id = uid;
++  if pg_catalog.to_regclass('public.alcohol_entries') is not null then
++    execute 'delete from public.alcohol_entries where user_id = $1' using uid;
++  end if;
++
++  delete from public.health_snapshots where user_id = uid;
++  delete from public.app_settings where user_id = uid;
++  delete from public.nutrition_settings where user_id = uid;
++  delete from public.goals where user_id = uid;
++  delete from public.profiles where user_id = uid;
++  delete from public.rate_limit_buckets where user_id = uid;
++
++  if pg_catalog.to_regclass('public.subscription_events') is not null then
++    delete from public.subscription_events where user_id = uid;
++  end if;
++
++  update public.users
++  set email = null,
++      deleted_at = pg_catalog.timezone('utc', pg_catalog.now())
++  where id = uid;
++
++  -- Prevent the same Google/Apple identity from signing back into this row.
++  -- Public foods stay attached to this anonymized user id.
++  -- Failures here are swallowed so a locked auth.users row does not abort
++  -- the personal-data delete. Session revocation below is NOT in this block.
++  begin
++    delete from auth.identities where user_id = uid;
++    update auth.users
++    set email = 'deleted+' || uid::text || '@invalid.local',
++        raw_user_meta_data = '{}'::pg_catalog.jsonb
++    where id = uid;
++  exception
++    when others then
++      raise notice 'delete_own_account: skipped auth.users update: %', sqlerrm;
++  end;
++
++  -- End existing logins immediately. user_id is uuid on sessions and often
++  -- varchar on refresh_tokens, so compare as text. These statements are
++  -- outside the exception handler above: a failure must not be swallowed.
++  delete from auth.refresh_tokens where user_id::text = uid::text;
++  delete from auth.sessions where user_id::text = uid::text;
++end;
++$$;
++
++
++revoke all on function public.delete_own_account() from public;
++revoke all on function public.delete_own_account() from anon;
++revoke all on function public.delete_own_account() from authenticated;
++grant execute on function public.delete_own_account() to authenticated;
++
++commit;
+### FILE supabase/rollback/20260927160000_delete_subscription_events_on_account_deletion_down.sql (added)
+@@ -0,0 +1,93 @@
++-- Down for 20260927160000_delete_subscription_events_on_account_deletion.sql.
++-- Not under supabase/migrations, so `db push` does not apply it.
++-- Restores delete_own_account to the 20260927150000 body, which does not
++-- delete subscription_events. Does not drop the subscription_events table.
++
++begin;
++
++create or replace function public.delete_own_account()
++returns void
++language plpgsql
++security definer
++set search_path = ''
++as $$
++declare
++  uid pg_catalog.uuid := auth.uid();
++begin
++  if uid is null then
++    raise exception 'not authenticated';
++  end if;
++
++  delete from public.meal_template_items where user_id = uid;
++  delete from public.meal_templates where user_id = uid;
++
++  if pg_catalog.to_regclass('public.workout_template_items') is not null then
++    execute 'delete from public.workout_template_items where user_id = $1' using uid;
++  end if;
++  if pg_catalog.to_regclass('public.workout_templates') is not null then
++    execute 'delete from public.workout_templates where user_id = $1' using uid;
++  end if;
++
++  delete from public.food_ratings where rater_user_id = uid;
++  delete from public.food_reports where reporter_user_id = uid;
++  delete from public.blocked_food_creators
++    where blocker_user_id = uid or blocked_user_id = uid;
++
++  delete from public.saved_foods
++    where user_id = uid
++      and visibility is distinct from 'public';
++
++  update public.saved_foods
++  set owner_deleted = true
++  where user_id = uid
++    and visibility = 'public';
++
++  delete from public.food_entries where user_id = uid;
++  delete from public.exercise_entries where user_id = uid;
++  delete from public.weight_entries where user_id = uid;
++  if pg_catalog.to_regclass('public.alcohol_entries') is not null then
++    execute 'delete from public.alcohol_entries where user_id = $1' using uid;
++  end if;
++
++  delete from public.health_snapshots where user_id = uid;
++  delete from public.app_settings where user_id = uid;
++  delete from public.nutrition_settings where user_id = uid;
++  delete from public.goals where user_id = uid;
++  delete from public.profiles where user_id = uid;
++  delete from public.rate_limit_buckets where user_id = uid;
++
++  update public.users
++  set email = null,
++      deleted_at = pg_catalog.timezone('utc', pg_catalog.now())
++  where id = uid;
++
++  -- Prevent the same Google/Apple identity from signing back into this row.
++  -- Public foods stay attached to this anonymized user id.
++  -- Failures here are swallowed so a locked auth.users row does not abort
++  -- the personal-data delete. Session revocation below is NOT in this block.
++  begin
++    delete from auth.identities where user_id = uid;
++    update auth.users
++    set email = 'deleted+' || uid::text || '@invalid.local',
++        raw_user_meta_data = '{}'::pg_catalog.jsonb
++    where id = uid;
++  exception
++    when others then
++      raise notice 'delete_own_account: skipped auth.users update: %', sqlerrm;
++  end;
++
++  -- End existing logins immediately. user_id is uuid on sessions and often
++  -- varchar on refresh_tokens, so compare as text. These statements are
++  -- outside the exception handler above: a failure must not be swallowed.
++  delete from auth.refresh_tokens where user_id::text = uid::text;
++  delete from auth.sessions where user_id::text = uid::text;
++end;
++$$;
++
++
++revoke all on function public.delete_own_account() from public;
++revoke all on function public.delete_own_account() from anon;
++revoke all on function public.delete_own_account() from authenticated;
++grant execute on function public.delete_own_account() to authenticated;
++
++commit;
+### FILE test/account_deletion_migration_test.dart (modified)
+@@ -9,23 +9,39 @@ void main() {
+       'supabase/migrations/20260927150000_protect_owner_deleted_and_revoke_sessions.sql';
+   const downName =
+       'supabase/rollback/20260927150000_protect_owner_deleted_and_revoke_sessions_down.sql';
++  const eventsName =
++      'supabase/migrations/20260927160000_delete_subscription_events_on_account_deletion.sql';
++  const eventsDownName =
++      'supabase/rollback/20260927160000_delete_subscription_events_on_account_deletion_down.sql';
+ 
+   late String appliedSql;
+   late String followUpSql;
+   late String downSql;
++  late String eventsSql;
++  late String eventsDownSql;
+ 
+   setUpAll(() {
+     appliedSql = File(appliedName).readAsStringSync();
+     followUpSql = File(followUpName).readAsStringSync();
+     downSql = File(downName).readAsStringSync();
++    eventsSql = File(eventsName).readAsStringSync();
++    eventsDownSql = File(eventsDownName).readAsStringSync();
+   });
+ 
+   test('already-applied delete_own_account migration is unchanged', () {
+     expect(appliedSql.contains('owner_deleted'), isFalse);
+     expect(appliedSql.contains('auth.sessions'), isFalse);
+     expect(appliedSql.contains('auth.refresh_tokens'), isFalse);
+-    expect(appliedSql, contains('create or replace function public.delete_own_account()'));
+-    expect(appliedSql, contains('grant execute on function public.delete_own_account() to authenticated'));
++    expect(
++      appliedSql,
++      contains('create or replace function public.delete_own_account()'),
++    );
++    expect(
++      appliedSql,
++      contains(
++        'grant execute on function public.delete_own_account() to authenticated',
++      ),
++    );
+   });
+ 
+   test('follow-up migration adds owner_deleted idempotently', () {
+@@ -56,7 +72,9 @@ void main() {
+   test('authenticated cannot update owner_deleted', () {
+     expect(
+       followUpSql,
+-      contains('revoke insert, update on table public.saved_foods from authenticated'),
++      contains(
++        'revoke insert, update on table public.saved_foods from authenticated',
++      ),
+     );
+     expect(
+       followUpSql,
+@@ -119,14 +137,45 @@ void main() {
+     expect(downSql, contains('drop column if exists owner_deleted'));
+     expect(
+       downSql,
+-      contains('drop function if exists public.saved_foods_reject_owner_deleted_change()'),
++      contains(
++        'drop function if exists public.saved_foods_reject_owner_deleted_change()',
++      ),
+     );
+     expect(
+       downSql,
+-      contains('grant select, insert, update on table public.saved_foods to authenticated'),
++      contains(
++        'grant select, insert, update on table public.saved_foods to authenticated',
++      ),
+     );
+     expect(downSql.contains('auth.sessions'), isFalse);
+     expect(downSql.contains('auth.refresh_tokens'), isFalse);
+     expect(downSql.contains('owner_deleted = true'), isFalse);
+   });
++
++  test('account deletion deletes subscription_events in a later migration', () {
++    expect(followUpSql.contains('subscription_events'), isFalse);
++    expect(eventsSql, contains("set search_path = ''"));
++    expect(
++      eventsSql,
++      contains("pg_catalog.to_regclass('public.subscription_events')"),
++    );
++    expect(
++      eventsSql,
++      contains('delete from public.subscription_events where user_id = uid'),
++    );
++    expect(
++      eventsDownSql.contains('delete from public.subscription_events'),
++      isFalse,
++    );
++    expect(
++      eventsDownSql,
++      contains('create or replace function public.delete_own_account()'),
++    );
++    expect(
++      File(
++        'supabase/migrations/20260927160000_delete_subscription_events_on_account_deletion_down.sql',
++      ).existsSync(),
++      isFalse,
++    );
++  });
+ }
+### FILE test/calonavi_plus_screen_test.dart (modified)
+@@ -1,4 +1,5 @@
+ import 'package:ayg/constants/app_strings.dart';
++import 'package:ayg/repositories/subscription_exceptions.dart';
+ import 'package:ayg/screens/legal/legal_document_screen.dart';
+ import 'package:ayg/screens/subscription/calonavi_plus_screen.dart';
+ import 'package:ayg/services/subscription_offer.dart';
+@@ -127,4 +128,79 @@ void main() {
+ 
+     await repository.dispose();
+   });
++
++  testWidgets('restore with nothing found shows a message', (tester) async {
++    final repository = MockSubscriptionRepository();
++    await tester.pumpWidget(
++      MaterialApp(
++        theme: AppTheme.light,
++        home: CalonaviPlusScreen(repository: repository),
++      ),
++    );
++    await tester.pump();
++
++    await tester.tap(find.text(AppStrings.plusRestore));
++    await tester.pumpAndSettle();
++
++    expect(find.text(AppStrings.plusRestoreEmpty), findsOneWidget);
++    expect(find.text(AppStrings.plusTitle), findsOneWidget);
++    expect(repository.plus, isFalse);
++
++    await repository.dispose();
++  });
++
++  testWidgets('restore success and failure use fixed messages', (tester) async {
++    final repository = MockSubscriptionRepository()..restoreGrantsPlus = true;
++    await tester.pumpWidget(
++      MaterialApp(
++        theme: AppTheme.light,
++        home: CalonaviPlusScreen(repository: repository),
++      ),
++    );
++    await tester.pump();
++
++    await tester.tap(find.text(AppStrings.plusRestore));
++    await tester.pumpAndSettle();
++    expect(find.text(AppStrings.plusRestoreSuccess), findsOneWidget);
++
++    ScaffoldMessenger.of(
++      tester.element(find.byType(Scaffold)),
++    ).hideCurrentSnackBar();
++    await tester.pumpAndSettle();
++
++    repository.restoreGrantsPlus = false;
++    repository.restoreFails = true;
++    repository.setPlus(false);
++    await tester.ensureVisible(find.text(AppStrings.plusRestore));
++    await tester.tap(find.text(AppStrings.plusRestore));
++    await tester.pumpAndSettle();
++    expect(find.text(AppStrings.plusRestoreFailed), findsOneWidget);
++    expect(find.textContaining('SKError'), findsNothing);
++    expect(find.textContaining('StateError'), findsNothing);
++
++    await repository.dispose();
++  });
++
++  testWidgets('purchase failure hides the store error', (tester) async {
++    final repository = MockSubscriptionRepository()
++      ..purchaseError = SubscriptionPurchaseFailedException(
++        'ASD: product unavailable',
++      );
++    await tester.pumpWidget(
++      MaterialApp(
++        theme: AppTheme.light,
++        home: CalonaviPlusScreen(repository: repository),
++      ),
++    );
++    await tester.pump();
++
++    await tester.tap(find.text('月額 US\$2.99'));
++    await tester.pumpAndSettle();
++
++    expect(find.text(AppStrings.plusPurchaseFailed), findsOneWidget);
++    expect(find.textContaining('ASD'), findsNothing);
++    expect(repository.plus, isFalse);
++
++    await repository.dispose();
++  });
+ }
+### FILE test/legal_document_screen_test.dart (modified)
+@@ -105,7 +105,12 @@ void main() {
+ 
+     expect(find.text('プライバシーポリシー'), findsOneWidget);
+     expect(find.textContaining('Apple Health'), findsOneWidget);
++    expect(find.textContaining('ユーザーID'), findsOneWidget);
+     expect(find.textContaining('麹池成'), findsWidgets);
++    await tester.scrollUntilVisible(find.textContaining('サービスの改善'), 300);
++    expect(find.textContaining('サービスの改善'), findsOneWidget);
++    await tester.scrollUntilVisible(find.textContaining('アカウント削除時に削除します'), 300);
++    expect(find.textContaining('アカウント削除時に削除します'), findsOneWidget);
+     expect(find.textContaining('24歳'), findsNothing);
+     expect(find.textContaining('Web 版'), findsNothing);
+     expect(find.byTooltip('閉じる'), findsOneWidget);
+@@ -124,8 +129,9 @@ void main() {
+     expect(find.text('特定商取引法に基づく表記'), findsOneWidget);
+     expect(find.textContaining('麹池成'), findsWidgets);
+     expect(find.textContaining('アプリ内課金'), findsOneWidget);
+-    expect(find.textContaining('380'), findsOneWidget);
+-    expect(find.textContaining('4,180'), findsOneWidget);
++    expect(find.textContaining('購入画面に表示される価格'), findsOneWidget);
++    expect(find.textContaining('380'), findsNothing);
++    expect(find.textContaining('4,180'), findsNothing);
+     expect(find.byTooltip('閉じる'), findsOneWidget);
+   });
+ 
+### FILE test/mocks/mock_subscription_repository.dart (modified)
+@@ -11,6 +11,9 @@ class MockSubscriptionRepository extends SubscriptionRepository {
+   bool monthlyCalled = false;
+   bool yearlyCalled = false;
+   bool restoreCalled = false;
++  bool restoreGrantsPlus = false;
++  bool restoreFails = false;
++  Object? purchaseError;
+   SubscriptionOfferings offerings = const SubscriptionOfferings(
+     monthly: SubscriptionProductOffer(
+       productId: SubscriptionCatalog.monthlyProductId,
+@@ -44,14 +47,26 @@ class MockSubscriptionRepository extends SubscriptionRepository {
+   @override
+   Future<void> restore() async {
+     restoreCalled = true;
++    if (restoreFails) {
++      throw StateError('SKErrorDomain');
++    }
++    if (restoreGrantsPlus) {
++      setPlus(true);
++    }
+   }
+ 
++  @override
++  Future<void> refreshEntitlement() async {}
++
+   @override
+   Future<void> purchaseMonthly() async {
+     monthlyCalled = true;
+     if (purchaseUnavailable) {
+       throw SubscriptionPurchaseUnavailableException();
+     }
++    if (purchaseError != null) {
++      throw purchaseError!;
++    }
+     setPlus(true);
+   }
+ 
+@@ -61,6 +76,9 @@ class MockSubscriptionRepository extends SubscriptionRepository {
+     if (purchaseUnavailable) {
+       throw SubscriptionPurchaseUnavailableException();
+     }
++    if (purchaseError != null) {
++      throw purchaseError!;
++    }
+     setPlus(true);
+   }
+ 
+### FILE test/storekit_subscription_repository_test.dart (modified)
+@@ -21,12 +21,13 @@ void main() {
+   SK2PurchaseDetails purchase({
+     required String productId,
+     String? expirationDate,
++    String localVerificationData = 'local',
+   }) {
+     return SK2PurchaseDetails(
+       productID: productId,
+       purchaseID: 'tx-$productId',
+       verificationData: PurchaseVerificationData(
+-        localVerificationData: 'local',
++        localVerificationData: localVerificationData,
+         serverVerificationData: 'server',
+         source: 'app_store',
+       ),
+@@ -185,4 +186,74 @@ void main() {
+       await repository.dispose();
+     },
+   );
++
++  test('a revoked transaction does not grant plus', () async {
++    final prefs = await prefsWith({});
++    final updates = StreamController<List<PurchaseDetails>>();
++    final repository = StoreKitSubscriptionRepository(
++      preferences: prefs,
++      purchaseUpdates: updates.stream,
++      loadEntitlements: () async =>
++          const EntitlementLoad(records: [], authoritative: false),
++      clock: () => now,
++    );
++    await repository.initialize();
++
++    final expiry = now.add(const Duration(days: 30));
++    updates.add([
++      purchase(
++        productId: SubscriptionCatalog.monthlyProductId,
++        expirationDate: '${expiry.millisecondsSinceEpoch}',
++        localVerificationData: '{"revocationDate":1700000000000}',
++      ),
++    ]);
++    await Future<void>.delayed(Duration.zero);
++    expect(repository.isPlusActive, isFalse);
++
++    final becamePlus = repository.plusChanges.first;
++    updates.add([
++      purchase(
++        productId: SubscriptionCatalog.monthlyProductId,
++        expirationDate: '${expiry.millisecondsSinceEpoch}',
++      ),
++    ]);
++    expect(await becamePlus.timeout(const Duration(seconds: 2)), isTrue);
++
++    updates.add([
++      purchase(
++        productId: SubscriptionCatalog.monthlyProductId,
++        expirationDate: '${expiry.millisecondsSinceEpoch}',
++        localVerificationData: '{"revocationDate":"2026-01-01T00:00:00Z"}',
++      ),
++    ]);
++    await Future<void>.delayed(Duration.zero);
++    expect(repository.isPlusActive, isTrue);
++
++    await updates.close();
++    await repository.dispose();
++  });
++
++  test('refresh turns plus off after the cached expiry passes', () async {
++    final expiry = now.add(const Duration(hours: 1));
++    final prefs = await prefsWith({
++      StoreKitSubscriptionRepository.expiryKey: expiry.millisecondsSinceEpoch,
++    });
++    var clock = now;
++    final repository = StoreKitSubscriptionRepository(
++      preferences: prefs,
++      purchaseUpdates: const Stream.empty(),
++      loadEntitlements: () async =>
++          const EntitlementLoad(records: [], authoritative: false),
++      clock: () => clock,
++    );
++
++    await repository.initialize();
++    expect(repository.isPlusActive, isTrue);
++
++    clock = expiry.add(const Duration(minutes: 1));
++    await repository.refreshEntitlement();
++    expect(repository.isPlusActive, isFalse);
++
++    await repository.dispose();
++  });
+ }
+### FILE test/subscription_entitlement_test.dart (modified)
+@@ -26,6 +26,34 @@ void main() {
+     expect(state.latestExpiry, now.add(const Duration(days: 30)));
+   });
+ 
++  test('a revocation date blocks the transaction', () {
++    expect(parseStoreRevocationDate(null), isNull);
++    expect(parseStoreRevocationDate('not json'), isNull);
++    expect(parseStoreRevocationDate('{"productId":"x"}'), isNull);
++
++    final millis = parseStoreRevocationDate('{"revocationDate":1700000000000}');
++    expect(
++      millis,
++      DateTime.fromMillisecondsSinceEpoch(1700000000000, isUtc: true),
++    );
++
++    final seconds = parseStoreRevocationDate('{"revocationDate":1700000000}');
++    expect(
++      seconds,
++      DateTime.fromMillisecondsSinceEpoch(1700000000000, isUtc: true),
++    );
++
++    final digits = parseStoreRevocationDate(
++      '{"revocationDate":"1700000000000"}',
++    );
++    expect(digits, millis);
++
++    final iso = parseStoreRevocationDate(
++      '{"revocationDate":"2026-01-01T00:00:00Z"}',
++    );
++    expect(iso, DateTime.utc(2026, 1, 1));
++  });
++
+   test('a missing expiry does not keep a product active', () {
+     final state = SubscriptionEntitlementState({
+       SubscriptionCatalog.monthlyProductId: now.add(const Duration(days: 10)),
+### FILE test/subscription_events_test.dart (modified)
+@@ -1,3 +1,5 @@
++import 'dart:async';
++
+ import 'package:ayg/models/meal_template.dart';
+ import 'package:ayg/repositories/authentication_repository.dart';
+ import 'package:ayg/repositories/contracts/meal_template_repository_base.dart';
+@@ -103,6 +105,32 @@ void main() {
+     await auth.dispose();
+   });
+ 
++  test('the limit exception does not wait for the event write', () async {
++    final release = Completer<void>();
++    final reporter = _GatedReporter(release);
++    final auth = MockAuthenticationRepository(
++      currentUser: const AuthUser(id: 'user-1', email: 'a@example.com'),
++    );
++    final controller = AppController(
++      authenticationRepository: auth,
++      mealTemplateRepository: _FixedMealTemplates(3),
++      subscriptionEventReporter: reporter,
++    );
++
++    final started = DateTime.now();
++    await expectLater(
++      controller.ensureCanCreateMealTemplate(),
++      throwsA(isA<SubscriptionLimitExceededException>()),
++    );
++    expect(DateTime.now().difference(started).inMilliseconds, lessThan(500));
++    expect(reporter.started, isTrue);
++
++    release.complete();
++    await Future<void>.delayed(const Duration(milliseconds: 20));
++
++    await auth.dispose();
++  });
++
+   test('conversion is recorded once the signed-in user is known', () async {
+     final reporter = _RecordingReporter();
+     final auth = MockAuthenticationRepository();
+@@ -140,6 +168,22 @@ void main() {
+   });
+ }
+ 
++class _GatedReporter extends SubscriptionEventReporter {
++  _GatedReporter(this.release);
++
++  final Completer<void> release;
++  bool started = false;
++
++  @override
++  Future<void> recordFreeLimitHit(String? userId) {
++    started = true;
++    return release.future;
++  }
++
++  @override
++  Future<void> recordConvertedToPaid(String? userId) async {}
++}
++
+ class _RecordingReporter extends SubscriptionEventReporter {
+   final freeLimit = <String?>[];
+   final converted = <String?>[];

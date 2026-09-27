@@ -1,0 +1,2020 @@
+From 47c5c137df9330bd5038a0dbf79a37985027c771 Mon Sep 17 00:00:00 2001
+From: Cursor Agent <cursoragent@cursor.com>
+Date: Sun, 20 Sep 2026 23:35:10 +0000
+Subject: [PATCH] fix: dismiss all keyboards, log multi-exercise sets, show
+ food camera
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Add a global keyboard host so number pads can close by tapping outside
+or by ×/完了. Strength workouts now store multiple exercises with
+per-set weight and reps. The food form shows a camera scan action
+immediately instead of hiding it behind an expand row.
+
+Co-authored-by: naruto.futuree <naruto.futuree@gmail.com>
+---
+ android/app/src/main/AndroidManifest.xml      |   1 +
+ docs/design/03_WORKOUT_INPUT.md               |  27 +-
+ lib/app.dart                                  |   5 +-
+ lib/app_web.dart                              |   4 +
+ lib/models/strength_workout_log.dart          | 189 ++++++++++
+ .../exercise/exercise_form_screen.dart        |  91 ++---
+ .../exercise_form_template_actions.dart       |   4 +
+ lib/screens/food/barcode_scanner_screen.dart  | 141 +++++--
+ lib/screens/food/food_form_navigation.dart    |  24 +-
+ lib/screens/food/food_form_screen.dart        | 100 ++---
+ .../food/food_form_template_actions.dart      |   4 +
+ lib/screens/food/food_tab_screen.dart         |  13 +-
+ lib/screens/food/web_food_form_screen.dart    |   8 +
+ lib/screens/home/home_screen.dart             |   8 +-
+ .../settings/settings_basic_info_screen.dart  |   7 +
+ .../settings/settings_goal_screen.dart        |   4 +
+ lib/utils/nutrition_format.dart               |   8 +-
+ lib/widgets/common/app_keyboard_dismiss.dart  | 100 +++++
+ lib/widgets/common/app_text_field.dart        |  10 +
+ .../exercise_met_calculation_section.dart     |   6 +-
+ .../exercise/strength_workout_log_editor.dart | 357 ++++++++++++++++++
+ lib/widgets/history/workout_history_list.dart |  15 +-
+ .../duplicate_saved_food_dialog.dart          |   4 +
+ .../saved_food/public_food_report_dialog.dart |   2 +
+ test/app_keyboard_dismiss_test.dart           |  57 +++
+ ...exercise_met_calculation_section_test.dart |  11 +-
+ test/food_form_screen_test.dart               |   2 +
+ test/nutrition_format_test.dart               |   7 +-
+ test/strength_workout_log_test.dart           |  66 ++++
+ test/workout_history_list_test.dart           |  56 +++
+ 30 files changed, 1163 insertions(+), 168 deletions(-)
+ create mode 100644 lib/models/strength_workout_log.dart
+ create mode 100644 lib/widgets/common/app_keyboard_dismiss.dart
+ create mode 100644 lib/widgets/exercise/strength_workout_log_editor.dart
+ create mode 100644 test/app_keyboard_dismiss_test.dart
+ create mode 100644 test/strength_workout_log_test.dart
+
+diff --git a/android/app/src/main/AndroidManifest.xml b/android/app/src/main/AndroidManifest.xml
+index 56ba412..c228610 100644
+--- a/android/app/src/main/AndroidManifest.xml
++++ b/android/app/src/main/AndroidManifest.xml
+@@ -1,4 +1,5 @@
+ <manifest xmlns:android="http://schemas.android.com/apk/res/android">
++    <uses-permission android:name="android.permission.CAMERA"/>
+     <uses-permission android:name="android.permission.ACTIVITY_RECOGNITION"/>
+     <uses-permission android:name="android.permission.health.READ_ACTIVE_CALORIES_BURNED"/>
+     <uses-permission android:name="android.permission.health.READ_HEIGHT"/>
+diff --git a/docs/design/03_WORKOUT_INPUT.md b/docs/design/03_WORKOUT_INPUT.md
+index 4944154..7bd7359 100644
+--- a/docs/design/03_WORKOUT_INPUT.md
++++ b/docs/design/03_WORKOUT_INPUT.md
+@@ -43,7 +43,7 @@ Slack や口頭の補足は不要です。ここに無い項目は足さない
+ ユーザーに聞くのは 3 つだけにする。
+ 
+ 1. **何をしたか**（種目を 1 回）
+-2. **どれだけか**（時間。筋トレだけ任意でセット / 回数 / 重量）
++2. **どれだけか**（時間。筋トレだけ任意で種目ごとのセット / 回数 / 重量）
+ 3. **いくらか**（追加消費 net の 1 数字）
+ 
+ 以前は「運動名」「種類」「種目」「表示名」「消費kcal」が同じことを何度も聞いていた。  
+@@ -99,7 +99,7 @@ AppBar: 運動を追加 | 運動を編集
+ 
+ 実施時間（分）（必須）
+ 
+-筋トレ のときだけ → セット・回数・重量（任意、折りたたみ可）
++筋トレ のときだけ → 種目ごとのセット記録（任意。種目を複数、各種目に複数セット）
+ 
+ 記録日時
+ 
+@@ -129,7 +129,7 @@ AppBar: 運動を追加 | 運動を編集
+ | `run_jog` | ランニング・ジョギング | 有酸素 | 同上 | なし |
+ | `cycle_road` | 自転車 | 有酸素 | 同上 | なし |
+ | `swim_lap` | 水泳 | 有酸素 | 同上 | なし |
+-| `strength_general` | 筋トレ | 筋力 | 軽め / ふつう / きつい | セット / 回数 / 重量（任意） |
++| `strength_general` | 筋トレ | 筋力 | 軽め / ふつう / きつい | 種目ごとのセット / 回数 / 重量（任意） |
+ | `basketball` | バスケットボール | スポーツ | 軽め / ふつう / きつい | なし |
+ | `yoga` | ヨガ・ストレッチ | 日常 | 軽め / ふつう | なし。生活活動の警告は出さない |
+ | `housework` | 家事・掃除 | 日常 | 軽め / ふつう | 注意文のみ |
+@@ -192,14 +192,19 @@ AppBar: 運動を追加 | 運動を編集
+ 必須。1 以上の整数。  
+ 消費カロリーは時間から計算する。筋トレのセット数では計算しない。
+ 
+-筋トレの折りたたみタイトル「セット・回数・重量（任意）」  
+-サブ「消費カロリーは実施時間から計算します」
++筋トレの記録タイトル「種目の記録」  
++サブ「ジムと同じく、種目ごとにセット・重量・回数を残せます。消費カロリーは上の実施時間から計算します。」
++
++1 回の筋トレ記録の中に、種目を何個でも足せる。各種目の中にセットを何行でも足せる。
+ 
+ | 項目 | 必須 | 型 |
+ | --- | --- | --- |
+-| セット | 任意 | 整数 |
+-| 回数 | 任意 | 整数 |
+-| 重量（kg） | 任意 | 小数可 |
++| 種目名 | 任意 | テキスト。チップからも追加可 |
++| セット行 | 任意 | 各種目 1 行以上。追加で増やす |
++| 重量（kg） | 任意 | 小数可。セットごとに別値 |
++| 回数 | 任意 | 整数。セットごとに別値 |
++
++セット追加は直前セットの重量・回数を引き継ぐ。kcal はセット数では計算しない。
+ 
+ ### 5.5 追加消費（通常面の結果）
+ 
+@@ -282,7 +287,7 @@ AppBar: 運動を追加 | 運動を編集
+ | A | 新規・未選択 | 種目未選択。保存できないことが分かる |
+ | B | 歩き・追加の運動 | きつさ＋時間＋追加消費が出る |
+ | C | 歩き・いつもの移動 | 追加消費 0。通勤の説明文 |
+-| D | 筋トレ | セット折りたたみあり。kcal は時間から |
++| D | 筋トレ | 種目カード＋セット行。kcal は時間から |
+ | E | 家事・掃除 | 注意文あり。ヨガには出さない |
+ | F | その他 | 表示名必須。きつさ 3 択 |
+ | G | 体重なし | 自動計算できない旨。詳細の手動補正へ誘導してよい |
+@@ -333,7 +338,7 @@ AppBar: 運動を追加 | 運動を編集
+ - [ ] 通常面の数字は追加消費（net）だけ
+ - [ ] 歩きの「いつもの移動」で 0 になることが分かる
+ - [ ] 家事に注意文、ヨガに注意文が無い
+-- [ ] 筋トレに任意のセット / 回数 / 重量がある
++- [ ] 筋トレに任意の複数種目 / 複数セット / 回数 / 重量がある
+ - [ ] テンプレート保存が運動追加の通常面に無い
+ - [ ] ホーム・運動タブの kcal が net
+ - [ ] 削除確認＋元に戻すがある
+@@ -385,7 +390,7 @@ AppBar: 運動を追加 | 運動を編集
+ 1. https://naruto-aii.github.io/AYG/ を開く（古い画面ならハードリロード）
+ 2. ログイン済みなら下タブ「運動」→ 追加
+ 3. ウォーキング → 「追加の運動」と「いつもの移動」を切り替えて追加消費を見る
+-4. 筋トレ → セット折りたたみと、kcal が時間ベースなことを確認
++4. 筋トレ → 種目を複数足してセットを分けて残せる。kcal は時間ベース
+ 5. 家事・掃除 → 注意文。ヨガ・ストレッチ → 注意文が無いこと
+ 6. その他（手入力）→ 表示名
+ 7. 保存後、運動タブとホームの数字が追加消費と一致すること
+diff --git a/lib/app.dart b/lib/app.dart
+index 72ed39c..ae40892 100644
+--- a/lib/app.dart
++++ b/lib/app.dart
+@@ -9,7 +9,7 @@ import 'screens/shell/main_shell_screen.dart';
+ import 'services/open_food_facts_service.dart';
+ import 'state/app_controller.dart';
+ import 'theme/app_theme.dart';
+-import 'constants/app_strings.dart';
++import 'widgets/common/app_keyboard_dismiss.dart';
+ import 'widgets/startup/app_startup_gate.dart';
+ 
+ class AygApp extends StatelessWidget {
+@@ -33,6 +33,9 @@ class AygApp extends StatelessWidget {
+     return MaterialApp(
+       title: AppStrings.appTitle,
+       theme: AppTheme.light,
++      builder: (context, child) {
++        return AppKeyboardHost(child: child ?? const SizedBox.shrink());
++      },
+       home: ListenableBuilder(
+         listenable: controller,
+         builder: (context, child) {
+diff --git a/lib/app_web.dart b/lib/app_web.dart
+index b341e13..0be24ac 100644
+--- a/lib/app_web.dart
++++ b/lib/app_web.dart
+@@ -7,6 +7,7 @@ import 'screens/shell/web_main_shell_screen.dart';
+ import 'services/open_food_facts_service.dart';
+ import 'state/app_controller.dart';
+ import 'theme/app_theme.dart';
++import 'widgets/common/app_keyboard_dismiss.dart';
+ 
+ class AygWebApp extends StatelessWidget {
+   const AygWebApp({
+@@ -25,6 +26,9 @@ class AygWebApp extends StatelessWidget {
+     return MaterialApp(
+       title: 'カロナビ（開発用プレビュー）',
+       theme: AppTheme.light,
++      builder: (context, child) {
++        return AppKeyboardHost(child: child ?? const SizedBox.shrink());
++      },
+       home: ListenableBuilder(
+         listenable: controller,
+         builder: (context, child) {
+diff --git a/lib/models/strength_workout_log.dart b/lib/models/strength_workout_log.dart
+new file mode 100644
+index 0000000..918853b
+--- /dev/null
++++ b/lib/models/strength_workout_log.dart
+@@ -0,0 +1,189 @@
++import 'dart:convert';
++
++import 'exercise_entry.dart';
++
++class StrengthSetLog {
++  const StrengthSetLog({this.weightKg, this.reps});
++
++  final double? weightKg;
++  final int? reps;
++
++  bool get isEmpty => weightKg == null && reps == null;
++
++  Map<String, Object?> toJson() => {'kg': weightKg, 'reps': reps};
++
++  static StrengthSetLog fromJson(Map<String, dynamic> json) {
++    return StrengthSetLog(
++      weightKg: (json['kg'] as num?)?.toDouble(),
++      reps: (json['reps'] as num?)?.toInt(),
++    );
++  }
++}
++
++class StrengthExerciseLog {
++  const StrengthExerciseLog({required this.name, required this.sets});
++
++  final String name;
++  final List<StrengthSetLog> sets;
++
++  Map<String, Object?> toJson() => {
++    'name': name,
++    'sets': sets.map((set) => set.toJson()).toList(),
++  };
++
++  static StrengthExerciseLog fromJson(Map<String, dynamic> json) {
++    final rawSets = json['sets'];
++    return StrengthExerciseLog(
++      name: (json['name'] as String? ?? '').trim(),
++      sets: rawSets is List
++          ? rawSets
++                .whereType<Map>()
++                .map(
++                  (set) =>
++                      StrengthSetLog.fromJson(Map<String, dynamic>.from(set)),
++                )
++                .toList()
++          : const [],
++    );
++  }
++}
++
++class StrengthWorkoutLog {
++  const StrengthWorkoutLog({required this.exercises});
++
++  final List<StrengthExerciseLog> exercises;
++
++  bool get isEmpty => exercises.isEmpty;
++
++  int get totalSets =>
++      exercises.fold(0, (sum, exercise) => sum + exercise.sets.length);
++
++  String get summary {
++    return exercises
++        .map((exercise) {
++          if (exercise.sets.isEmpty) {
++            return exercise.name;
++          }
++          final first = exercise.sets.first;
++          final same = exercise.sets.every(
++            (set) =>
++                set.weightKg == first.weightKg && set.reps == first.reps,
++          );
++          final setLabel = '${exercise.sets.length}セット';
++          if (same && first.weightKg != null && first.reps != null) {
++            return '${exercise.name} $setLabel ${first.weightKg}kg×${first.reps}';
++          }
++          return '${exercise.name} $setLabel';
++        })
++        .join(' · ');
++  }
++
++  Map<String, Object?> toJson() => {
++    'exercises': exercises.map((exercise) => exercise.toJson()).toList(),
++  };
++
++  static StrengthWorkoutLog fromJson(Map<String, dynamic> json) {
++    final raw = json['exercises'];
++    return StrengthWorkoutLog(
++      exercises: raw is List
++          ? raw
++                .whereType<Map>()
++                .map(
++                  (exercise) => StrengthExerciseLog.fromJson(
++                    Map<String, dynamic>.from(exercise),
++                  ),
++                )
++                .where((exercise) => exercise.name.isNotEmpty)
++                .toList()
++          : const [],
++    );
++  }
++}
++
++class StrengthNotesPayload {
++  const StrengthNotesPayload({this.log, this.memo = ''});
++
++  final StrengthWorkoutLog? log;
++  final String memo;
++}
++
++/// Persists the multi-exercise set log inside `notes` so no DB migration is needed.
++class StrengthNotesCodec {
++  static const startMarker = '<!--ayg-strength-v1-->';
++  static const endMarker = '<!--/ayg-strength-v1-->';
++
++  static String encode({StrengthWorkoutLog? log, String memo = ''}) {
++    final trimmedMemo = memo.trim();
++    if (log == null || log.isEmpty) {
++      return trimmedMemo;
++    }
++    final buffer = StringBuffer()
++      ..writeln(startMarker)
++      ..writeln(jsonEncode(log.toJson()))
++      ..writeln(endMarker);
++    if (trimmedMemo.isNotEmpty) {
++      buffer.write(trimmedMemo);
++    }
++    return buffer.toString().trim();
++  }
++
++  static StrengthNotesPayload parse(String? raw) {
++    final text = raw ?? '';
++    final start = text.indexOf(startMarker);
++    final end = text.indexOf(endMarker);
++    if (start < 0 || end < 0 || end <= start) {
++      return StrengthNotesPayload(memo: text.trim());
++    }
++    final jsonText = text.substring(start + startMarker.length, end).trim();
++    final memo = text.substring(end + endMarker.length).trim();
++    try {
++      final decoded = jsonDecode(jsonText);
++      if (decoded is Map<String, dynamic>) {
++        final log = StrengthWorkoutLog.fromJson(decoded);
++        return StrengthNotesPayload(
++          log: log.isEmpty ? null : log,
++          memo: memo,
++        );
++      }
++    } catch (_) {}
++    return StrengthNotesPayload(memo: memo.isEmpty ? text.trim() : memo);
++  }
++}
++
++extension ExerciseStrengthDetails on ExerciseEntry {
++  StrengthWorkoutLog? get strengthLog {
++    final parsed = StrengthNotesCodec.parse(notes).log;
++    if (parsed != null && !parsed.isEmpty) {
++      return parsed;
++    }
++    return legacyStrengthLog;
++  }
++
++  StrengthWorkoutLog? get legacyStrengthLog {
++    if (sets == null && reps == null && liftWeightKg == null) {
++      return null;
++    }
++    final setCount = sets != null && sets! > 0 ? sets! : 1;
++    return StrengthWorkoutLog(
++      exercises: [
++        StrengthExerciseLog(
++          name: name.trim().isEmpty ? '筋トレ' : name.trim(),
++          sets: [
++            for (var i = 0; i < setCount; i++)
++              StrengthSetLog(weightKg: liftWeightKg, reps: reps),
++          ],
++        ),
++      ],
++    );
++  }
++
++  String get memoText => StrengthNotesCodec.parse(notes).memo;
++
++  String? get strengthSummary {
++    final log = strengthLog;
++    if (log == null || log.isEmpty) {
++      return null;
++    }
++    return log.summary;
++  }
++}
+diff --git a/lib/screens/exercise/exercise_form_screen.dart b/lib/screens/exercise/exercise_form_screen.dart
+index d49420d..38e81c7 100644
+--- a/lib/screens/exercise/exercise_form_screen.dart
++++ b/lib/screens/exercise/exercise_form_screen.dart
+@@ -4,10 +4,11 @@ import '../../data/met_activity_catalog.dart';
+ import '../../models/exercise_category.dart';
+ import '../../models/exercise_calculation_source.dart';
+ import '../../models/exercise_entry.dart';
++import '../../models/strength_workout_log.dart';
++import '../../widgets/exercise/strength_workout_log_editor.dart';
+ import '../../services/exercise_calorie_calculator.dart';
+ import '../../state/app_controller.dart';
+ import '../../theme/app_spacing.dart';
+-import '../../widgets/common/app_text_field.dart';
+ import '../../widgets/common/delete_with_undo.dart';
+ import '../../widgets/common/primary_button.dart';
+ import '../../widgets/common/secondary_button.dart';
+@@ -39,10 +40,8 @@ class _ExerciseFormScreenState extends State<ExerciseFormScreen> {
+   late final TextEditingController _nameController;
+   late final TextEditingController _durationController;
+   late final TextEditingController _burnedKcalController;
+-  late final TextEditingController _setsController;
+-  late final TextEditingController _repsController;
+-  late final TextEditingController _liftWeightController;
+   late final TextEditingController _notesController;
++  StrengthWorkoutLog _strengthLog = const StrengthWorkoutLog(exercises: []);
+   late DateTime _loggedAt;
+   bool _isSaving = false;
+   ExerciseMetFormState _metState = ExerciseMetFormState();
+@@ -60,16 +59,12 @@ class _ExerciseFormScreenState extends State<ExerciseFormScreen> {
+     _burnedKcalController = TextEditingController(
+       text: entry != null ? entry.effectiveGrossKcal.toString() : '',
+     );
+-    _setsController = TextEditingController(
+-      text: entry?.sets?.toString() ?? '',
+-    );
+-    _repsController = TextEditingController(
+-      text: entry?.reps?.toString() ?? '',
+-    );
+-    _liftWeightController = TextEditingController(
+-      text: entry?.liftWeightKg?.toString() ?? '',
+-    );
+-    _notesController = TextEditingController(text: entry?.notes ?? '');
++    final parsedNotes = StrengthNotesCodec.parse(entry?.notes);
++    _strengthLog =
++        parsedNotes.log ??
++        entry?.legacyStrengthLog ??
++        const StrengthWorkoutLog(exercises: []);
++    _notesController = TextEditingController(text: parsedNotes.memo);
+   }
+ 
+   @override
+@@ -77,31 +72,12 @@ class _ExerciseFormScreenState extends State<ExerciseFormScreen> {
+     _nameController.dispose();
+     _durationController.dispose();
+     _burnedKcalController.dispose();
+-    _setsController.dispose();
+-    _repsController.dispose();
+-    _liftWeightController.dispose();
+     _notesController.dispose();
+     super.dispose();
+   }
+ 
+   bool get _isStrength => _metState.category == ExerciseCategory.strength;
+ 
+-  int? _parseOptionalInt(TextEditingController controller) {
+-    final raw = controller.text.trim();
+-    if (raw.isEmpty) {
+-      return null;
+-    }
+-    return int.tryParse(raw);
+-  }
+-
+-  double? _parseOptionalDouble(TextEditingController controller) {
+-    final raw = controller.text.trim();
+-    if (raw.isEmpty) {
+-      return null;
+-    }
+-    return double.tryParse(raw);
+-  }
+-
+   ExerciseEntry? _buildEntry() {
+     if (_formKey.currentState?.validate() != true) {
+       return null;
+@@ -122,7 +98,19 @@ class _ExerciseFormScreenState extends State<ExerciseFormScreen> {
+     }
+     final gross = grossAndNet.$1;
+     final net = grossAndNet.$2;
+-    final notes = _notesController.text.trim();
++    StrengthSetLog? firstSet;
++    if (_isStrength) {
++      for (final exercise in _strengthLog.exercises) {
++        if (exercise.sets.isNotEmpty) {
++          firstSet = exercise.sets.first;
++          break;
++        }
++      }
++    }
++    final notes = StrengthNotesCodec.encode(
++      log: _isStrength ? _strengthLog : null,
++      memo: _notesController.text,
++    );
+ 
+     return ExerciseEntry(
+       id: widget.entry?.id ?? widget.controller.generateId(),
+@@ -133,11 +121,11 @@ class _ExerciseFormScreenState extends State<ExerciseFormScreen> {
+       category: _metState.category,
+       activityId: _metState.activityId,
+       intensity: _metState.intensity,
+-      sets: _isStrength ? _parseOptionalInt(_setsController) : null,
+-      reps: _isStrength ? _parseOptionalInt(_repsController) : null,
+-      liftWeightKg: _isStrength
+-          ? _parseOptionalDouble(_liftWeightController)
++      sets: _isStrength && _strengthLog.totalSets > 0
++          ? _strengthLog.totalSets
+           : null,
++      reps: firstSet?.reps,
++      liftWeightKg: firstSet?.weightKg,
+       metValue: _metState.metValue,
+       grossKcal: gross,
+       netKcal: net,
+@@ -246,29 +234,9 @@ class _ExerciseFormScreenState extends State<ExerciseFormScreen> {
+       crossAxisAlignment: CrossAxisAlignment.stretch,
+       children: [
+         if (_isStrength)
+-          ExpansionTile(
+-            tilePadding: EdgeInsets.zero,
+-            title: const Text('セット・回数・重量（任意）'),
+-            subtitle: const Text('消費カロリーは実施時間から計算します'),
+-            children: [
+-              AppTextField(
+-                controller: _setsController,
+-                label: 'セット',
+-                keyboardType: TextInputType.number,
+-              ),
+-              AppTextField(
+-                controller: _repsController,
+-                label: '回数',
+-                keyboardType: TextInputType.number,
+-              ),
+-              AppTextField(
+-                controller: _liftWeightController,
+-                label: '重量（kg）',
+-                keyboardType: const TextInputType.numberWithOptions(
+-                  decimal: true,
+-                ),
+-              ),
+-            ],
++          StrengthWorkoutLogEditor(
++            initialLog: _strengthLog,
++            onChanged: (log) => _strengthLog = log,
+           ),
+         LoggedAtPickerField(
+           loggedAt: _loggedAt,
+@@ -287,6 +255,7 @@ class _ExerciseFormScreenState extends State<ExerciseFormScreen> {
+           child: Form(
+             key: _formKey,
+             child: ListView(
++              keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+               padding: EdgeInsets.fromLTRB(
+                 AppSpacing.md,
+                 AppSpacing.md,
+diff --git a/lib/screens/exercise/exercise_form_template_actions.dart b/lib/screens/exercise/exercise_form_template_actions.dart
+index 77dd6f9..9cd5c1c 100644
+--- a/lib/screens/exercise/exercise_form_template_actions.dart
++++ b/lib/screens/exercise/exercise_form_template_actions.dart
+@@ -8,6 +8,7 @@ import '../../services/exercise_calorie_calculator.dart';
+ import '../../services/exercise_weight_resolver.dart';
+ import '../../state/app_controller.dart';
+ import '../../theme/app_spacing.dart';
++import '../../widgets/common/app_keyboard_dismiss.dart';
+ import '../../widgets/common/app_card.dart';
+ import '../../widgets/common/logged_at_picker_field.dart';
+ import '../../widgets/common/primary_button.dart';
+@@ -80,6 +81,9 @@ Future<void> saveCurrentExerciseAsTemplate({
+         controller: nameController,
+         decoration: const InputDecoration(labelText: 'テンプレート名'),
+         autofocus: true,
++        textInputAction: TextInputAction.done,
++        onSubmitted: (_) => dismissAppKeyboard(),
++        onTapOutside: (_) => dismissAppKeyboard(),
+       ),
+       actions: [
+         TextButton(
+diff --git a/lib/screens/food/barcode_scanner_screen.dart b/lib/screens/food/barcode_scanner_screen.dart
+index af660c3..5cb8265 100644
+--- a/lib/screens/food/barcode_scanner_screen.dart
++++ b/lib/screens/food/barcode_scanner_screen.dart
+@@ -3,7 +3,7 @@ import 'package:mobile_scanner/mobile_scanner.dart';
+ 
+ import '../../utils/nutrition_format.dart';
+ 
+-/// カメラで EAN-13 / JAN バーコードを読み取る画面。
++/// カメラで EAN / JAN / UPC バーコードを読み取る画面。
+ class BarcodeScannerScreen extends StatefulWidget {
+   const BarcodeScannerScreen({super.key});
+ 
+@@ -13,7 +13,14 @@ class BarcodeScannerScreen extends StatefulWidget {
+ 
+ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
+   final MobileScannerController _controller = MobileScannerController(
+-    formats: [BarcodeFormat.ean13],
++    autoStart: true,
++    facing: CameraFacing.back,
++    formats: const [
++      BarcodeFormat.ean13,
++      BarcodeFormat.ean8,
++      BarcodeFormat.upcA,
++      BarcodeFormat.upcE,
++    ],
+   );
+ 
+   bool _hasScanned = false;
+@@ -45,48 +52,118 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
+     Navigator.of(context).pop(normalized);
+   }
+ 
+-  void _handlePermissionDenied() {
+-    if (!mounted) {
+-      return;
+-    }
+-    Navigator.of(context).pop();
++  Future<void> _toggleTorch() async {
++    await _controller.toggleTorch();
+   }
+ 
+   @override
+   Widget build(BuildContext context) {
+     return Scaffold(
+-      appBar: AppBar(title: const Text('バーコードをスキャン')),
+-      body: MobileScanner(
+-        controller: _controller,
+-        onDetect: _handleDetect,
+-        errorBuilder: (context, error) {
+-          final isPermissionDenied =
+-              error.errorCode == MobileScannerErrorCode.permissionDenied;
+-
+-          if (isPermissionDenied) {
+-            WidgetsBinding.instance.addPostFrameCallback((_) {
+-              if (mounted) {
+-                ScaffoldMessenger.of(context).showSnackBar(
+-                  const SnackBar(
+-                    content: Text('カメラを利用できません。手入力またはテキスト検索をご利用ください。'),
+-                  ),
+-                );
+-                _handlePermissionDenied();
+-              }
+-            });
+-          }
++      backgroundColor: Colors.black,
++      appBar: AppBar(
++        title: const Text('バーコードをスキャン'),
++        actions: [
++          IconButton(
++            tooltip: 'ライト',
++            onPressed: _toggleTorch,
++            icon: const Icon(Icons.flash_on),
++          ),
++          IconButton(
++            tooltip: '閉じる',
++            onPressed: () => Navigator.of(context).pop(),
++            icon: const Icon(Icons.close),
++          ),
++        ],
++      ),
++      body: Stack(
++        fit: StackFit.expand,
++        children: [
++          MobileScanner(
++            controller: _controller,
++            onDetect: _handleDetect,
++            errorBuilder: (context, error) {
++              final isPermissionDenied =
++                  error.errorCode == MobileScannerErrorCode.permissionDenied;
+ 
+-          return Center(
++              return ColoredBox(
++                color: Colors.black,
++                child: Center(
++                  child: Padding(
++                    padding: const EdgeInsets.all(24),
++                    child: Column(
++                      mainAxisSize: MainAxisSize.min,
++                      children: [
++                        Text(
++                          isPermissionDenied
++                              ? 'カメラの使用が許可されていません。iPhoneの設定 → カロナビ → カメラをオンにしてください。'
++                              : 'カメラを起動できませんでした。もう一度開くか、番号を手入力してください。',
++                          textAlign: TextAlign.center,
++                          style: const TextStyle(color: Colors.white),
++                        ),
++                        const SizedBox(height: 16),
++                        TextButton(
++                          onPressed: () => Navigator.of(context).pop(),
++                          child: const Text('戻る'),
++                        ),
++                      ],
++                    ),
++                  ),
++                ),
++              );
++            },
++          ),
++          const IgnorePointer(child: _BarcodeViewfinder()),
++          const Align(
++            alignment: Alignment.bottomCenter,
+             child: Padding(
+-              padding: const EdgeInsets.all(24),
++              padding: EdgeInsets.fromLTRB(24, 0, 24, 48),
+               child: Text(
+-                isPermissionDenied ? 'カメラ権限が必要です' : 'カメラを起動できませんでした',
++                'バーコードを枠内に合わせてください',
+                 textAlign: TextAlign.center,
++                style: TextStyle(color: Colors.white, fontSize: 16),
+               ),
+             ),
+-          );
+-        },
++          ),
++        ],
+       ),
+     );
+   }
+ }
++
++class _BarcodeViewfinder extends StatelessWidget {
++  const _BarcodeViewfinder();
++
++  @override
++  Widget build(BuildContext context) {
++    return CustomPaint(painter: _ViewfinderPainter(), child: const SizedBox.expand());
++  }
++}
++
++class _ViewfinderPainter extends CustomPainter {
++  @override
++  void paint(Canvas canvas, Size size) {
++    final cutout = RRect.fromRectAndRadius(
++      Rect.fromCenter(
++        center: Offset(size.width / 2, size.height / 2),
++        width: size.width * 0.78,
++        height: 160,
++      ),
++      const Radius.circular(16),
++    );
++    final overlay = Path()
++      ..addRect(Offset.zero & size)
++      ..addRRect(cutout)
++      ..fillType = PathFillType.evenOdd;
++    canvas.drawPath(overlay, Paint()..color = const Color(0x88000000));
++    canvas.drawRRect(
++      cutout,
++      Paint()
++        ..color = Colors.white
++        ..style = PaintingStyle.stroke
++        ..strokeWidth = 3,
++    );
++  }
++
++  @override
++  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
++}
+diff --git a/lib/screens/food/food_form_navigation.dart b/lib/screens/food/food_form_navigation.dart
+index c1acb46..64db41e 100644
+--- a/lib/screens/food/food_form_navigation.dart
++++ b/lib/screens/food/food_form_navigation.dart
+@@ -21,16 +21,28 @@ void openFoodFormScreen(
+   FoodEntry? entry,
+   DateTime? initialLoggedAt,
+   FoodFormScreenBuilder? foodFormBuilder,
++  bool autoStartBarcodeScan = false,
+ }) {
+   final builder = foodFormBuilder ?? defaultFoodFormScreenBuilder;
+   Navigator.of(context).push(
+     MaterialPageRoute<void>(
+-      builder: (context) => builder(
+-        controller: controller,
+-        openFoodFactsService: openFoodFactsService,
+-        entry: entry,
+-        initialLoggedAt: initialLoggedAt,
+-      ),
++      builder: (context) {
++        if (autoStartBarcodeScan && foodFormBuilder == null) {
++          return FoodFormScreen(
++            controller: controller,
++            openFoodFactsService: openFoodFactsService,
++            entry: entry,
++            initialLoggedAt: initialLoggedAt,
++            autoStartBarcodeScan: true,
++          );
++        }
++        return builder(
++          controller: controller,
++          openFoodFactsService: openFoodFactsService,
++          entry: entry,
++          initialLoggedAt: initialLoggedAt,
++        );
++      },
+     ),
+   );
+ }
+diff --git a/lib/screens/food/food_form_screen.dart b/lib/screens/food/food_form_screen.dart
+index a8dbb80..6add937 100644
+--- a/lib/screens/food/food_form_screen.dart
++++ b/lib/screens/food/food_form_screen.dart
+@@ -56,6 +56,7 @@ class FoodFormScreen extends StatefulWidget {
+     this.entry,
+     this.initialPublicFood,
+     this.initialLoggedAt,
++    this.autoStartBarcodeScan = false,
+   });
+ 
+   final AppController controller;
+@@ -63,6 +64,7 @@ class FoodFormScreen extends StatefulWidget {
+   final FoodEntry? entry;
+   final SavedFood? initialPublicFood;
+   final DateTime? initialLoggedAt;
++  final bool autoStartBarcodeScan;
+ 
+   bool get isEditing => entry != null;
+ 
+@@ -148,6 +150,14 @@ class _FoodFormScreenState extends State<FoodFormScreen> {
+           _applySavedFoodSelection(initialPublicFood);
+         }
+       });
++    } else if (!widget.isEditing &&
++        widget.autoStartBarcodeScan &&
++        _isMobilePlatform) {
++      WidgetsBinding.instance.addPostFrameCallback((_) {
++        if (mounted) {
++          _openBarcodeScanner();
++        }
++      });
+     }
+   }
+ 
+@@ -685,56 +695,33 @@ class _FoodFormScreenState extends State<FoodFormScreen> {
+                     child: Column(
+                       crossAxisAlignment: CrossAxisAlignment.stretch,
+                       children: [
+-                        SecondaryButton(
+-                          label: 'テンプレートから追加',
+-                          icon: Icons.view_list_outlined,
+-                          onPressed: _openTemplatePicker,
+-                        ),
+-                        const SizedBox(height: AppSpacing.xs),
+-                        SecondaryButton(
+-                          label: 'テンプレートを作成',
+-                          icon: Icons.add_box_outlined,
+-                          onPressed: _openTemplateCreate,
+-                        ),
+-                      ],
+-                    ),
+-                  ),
+-                  const SizedBox(height: AppSpacing.sm),
+-                  AppCard(
+-                    padding: const EdgeInsets.symmetric(
+-                      horizontal: AppSpacing.md,
+-                      vertical: AppSpacing.sm,
+-                    ),
+-                    child: Column(
+-                      crossAxisAlignment: CrossAxisAlignment.stretch,
+-                      children: [
+-                        SecondaryButton(
+-                          label: '公開食品を検索',
+-                          icon: Icons.public,
+-                          onPressed: _openPublicFoodSearch,
+-                        ),
+-                        const SizedBox(height: AppSpacing.xs),
++                        if (_isMobilePlatform) ...[
++                          PrimaryButton(
++                            label: 'カメラでバーコードを読み取る',
++                            icon: Icons.qr_code_scanner,
++                            onPressed: _isSearching
++                                ? null
++                                : _openBarcodeScanner,
++                          ),
++                          const SizedBox(height: AppSpacing.xs),
++                          Text(
++                            '商品のバーコードにカメラを向けると、栄養情報を取り込みます。',
++                            style: Theme.of(context).textTheme.bodySmall
++                                ?.copyWith(color: AppColors.secondaryText),
++                          ),
++                          const SizedBox(height: AppSpacing.sm),
++                        ],
+                         SecondaryButton(
+                           label: _barcodeSectionExpanded
+-                              ? 'バーコード入力を閉じる'
+-                              : 'バーコードから追加',
+-                          icon: Icons.qr_code,
++                              ? '番号の手入力を閉じる'
++                              : 'バーコード番号を手入力',
++                          icon: Icons.pin,
+                           onPressed: () => setState(
+                             () => _barcodeSectionExpanded =
+                                 !_barcodeSectionExpanded,
+                           ),
+                         ),
+                         if (_barcodeSectionExpanded) ...[
+-                          if (_isMobilePlatform) ...[
+-                            const SizedBox(height: AppSpacing.xs),
+-                            PrimaryButton(
+-                              label: 'カメラでスキャン',
+-                              icon: Icons.qr_code_scanner,
+-                              onPressed: _isSearching
+-                                  ? null
+-                                  : _openBarcodeScanner,
+-                            ),
+-                          ],
+                           const SizedBox(height: AppSpacing.sm),
+                           AppTextField(
+                             controller: _barcodeController,
+@@ -756,6 +743,35 @@ class _FoodFormScreenState extends State<FoodFormScreen> {
+                     ),
+                   ),
+                   const SizedBox(height: AppSpacing.sm),
++                  AppCard(
++                    padding: const EdgeInsets.symmetric(
++                      horizontal: AppSpacing.md,
++                      vertical: AppSpacing.sm,
++                    ),
++                    child: Column(
++                      crossAxisAlignment: CrossAxisAlignment.stretch,
++                      children: [
++                        SecondaryButton(
++                          label: '公開食品を検索',
++                          icon: Icons.public,
++                          onPressed: _openPublicFoodSearch,
++                        ),
++                        const SizedBox(height: AppSpacing.xs),
++                        SecondaryButton(
++                          label: 'テンプレートから追加',
++                          icon: Icons.view_list_outlined,
++                          onPressed: _openTemplatePicker,
++                        ),
++                        const SizedBox(height: AppSpacing.xs),
++                        SecondaryButton(
++                          label: 'テンプレートを作成',
++                          icon: Icons.add_box_outlined,
++                          onPressed: _openTemplateCreate,
++                        ),
++                      ],
++                    ),
++                  ),
++                  const SizedBox(height: AppSpacing.sm),
+                   if (_manualInputHighlighted)
+                     Padding(
+                       padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+diff --git a/lib/screens/food/food_form_template_actions.dart b/lib/screens/food/food_form_template_actions.dart
+index 8e96569..c26cbbe 100644
+--- a/lib/screens/food/food_form_template_actions.dart
++++ b/lib/screens/food/food_form_template_actions.dart
+@@ -1,5 +1,6 @@
+ import 'package:flutter/material.dart';
+ 
++import '../../widgets/common/app_keyboard_dismiss.dart';
+ import '../../models/food_unit_type.dart';
+ import '../../repositories/subscription_exceptions.dart';
+ import '../../models/macro_field.dart';
+@@ -62,6 +63,9 @@ Future<void> saveCurrentFoodAsTemplate({
+           border: OutlineInputBorder(),
+         ),
+         autofocus: true,
++        textInputAction: TextInputAction.done,
++        onSubmitted: (_) => dismissAppKeyboard(),
++        onTapOutside: (_) => dismissAppKeyboard(),
+       ),
+       actions: [
+         TextButton(
+diff --git a/lib/screens/food/food_tab_screen.dart b/lib/screens/food/food_tab_screen.dart
+index 88c5252..d325ad4 100644
+--- a/lib/screens/food/food_tab_screen.dart
++++ b/lib/screens/food/food_tab_screen.dart
+@@ -67,7 +67,11 @@ class _FoodTabScreenState extends State<FoodTabScreen> {
+     );
+   }
+ 
+-  void _openFoodForm(BuildContext context, {FoodEntry? entry}) {
++  void _openFoodForm(
++    BuildContext context, {
++    FoodEntry? entry,
++    bool autoStartBarcodeScan = false,
++  }) {
+     if (entry == null && !canAddRecordOnDay(_selectedDate)) {
+       showFutureDayAddBlockedSnackBar(context);
+       return;
+@@ -80,6 +84,7 @@ class _FoodTabScreenState extends State<FoodTabScreen> {
+       entry: entry,
+       initialLoggedAt: entry == null ? _initialLoggedAtForNewEntry : null,
+       foodFormBuilder: widget.foodFormBuilder,
++      autoStartBarcodeScan: autoStartBarcodeScan,
+     );
+   }
+ 
+@@ -159,12 +164,18 @@ class _FoodTabScreenState extends State<FoodTabScreen> {
+                     switch (value) {
+                       case 'food':
+                         _openFoodForm(context);
++                      case 'scan':
++                        _openFoodForm(context, autoStartBarcodeScan: true);
+                       case 'alcohol':
+                         _openAlcoholForm(context);
+                     }
+                   },
+                   itemBuilder: (context) => const [
+                     PopupMenuItem(value: 'food', child: Text('食事を追加')),
++                    PopupMenuItem(
++                      value: 'scan',
++                      child: Text('バーコードをスキャン'),
++                    ),
+                     PopupMenuItem(value: 'alcohol', child: Text('アルコールを追加')),
+                   ],
+                 ),
+diff --git a/lib/screens/food/web_food_form_screen.dart b/lib/screens/food/web_food_form_screen.dart
+index 6a6239f..88d3883 100644
+--- a/lib/screens/food/web_food_form_screen.dart
++++ b/lib/screens/food/web_food_form_screen.dart
+@@ -17,6 +17,7 @@ import '../../services/open_food_facts_service.dart';
+ import '../../services/source_food_edit_policy.dart';
+ import '../../widgets/food/source_food_update_dialog.dart';
+ import '../../state/app_controller.dart';
++import '../../widgets/common/app_keyboard_dismiss.dart';
+ import '../../utils/nutrition_format.dart';
+ import '../../widgets/food/macro_nutrition_fields.dart';
+ import '../../widgets/food/macro_nutrition_input_controller.dart';
+@@ -582,6 +583,9 @@ class _WebFoodFormScreenState extends State<WebFoodFormScreen> {
+                   ),
+                   keyboardType: TextInputType.number,
+                   enabled: !_isSearching,
++                  textInputAction: TextInputAction.done,
++                  onSubmitted: (_) => dismissAppKeyboard(),
++                  onTapOutside: (_) => dismissAppKeyboard(),
+                 ),
+                 const SizedBox(height: 12),
+                 FilledButton.icon(
+@@ -626,6 +630,7 @@ class _WebFoodFormScreenState extends State<WebFoodFormScreen> {
+                   border: OutlineInputBorder(),
+                 ),
+                 textInputAction: TextInputAction.next,
++                onTapOutside: (_) => dismissAppKeyboard(),
+                 validator: (value) {
+                   if (value == null || value.trim().isEmpty) {
+                     return '食品名を入力してください';
+@@ -665,6 +670,9 @@ class _WebFoodFormScreenState extends State<WebFoodFormScreen> {
+                 keyboardType: const TextInputType.numberWithOptions(
+                   decimal: true,
+                 ),
++                textInputAction: TextInputAction.done,
++                onFieldSubmitted: (_) => dismissAppKeyboard(),
++                onTapOutside: (_) => dismissAppKeyboard(),
+                 onChanged: (_) => setState(() {}),
+                 validator: (value) {
+                   if (value == null || value.trim().isEmpty) {
+diff --git a/lib/screens/home/home_screen.dart b/lib/screens/home/home_screen.dart
+index e32c5b1..397c001 100644
+--- a/lib/screens/home/home_screen.dart
++++ b/lib/screens/home/home_screen.dart
+@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
+ import '../../constants/app_strings.dart';
+ import '../../models/alcohol_entry.dart';
+ import '../../models/exercise_entry.dart';
++import '../../models/strength_workout_log.dart';
+ import '../../models/food_entry.dart';
+ import '../../models/goal.dart';
+ import '../../services/open_food_facts_service.dart';
+@@ -674,7 +675,12 @@ class _TodayExerciseTile extends StatelessWidget {
+       ),
+       onTap: onTap,
+       title: Text(entry.name),
+-      subtitle: Text(timeLabel),
++      subtitle: Text(
++        [
++          timeLabel,
++          if (entry.strengthSummary != null) entry.strengthSummary!,
++        ].join(' · '),
++      ),
+       trailing: Row(
+         mainAxisSize: MainAxisSize.min,
+         children: [
+diff --git a/lib/screens/settings/settings_basic_info_screen.dart b/lib/screens/settings/settings_basic_info_screen.dart
+index ece9771..7002cf8 100644
+--- a/lib/screens/settings/settings_basic_info_screen.dart
++++ b/lib/screens/settings/settings_basic_info_screen.dart
+@@ -1,5 +1,6 @@
+ import 'package:flutter/material.dart';
+ 
++import '../../widgets/common/app_keyboard_dismiss.dart';
+ import '../../constants/app_strings.dart';
+ import '../../models/user_profile.dart';
+ import '../../state/app_controller.dart';
+@@ -127,6 +128,9 @@ class _SettingsBasicInfoScreenState extends State<SettingsBasicInfoScreen> {
+                 keyboardType: const TextInputType.numberWithOptions(
+                   decimal: true,
+                 ),
++                textInputAction: TextInputAction.done,
++                onFieldSubmitted: (_) => dismissAppKeyboard(),
++                onTapOutside: (_) => dismissAppKeyboard(),
+                 validator: (value) {
+                   if (value == null || value.isEmpty) {
+                     return '身長を入力してください';
+@@ -151,6 +155,9 @@ class _SettingsBasicInfoScreenState extends State<SettingsBasicInfoScreen> {
+                 keyboardType: const TextInputType.numberWithOptions(
+                   decimal: true,
+                 ),
++                textInputAction: TextInputAction.done,
++                onFieldSubmitted: (_) => dismissAppKeyboard(),
++                onTapOutside: (_) => dismissAppKeyboard(),
+                 validator: (value) {
+                   if (value == null || value.isEmpty) {
+                     return '現在体重を入力してください';
+diff --git a/lib/screens/settings/settings_goal_screen.dart b/lib/screens/settings/settings_goal_screen.dart
+index 47c6a9f..8cfd10c 100644
+--- a/lib/screens/settings/settings_goal_screen.dart
++++ b/lib/screens/settings/settings_goal_screen.dart
+@@ -1,5 +1,6 @@
+ import 'package:flutter/material.dart';
+ 
++import '../../widgets/common/app_keyboard_dismiss.dart';
+ import '../../constants/app_strings.dart';
+ import '../../models/calculation/goal_pace.dart';
+ import '../../models/goal.dart';
+@@ -160,6 +161,9 @@ class _SettingsGoalScreenState extends State<SettingsGoalScreen> {
+                 keyboardType: const TextInputType.numberWithOptions(
+                   decimal: true,
+                 ),
++                textInputAction: TextInputAction.done,
++                onFieldSubmitted: (_) => dismissAppKeyboard(),
++                onTapOutside: (_) => dismissAppKeyboard(),
+                 validator: (value) {
+                   if (value == null || value.isEmpty) {
+                     return '目標体重を入力してください';
+diff --git a/lib/utils/nutrition_format.dart b/lib/utils/nutrition_format.dart
+index bf56d5f..d501015 100644
+--- a/lib/utils/nutrition_format.dart
++++ b/lib/utils/nutrition_format.dart
+@@ -1,4 +1,4 @@
+-/// EAN-13 / JAN 向けバーコード正規化（Prototype）。
++/// EAN-13 / JAN / UPC 向けバーコード正規化。
+ String? normalizeEan13Barcode(String? raw) {
+   if (raw == null) {
+     return null;
+@@ -8,6 +8,12 @@ String? normalizeEan13Barcode(String? raw) {
+   if (digits.length == 13) {
+     return digits;
+   }
++  if (digits.length == 12) {
++    return '0$digits';
++  }
++  if (digits.length == 8) {
++    return digits;
++  }
+ 
+   return null;
+ }
+diff --git a/lib/widgets/common/app_keyboard_dismiss.dart b/lib/widgets/common/app_keyboard_dismiss.dart
+new file mode 100644
+index 0000000..7d09002
+--- /dev/null
++++ b/lib/widgets/common/app_keyboard_dismiss.dart
+@@ -0,0 +1,100 @@
++import 'package:flutter/material.dart';
++import 'package:flutter/rendering.dart';
++
++/// Dismisses the software keyboard from anywhere in the app.
++void dismissAppKeyboard() {
++  FocusManager.instance.primaryFocus?.unfocus();
++}
++
++/// Wraps the navigator so every keyboard can be closed by:
++/// - tapping anywhere that is not a text field
++/// - tapping × / 完了 on the bar above the keyboard
++class AppKeyboardHost extends StatelessWidget {
++  const AppKeyboardHost({super.key, required this.child});
++
++  final Widget child;
++
++  static const double accessoryHeight = 44;
++
++  static bool hitsEditableText(Offset position, int viewId) {
++    final result = HitTestResult();
++    WidgetsBinding.instance.hitTestInView(result, position, viewId);
++    for (final entry in result.path) {
++      if (entry.target is RenderEditable) {
++        return true;
++      }
++    }
++    return false;
++  }
++
++  void _onPointerDown(PointerDownEvent event) {
++    final focus = FocusManager.instance.primaryFocus;
++    if (focus == null || !focus.hasFocus) {
++      return;
++    }
++    if (hitsEditableText(event.position, event.viewId)) {
++      return;
++    }
++    dismissAppKeyboard();
++  }
++
++  @override
++  Widget build(BuildContext context) {
++    final media = MediaQuery.of(context);
++    final keyboardHeight = media.viewInsets.bottom;
++    final accessoryHeight = keyboardHeight > 0
++        ? AppKeyboardHost.accessoryHeight
++        : 0.0;
++
++    return MediaQuery(
++      data: media.copyWith(
++        viewInsets: media.viewInsets.copyWith(
++          bottom: keyboardHeight + accessoryHeight,
++        ),
++      ),
++      child: Stack(
++        fit: StackFit.expand,
++        children: [
++          Listener(
++            behavior: HitTestBehavior.translucent,
++            onPointerDown: _onPointerDown,
++            child: child,
++          ),
++          if (keyboardHeight > 0)
++            Positioned(
++              left: 0,
++              right: 0,
++              bottom: keyboardHeight,
++              child: Material(
++                elevation: 8,
++                color: Theme.of(context).colorScheme.surface,
++                child: SafeArea(
++                  top: false,
++                  bottom: false,
++                  child: SizedBox(
++                    height: AppKeyboardHost.accessoryHeight,
++                    child: Row(
++                      children: [
++                        const SizedBox(width: 4),
++                        IconButton(
++                          tooltip: '閉じる',
++                          onPressed: dismissAppKeyboard,
++                          icon: const Icon(Icons.close),
++                        ),
++                        const Spacer(),
++                        TextButton(
++                          onPressed: dismissAppKeyboard,
++                          child: const Text('完了'),
++                        ),
++                        const SizedBox(width: 8),
++                      ],
++                    ),
++                  ),
++                ),
++              ),
++            ),
++        ],
++      ),
++    );
++  }
++}
+diff --git a/lib/widgets/common/app_text_field.dart b/lib/widgets/common/app_text_field.dart
+index e045ff7..145dd3c 100644
+--- a/lib/widgets/common/app_text_field.dart
++++ b/lib/widgets/common/app_text_field.dart
+@@ -1,6 +1,8 @@
+ import 'package:flutter/material.dart';
+ import 'package:flutter/services.dart';
+ 
++import 'app_keyboard_dismiss.dart';
++
+ class AppTextField extends StatelessWidget {
+   const AppTextField({
+     super.key,
+@@ -9,6 +11,7 @@ class AppTextField extends StatelessWidget {
+     this.hint,
+     this.helper,
+     this.keyboardType,
++    this.textInputAction,
+     this.inputFormatters,
+     this.obscureText = false,
+     this.maxLines = 1,
+@@ -24,6 +27,7 @@ class AppTextField extends StatelessWidget {
+   final String? hint;
+   final String? helper;
+   final TextInputType? keyboardType;
++  final TextInputAction? textInputAction;
+   final List<TextInputFormatter>? inputFormatters;
+   final bool obscureText;
+   final int maxLines;
+@@ -44,10 +48,16 @@ class AppTextField extends StatelessWidget {
+         suffixIcon: suffixIcon,
+       ),
+       keyboardType: keyboardType,
++      textInputAction:
++          textInputAction ??
++          (maxLines == 1 ? TextInputAction.done : TextInputAction.newline),
+       inputFormatters: inputFormatters,
+       obscureText: obscureText,
+       maxLines: maxLines,
+       onChanged: onChanged,
++      onFieldSubmitted: maxLines == 1 ? (_) => dismissAppKeyboard() : null,
++      onTapOutside: (_) => dismissAppKeyboard(),
++      onEditingComplete: maxLines == 1 ? dismissAppKeyboard : null,
+       validator: validator,
+       readOnly: readOnly,
+       onTap: onTap,
+diff --git a/lib/widgets/exercise/exercise_met_calculation_section.dart b/lib/widgets/exercise/exercise_met_calculation_section.dart
+index b0523a8..ea5e253 100644
+--- a/lib/widgets/exercise/exercise_met_calculation_section.dart
++++ b/lib/widgets/exercise/exercise_met_calculation_section.dart
+@@ -517,10 +517,8 @@ class _ExerciseMetCalculationSectionState
+                 },
+               ),
+               if (_manualOverride)
+-                TextField(
+-                  decoration: const InputDecoration(
+-                    labelText: '手動 追加消費 kcal（net）',
+-                  ),
++                AppTextField(
++                  label: '手動 追加消費 kcal（net）',
+                   keyboardType: const TextInputType.numberWithOptions(
+                     decimal: true,
+                   ),
+diff --git a/lib/widgets/exercise/strength_workout_log_editor.dart b/lib/widgets/exercise/strength_workout_log_editor.dart
+new file mode 100644
+index 0000000..b087976
+--- /dev/null
++++ b/lib/widgets/exercise/strength_workout_log_editor.dart
+@@ -0,0 +1,357 @@
++import 'package:flutter/material.dart';
++
++import '../../models/strength_workout_log.dart';
++import '../../theme/app_colors.dart';
++import '../../theme/app_spacing.dart';
++import '../common/app_text_field.dart';
++import '../common/secondary_button.dart';
++
++const suggestedStrengthNames = [
++  'ベンチプレス',
++  'スクワット',
++  'デッドリフト',
++  'ショルダープレス',
++  'ラットプルダウン',
++  'ベントオーバーロウ',
++  'アームカール',
++  'トライセプス',
++  'レッグプレス',
++  'プランク',
++];
++
++class StrengthWorkoutLogEditor extends StatefulWidget {
++  const StrengthWorkoutLogEditor({
++    super.key,
++    required this.initialLog,
++    required this.onChanged,
++  });
++
++  final StrengthWorkoutLog? initialLog;
++  final ValueChanged<StrengthWorkoutLog> onChanged;
++
++  @override
++  State<StrengthWorkoutLogEditor> createState() =>
++      _StrengthWorkoutLogEditorState();
++}
++
++class _StrengthWorkoutLogEditorState extends State<StrengthWorkoutLogEditor> {
++  late List<_ExerciseDraft> _exercises;
++
++  @override
++  void initState() {
++    super.initState();
++    final initial = widget.initialLog?.exercises ?? const [];
++    _exercises = initial.isEmpty
++        ? [_ExerciseDraft.empty()]
++        : initial.map(_ExerciseDraft.fromLog).toList();
++  }
++
++  @override
++  void dispose() {
++    for (final exercise in _exercises) {
++      exercise.dispose();
++    }
++    super.dispose();
++  }
++
++  void _notify() {
++    widget.onChanged(
++      StrengthWorkoutLog(
++        exercises: _exercises
++            .map((exercise) => exercise.toLog())
++            .where((exercise) => exercise.name.isNotEmpty)
++            .toList(),
++      ),
++    );
++  }
++
++  void _addExercise({String name = ''}) {
++    if (name.isNotEmpty) {
++      final emptyIndex = _exercises.indexWhere(
++        (exercise) => exercise.nameController.text.trim().isEmpty,
++      );
++      if (emptyIndex >= 0) {
++        setState(() {
++          _exercises[emptyIndex].nameController.text = name;
++        });
++        _notify();
++        return;
++      }
++    }
++    setState(() {
++      _exercises.add(_ExerciseDraft.empty(name: name));
++    });
++    _notify();
++  }
++
++  void _removeExercise(int index) {
++    if (_exercises.length == 1) {
++      _exercises[index].nameController.clear();
++      for (final set in _exercises[index].sets) {
++        set.weightController.clear();
++        set.repsController.clear();
++      }
++      setState(() {});
++      _notify();
++      return;
++    }
++    setState(() {
++      _exercises.removeAt(index).dispose();
++    });
++    _notify();
++  }
++
++  void _addSet(int exerciseIndex) {
++    setState(() {
++      final sets = _exercises[exerciseIndex].sets;
++      final last = sets.last;
++      _exercises[exerciseIndex].sets.add(
++        _SetDraft(
++          weightController: TextEditingController(
++            text: last.weightController.text,
++          ),
++          repsController: TextEditingController(text: last.repsController.text),
++        ),
++      );
++    });
++    _notify();
++  }
++
++  void _removeSet(int exerciseIndex, int setIndex) {
++    final exercise = _exercises[exerciseIndex];
++    if (exercise.sets.length == 1) {
++      exercise.sets.first.weightController.clear();
++      exercise.sets.first.repsController.clear();
++      setState(() {});
++      _notify();
++      return;
++    }
++    setState(() {
++      exercise.sets.removeAt(setIndex).dispose();
++    });
++    _notify();
++  }
++
++  @override
++  Widget build(BuildContext context) {
++    return Column(
++      crossAxisAlignment: CrossAxisAlignment.stretch,
++      children: [
++        Text('種目の記録', style: Theme.of(context).textTheme.titleSmall),
++        const SizedBox(height: AppSpacing.xxs),
++        Text(
++          'ジムと同じく、種目ごとにセット・重量・回数を残せます。消費カロリーは上の実施時間から計算します。',
++          style: Theme.of(
++            context,
++          ).textTheme.bodySmall?.copyWith(color: AppColors.secondaryText),
++        ),
++        const SizedBox(height: AppSpacing.sm),
++        Wrap(
++          spacing: AppSpacing.xs,
++          runSpacing: AppSpacing.xs,
++          children: [
++            for (final name in suggestedStrengthNames)
++              ActionChip(
++                label: Text(name),
++                onPressed: () => _addExercise(name: name),
++              ),
++          ],
++        ),
++        const SizedBox(height: AppSpacing.sm),
++        for (var exerciseIndex = 0; exerciseIndex < _exercises.length; exerciseIndex++)
++          _ExerciseCard(
++            draft: _exercises[exerciseIndex],
++            onChanged: _notify,
++            onRemove: () => _removeExercise(exerciseIndex),
++            onAddSet: () => _addSet(exerciseIndex),
++            onRemoveSet: (setIndex) => _removeSet(exerciseIndex, setIndex),
++          ),
++        SecondaryButton(
++          label: '種目を追加',
++          icon: Icons.add,
++          onPressed: _addExercise,
++        ),
++      ],
++    );
++  }
++}
++
++class _ExerciseCard extends StatelessWidget {
++  const _ExerciseCard({
++    required this.draft,
++    required this.onChanged,
++    required this.onRemove,
++    required this.onAddSet,
++    required this.onRemoveSet,
++  });
++
++  final _ExerciseDraft draft;
++  final VoidCallback onChanged;
++  final VoidCallback onRemove;
++  final VoidCallback onAddSet;
++  final ValueChanged<int> onRemoveSet;
++
++  @override
++  Widget build(BuildContext context) {
++    return Padding(
++      padding: const EdgeInsets.only(bottom: AppSpacing.sm),
++      child: DecoratedBox(
++        decoration: BoxDecoration(
++          border: Border.all(color: AppColors.border),
++          borderRadius: BorderRadius.circular(12),
++        ),
++        child: Padding(
++          padding: const EdgeInsets.all(AppSpacing.sm),
++          child: Column(
++            crossAxisAlignment: CrossAxisAlignment.stretch,
++            children: [
++              Row(
++                children: [
++                  Expanded(
++                    child: AppTextField(
++                      controller: draft.nameController,
++                      label: '種目名',
++                      hint: 'ベンチプレス',
++                      onChanged: (_) => onChanged(),
++                    ),
++                  ),
++                  IconButton(
++                    tooltip: 'この種目を削除',
++                    onPressed: onRemove,
++                    icon: const Icon(Icons.close),
++                  ),
++                ],
++              ),
++              for (var setIndex = 0; setIndex < draft.sets.length; setIndex++)
++                Padding(
++                  padding: const EdgeInsets.only(top: AppSpacing.xs),
++                  child: Row(
++                    crossAxisAlignment: CrossAxisAlignment.start,
++                    children: [
++                      Padding(
++                        padding: const EdgeInsets.only(top: 16),
++                        child: SizedBox(
++                          width: 56,
++                          child: Text(
++                            'セット${setIndex + 1}',
++                            style: Theme.of(context).textTheme.bodySmall,
++                          ),
++                        ),
++                      ),
++                      Expanded(
++                        child: AppTextField(
++                          controller: draft.sets[setIndex].weightController,
++                          label: '重量（kg）',
++                          keyboardType: const TextInputType.numberWithOptions(
++                            decimal: true,
++                          ),
++                          onChanged: (_) => onChanged(),
++                        ),
++                      ),
++                      const SizedBox(width: AppSpacing.xs),
++                      Expanded(
++                        child: AppTextField(
++                          controller: draft.sets[setIndex].repsController,
++                          label: '回数',
++                          keyboardType: TextInputType.number,
++                          onChanged: (_) => onChanged(),
++                        ),
++                      ),
++                      IconButton(
++                        tooltip: 'このセットを削除',
++                        onPressed: () => onRemoveSet(setIndex),
++                        icon: const Icon(Icons.remove_circle_outline),
++                      ),
++                    ],
++                  ),
++                ),
++              Align(
++                alignment: Alignment.centerLeft,
++                child: TextButton.icon(
++                  onPressed: onAddSet,
++                  icon: const Icon(Icons.add, size: 18),
++                  label: const Text('セットを追加'),
++                ),
++              ),
++            ],
++          ),
++        ),
++      ),
++    );
++  }
++}
++
++class _ExerciseDraft {
++  _ExerciseDraft({required this.nameController, required this.sets});
++
++  factory _ExerciseDraft.empty({String name = ''}) {
++    return _ExerciseDraft(
++      nameController: TextEditingController(text: name),
++      sets: [_SetDraft.empty()],
++    );
++  }
++
++  factory _ExerciseDraft.fromLog(StrengthExerciseLog log) {
++    return _ExerciseDraft(
++      nameController: TextEditingController(text: log.name),
++      sets: log.sets.isEmpty
++          ? [_SetDraft.empty()]
++          : log.sets.map(_SetDraft.fromLog).toList(),
++    );
++  }
++
++  final TextEditingController nameController;
++  final List<_SetDraft> sets;
++
++  StrengthExerciseLog toLog() {
++    return StrengthExerciseLog(
++      name: nameController.text.trim(),
++      sets: sets
++          .map((set) => set.toLog())
++          .where((set) => !set.isEmpty)
++          .toList(),
++    );
++  }
++
++  void dispose() {
++    nameController.dispose();
++    for (final set in sets) {
++      set.dispose();
++    }
++  }
++}
++
++class _SetDraft {
++  _SetDraft({required this.weightController, required this.repsController});
++
++  factory _SetDraft.empty() {
++    return _SetDraft(
++      weightController: TextEditingController(),
++      repsController: TextEditingController(),
++    );
++  }
++
++  factory _SetDraft.fromLog(StrengthSetLog set) {
++    return _SetDraft(
++      weightController: TextEditingController(
++        text: set.weightKg?.toString() ?? '',
++      ),
++      repsController: TextEditingController(text: set.reps?.toString() ?? ''),
++    );
++  }
++
++  final TextEditingController weightController;
++  final TextEditingController repsController;
++
++  StrengthSetLog toLog() {
++    return StrengthSetLog(
++      weightKg: double.tryParse(weightController.text.trim()),
++      reps: int.tryParse(repsController.text.trim()),
++    );
++  }
++
++  void dispose() {
++    weightController.dispose();
++    repsController.dispose();
++  }
++}
+diff --git a/lib/widgets/history/workout_history_list.dart b/lib/widgets/history/workout_history_list.dart
+index f1ea094..3b63ccc 100644
+--- a/lib/widgets/history/workout_history_list.dart
++++ b/lib/widgets/history/workout_history_list.dart
+@@ -1,6 +1,7 @@
+ import 'package:flutter/material.dart';
+ 
+ import '../../models/exercise_entry.dart';
++import '../../models/strength_workout_log.dart';
+ import '../../theme/app_colors.dart';
+ import '../../theme/app_spacing.dart';
+ import '../../utils/history_grouping.dart';
+@@ -36,6 +37,17 @@ class WorkoutHistoryList extends StatelessWidget {
+     return '$h:$m';
+   }
+ 
++  String _subtitleFor(ExerciseEntry entry) {
++    final parts = <String>[
++      '${_formatTime(entry.loggedAt)} · ${entry.durationMin} 分',
++    ];
++    final summary = entry.strengthSummary;
++    if (summary != null && summary.isNotEmpty) {
++      parts.add(summary);
++    }
++    return parts.join(' · ');
++  }
++
+   @override
+   Widget build(BuildContext context) {
+     final hasEntries = dateGroups.any((group) => group.items.isNotEmpty);
+@@ -68,8 +80,7 @@ class WorkoutHistoryList extends StatelessWidget {
+                       onTap: () => onTapEntry(dateGroup.items[i]),
+                       title: Text(dateGroup.items[i].name),
+                       subtitle: Text(
+-                        '${_formatTime(dateGroup.items[i].loggedAt)} · '
+-                        '${dateGroup.items[i].durationMin} 分',
++                        _subtitleFor(dateGroup.items[i]),
+                       ),
+                       trailing: Row(
+                         mainAxisSize: MainAxisSize.min,
+diff --git a/lib/widgets/saved_food/duplicate_saved_food_dialog.dart b/lib/widgets/saved_food/duplicate_saved_food_dialog.dart
+index 37bd55b..f48366c 100644
+--- a/lib/widgets/saved_food/duplicate_saved_food_dialog.dart
++++ b/lib/widgets/saved_food/duplicate_saved_food_dialog.dart
+@@ -1,5 +1,6 @@
+ import 'package:flutter/material.dart';
+ 
++import '../common/app_keyboard_dismiss.dart';
+ import '../../models/duplicate_saved_food_action.dart';
+ import '../../models/saved_food.dart';
+ 
+@@ -108,6 +109,9 @@ class _DuplicateSavedFoodDialogState extends State<_DuplicateSavedFoodDialog> {
+                   labelText: '新しい食品名',
+                   border: OutlineInputBorder(),
+                 ),
++                textInputAction: TextInputAction.done,
++                onSubmitted: (_) => dismissAppKeyboard(),
++                onTapOutside: (_) => dismissAppKeyboard(),
+               ),
+             ],
+             RadioListTile<DuplicateSavedFoodAction>(
+diff --git a/lib/widgets/saved_food/public_food_report_dialog.dart b/lib/widgets/saved_food/public_food_report_dialog.dart
+index 8573a71..6761cea 100644
+--- a/lib/widgets/saved_food/public_food_report_dialog.dart
++++ b/lib/widgets/saved_food/public_food_report_dialog.dart
+@@ -1,5 +1,6 @@
+ import 'package:flutter/material.dart';
+ 
++import '../common/app_keyboard_dismiss.dart';
+ import '../../models/food_report.dart';
+ import '../../models/saved_food.dart';
+ import '../../state/app_controller.dart';
+@@ -115,6 +116,7 @@ class _PublicFoodReportDialogState extends State<_PublicFoodReportDialog> {
+               ),
+               maxLines: 3,
+               enabled: !_isSubmitting,
++              onTapOutside: (_) => dismissAppKeyboard(),
+             ),
+             if (_errorMessage != null) ...[
+               const SizedBox(height: 8),
+diff --git a/test/app_keyboard_dismiss_test.dart b/test/app_keyboard_dismiss_test.dart
+new file mode 100644
+index 0000000..fdfbc1e
+--- /dev/null
++++ b/test/app_keyboard_dismiss_test.dart
+@@ -0,0 +1,57 @@
++import 'package:ayg/widgets/common/app_keyboard_dismiss.dart';
++import 'package:flutter/material.dart';
++import 'package:flutter_test/flutter_test.dart';
++
++void main() {
++  testWidgets('shows close and done when the keyboard inset is open', (
++    tester,
++  ) async {
++    addTearDown(tester.view.resetViewInsets);
++    tester.view.viewInsets = const FakeViewPadding(bottom: 280);
++
++    await tester.pumpWidget(
++      MaterialApp(
++        builder: (context, child) =>
++            AppKeyboardHost(child: child ?? const SizedBox.shrink()),
++        home: const Scaffold(body: TextField()),
++      ),
++    );
++    await tester.pump();
++
++    expect(find.text('完了'), findsOneWidget);
++    expect(find.byTooltip('閉じる'), findsOneWidget);
++
++    await tester.tap(find.byType(TextField));
++    await tester.pump();
++    expect(FocusManager.instance.primaryFocus?.hasFocus, isTrue);
++
++    await tester.tap(find.text('完了'));
++    await tester.pump();
++    expect(FocusManager.instance.primaryFocus?.hasFocus, isFalse);
++  });
++
++  testWidgets('tapping outside a field dismisses focus', (tester) async {
++    await tester.pumpWidget(
++      MaterialApp(
++        builder: (context, child) =>
++            AppKeyboardHost(child: child ?? const SizedBox.shrink()),
++        home: const Scaffold(
++          body: Column(
++            children: [
++              TextField(),
++              SizedBox(height: 80, width: double.infinity, child: Text('外')),
++            ],
++          ),
++        ),
++      ),
++    );
++
++    await tester.tap(find.byType(TextField));
++    await tester.pump();
++    expect(FocusManager.instance.primaryFocus?.hasFocus, isTrue);
++
++    await tester.tap(find.text('外'));
++    await tester.pump();
++    expect(FocusManager.instance.primaryFocus?.hasFocus, isFalse);
++  });
++}
+diff --git a/test/exercise_met_calculation_section_test.dart b/test/exercise_met_calculation_section_test.dart
+index 120bace..3162dc6 100644
+--- a/test/exercise_met_calculation_section_test.dart
++++ b/test/exercise_met_calculation_section_test.dart
+@@ -737,7 +737,7 @@ void main() {
+       expect(find.text('メモ'), findsOneWidget);
+     });
+ 
+-    testWidgets('strength category shows sets reps and lift weight', (
++    testWidgets('strength category shows multi exercise set editor', (
+       tester,
+     ) async {
+       final controller = AppController();
+@@ -752,13 +752,14 @@ void main() {
+       await tapActivityChip(tester, '筋トレ');
+ 
+       await tester.scrollUntilVisible(
+-        find.text('セット・回数・重量（任意）'),
++        find.text('種目の記録'),
+         200,
+         scrollable: find.byType(Scrollable).first,
+       );
+-      await tester.tap(find.text('セット・回数・重量（任意）'));
+-      await tester.pumpAndSettle();
+-      expect(find.widgetWithText(TextFormField, 'セット'), findsOneWidget);
++      expect(find.text('種目の記録'), findsOneWidget);
++      expect(find.text('種目を追加'), findsOneWidget);
++      expect(find.text('セットを追加'), findsOneWidget);
++      expect(find.widgetWithText(TextFormField, '種目名'), findsOneWidget);
+       expect(find.widgetWithText(TextFormField, '回数'), findsOneWidget);
+       expect(find.widgetWithText(TextFormField, '重量（kg）'), findsOneWidget);
+     });
+diff --git a/test/food_form_screen_test.dart b/test/food_form_screen_test.dart
+index 60f32e1..0865d48 100644
+--- a/test/food_form_screen_test.dart
++++ b/test/food_form_screen_test.dart
+@@ -54,6 +54,8 @@ void main() {
+       await tester.tap(find.text('open form'));
+       await tester.pumpAndSettle();
+ 
++      expect(find.text('カメラでバーコードを読み取る'), findsOneWidget);
++
+       await tester.enterText(
+         find.byKey(const ValueKey('food_name_field')),
+         'テスト食品',
+diff --git a/test/nutrition_format_test.dart b/test/nutrition_format_test.dart
+index d8690d7..533c67a 100644
+--- a/test/nutrition_format_test.dart
++++ b/test/nutrition_format_test.dart
+@@ -13,7 +13,12 @@ void main() {
+       expect(normalizeEan13Barcode('301-7620-42200-3'), '3017620422003');
+     });
+ 
+-    test('returns null for non-13-digit input', () {
++    test('accepts UPC-A and EAN-8 as well as EAN-13', () {
++      expect(normalizeEan13Barcode('012345678905'), '0012345678905');
++      expect(normalizeEan13Barcode('12345670'), '12345670');
++    });
++
++    test('returns null for non-barcode input', () {
+       expect(normalizeEan13Barcode('1234567'), isNull);
+       expect(normalizeEan13Barcode(''), isNull);
+       expect(normalizeEan13Barcode(null), isNull);
+diff --git a/test/strength_workout_log_test.dart b/test/strength_workout_log_test.dart
+new file mode 100644
+index 0000000..011a92a
+--- /dev/null
++++ b/test/strength_workout_log_test.dart
+@@ -0,0 +1,66 @@
++import 'package:ayg/models/exercise_category.dart';
++import 'package:ayg/models/exercise_entry.dart';
++import 'package:ayg/models/strength_workout_log.dart';
++import 'package:flutter_test/flutter_test.dart';
++
++void main() {
++  group('StrengthNotesCodec', () {
++    test('roundtrips multiple exercises and sets with memo', () {
++      const log = StrengthWorkoutLog(
++        exercises: [
++          StrengthExerciseLog(
++            name: 'ベンチプレス',
++            sets: [
++              StrengthSetLog(weightKg: 60, reps: 10),
++              StrengthSetLog(weightKg: 62.5, reps: 8),
++            ],
++          ),
++          StrengthExerciseLog(
++            name: 'スクワット',
++            sets: [StrengthSetLog(weightKg: 80, reps: 5)],
++          ),
++        ],
++      );
++
++      final encoded = StrengthNotesCodec.encode(log: log, memo: '脚が重い');
++      final parsed = StrengthNotesCodec.parse(encoded);
++
++      expect(parsed.memo, '脚が重い');
++      expect(parsed.log, isNotNull);
++      expect(parsed.log!.exercises, hasLength(2));
++      expect(parsed.log!.exercises.first.name, 'ベンチプレス');
++      expect(parsed.log!.exercises.first.sets, hasLength(2));
++      expect(parsed.log!.exercises.last.name, 'スクワット');
++      expect(parsed.log!.totalSets, 3);
++      expect(parsed.log!.summary, contains('ベンチプレス 2セット'));
++      expect(parsed.log!.summary, contains('スクワット 1セット 80kg×5'));
++    });
++
++    test('plain memo stays plain memo', () {
++      final parsed = StrengthNotesCodec.parse('ただのメモ');
++      expect(parsed.log, isNull);
++      expect(parsed.memo, 'ただのメモ');
++      expect(StrengthNotesCodec.encode(memo: 'ただのメモ'), 'ただのメモ');
++    });
++  });
++
++  group('ExerciseStrengthDetails', () {
++    test('falls back to legacy sets reps weight', () {
++      final entry = ExerciseEntry(
++        id: 'legacy',
++        name: '筋トレ',
++        durationMin: 40,
++        burnedKcal: 200,
++        loggedAt: DateTime(2026, 9, 1),
++        category: ExerciseCategory.strength,
++        sets: 3,
++        reps: 10,
++        liftWeightKg: 60,
++      );
++
++      expect(entry.strengthLog, isNotNull);
++      expect(entry.strengthLog!.exercises.single.sets, hasLength(3));
++      expect(entry.strengthSummary, contains('筋トレ 3セット 60kg×10'));
++    });
++  });
++}
+diff --git a/test/workout_history_list_test.dart b/test/workout_history_list_test.dart
+index fef8b3d..078b9a7 100644
+--- a/test/workout_history_list_test.dart
++++ b/test/workout_history_list_test.dart
+@@ -1,4 +1,6 @@
++import 'package:ayg/models/exercise_category.dart';
+ import 'package:ayg/models/exercise_entry.dart';
++import 'package:ayg/models/strength_workout_log.dart';
+ import 'package:ayg/utils/history_grouping.dart';
+ import 'package:ayg/widgets/history/workout_history_list.dart';
+ import 'package:flutter/material.dart';
+@@ -39,4 +41,58 @@ void main() {
+     expect(find.text('250 kcal'), findsOneWidget);
+     expect(find.text('500 kcal'), findsNothing);
+   });
++
++  testWidgets('workout history list shows multi-exercise strength summary', (
++    tester,
++  ) async {
++    final notes = StrengthNotesCodec.encode(
++      log: const StrengthWorkoutLog(
++        exercises: [
++          StrengthExerciseLog(
++            name: 'ベンチプレス',
++            sets: [
++              StrengthSetLog(weightKg: 60, reps: 10),
++              StrengthSetLog(weightKg: 60, reps: 10),
++              StrengthSetLog(weightKg: 60, reps: 10),
++            ],
++          ),
++          StrengthExerciseLog(
++            name: 'スクワット',
++            sets: [StrengthSetLog(weightKg: 80, reps: 5)],
++          ),
++        ],
++      ),
++    );
++    final entry = ExerciseEntry(
++      id: 'lift',
++      name: '筋トレ',
++      durationMin: 45,
++      burnedKcal: 200,
++      netKcal: 120,
++      loggedAt: DateTime(2026, 8, 1, 19),
++      category: ExerciseCategory.strength,
++      notes: notes,
++    );
++
++    await tester.pumpWidget(
++      MaterialApp(
++        home: Scaffold(
++          body: WorkoutHistoryList(
++            dateGroups: [
++              HistoryDateGroup<ExerciseEntry>(
++                date: DateTime(2026, 8, 1),
++                label: '今日',
++                items: [entry],
++              ),
++            ],
++            onTapEntry: (_) {},
++            onDeleteEntry: (_) {},
++          ),
++        ),
++      ),
++    );
++
++    expect(find.textContaining('ベンチプレス 3セット'), findsOneWidget);
++    expect(find.textContaining('スクワット 1セット'), findsOneWidget);
++  });
+ }

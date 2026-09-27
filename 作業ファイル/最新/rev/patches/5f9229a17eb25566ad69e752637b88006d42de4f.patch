@@ -1,0 +1,749 @@
+From 5f9229a17eb25566ad69e752637b88006d42de4f Mon Sep 17 00:00:00 2001
+From: Cursor Agent <cursoragent@cursor.com>
+Date: Sun, 20 Sep 2026 01:54:23 +0000
+Subject: [PATCH] feat: implement Sign in with Apple on iOS
+
+Wire loginWithApple() to the native Apple ID token and Supabase, add the iOS entitlement, and keep Web preview unavailable.
+
+Co-authored-by: naruto.futuree <naruto.futuree@gmail.com>
+---
+ docs/01_Project.md                            |   4 +-
+ docs/legal/README.md                          |   8 +-
+ ios/Runner.xcodeproj/project.pbxproj          |   5 +
+ ios/Runner/Runner.entitlements                |  10 ++
+ lib/constants/app_strings.dart                |   2 +-
+ ...eb_supabase_authentication_repository.dart |   4 +-
+ lib/repositories/apple_sign_in_client.dart    |  87 ++++++++++++
+ lib/repositories/auth_exceptions.dart         |  22 +++
+ .../supabase_authentication_repository.dart   |  35 +++--
+ lib/screens/auth/login_screen.dart            |  33 ++++-
+ pubspec.yaml                                  |   2 +
+ test/apple_sign_in_client_test.dart           |  84 ++++++++++++
+ test/authentication_repository_test.dart      |  31 ++++-
+ .../mocks/mock_authentication_repository.dart |  21 ++-
+ test/widget_test.dart                         | 127 ++++++++++++++++++
+ 15 files changed, 450 insertions(+), 25 deletions(-)
+ create mode 100644 ios/Runner/Runner.entitlements
+ create mode 100644 lib/repositories/apple_sign_in_client.dart
+ create mode 100644 test/apple_sign_in_client_test.dart
+
+diff --git a/docs/01_Project.md b/docs/01_Project.md
+index 3b2ccab..f404aba 100644
+--- a/docs/01_Project.md
++++ b/docs/01_Project.md
+@@ -233,7 +233,7 @@ github.io の `/AYG/` が必要なのは、Web プレビュー自身の Google 
+ |------|-------------------|---------------------------|
+ | ログイン方式 | Google **または** Apple ID | — |
+ | Google ログイン | Version 1.1 正式スコープに含む | **実装済み** |
+-| Apple ログイン | Version 1.1 正式スコープに含む | **未実装** |
++| Apple ログイン | Version 1.1 正式スコープに含む | **実装済み**（実機・コンソール確認は未完） |
+ 
+ 未実装であることは、正式スコープから外れる理由ではない。
+ 
+@@ -399,7 +399,7 @@ Core Value は、プロダクト一言定義 **「エネルギー管理におけ
+ 
+ | # | タスク | 【Current Implementation】 |
+ |---|--------|---------------------------|
+-| 1 | **Apple ログイン** | Developer の capability 済み。アプリ未配線 |
++| 1 | **Apple ログイン** | アプリ実装済み。Services ID Return URL と Supabase Apple プロバイダは Owner 確認 |
+ | 2 | **カロナビ+（380円 / 4,180円）** | 無料枠と購入画面は実装済み。Store 商品は未作成 |
+ | 3 | **アカウント削除 RPC** | アプリ実装済み。本番 SQL 未適用 |
+ | 4 | **App Store 掲載・TestFlight** | 未完了 |
+diff --git a/docs/legal/README.md b/docs/legal/README.md
+index 8d7d734..a39f2e1 100644
+--- a/docs/legal/README.md
++++ b/docs/legal/README.md
+@@ -55,10 +55,10 @@ App Store Connect で上記 Product ID の自動更新サブスクリプショ
+ 
+ 提出を止めるものから先。括弧は主担当。
+ 
+-1. **Sign in with Apple をアプリで通す**（Owner コンソール + エージェント実装）
+-   - Developer: App ID の capability は済み。Services ID の Configure で Return URL を `https://<Supabaseプロジェクト>.supabase.co/auth/v1/callback` にする
+-   - Supabase Auth に Apple プロバイダを入れる。`.p8` はリポジトリに置かない
+-   - アプリの `loginWithApple()` と iOS entitlement は未配線
++1. **Sign in with Apple のコンソール仕上げと実機確認**（Owner）
++   - アプリの `loginWithApple()` と iOS entitlement は実装済み。Web プレビューでは使えない
++   - Services ID の Configure で Return URL を `https://<Supabaseプロジェクト>.supabase.co/auth/v1/callback` にする
++   - Supabase Auth の Apple を Enabled にし、Client IDs に `com.narutoaii.ayg` と `com.narutoaii.ayg.web` を入れる。`.p8` はリポジトリに置かない
+ 2. **本番 Supabase に削除 SQL を適用**（Owner）
+    - `supabase/migrations/20260920120000_delete_own_account_keep_public_foods.sql`
+    - 適用前にバックアップ。未適用だとアプリ内削除がメール頼みになる
+diff --git a/ios/Runner.xcodeproj/project.pbxproj b/ios/Runner.xcodeproj/project.pbxproj
+index 3d582b6..2f4ba02 100644
+--- a/ios/Runner.xcodeproj/project.pbxproj
++++ b/ios/Runner.xcodeproj/project.pbxproj
+@@ -64,6 +64,7 @@
+ 		97C146FB1CF9000F007C117D /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
+ 		97C146FD1CF9000F007C117D /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+ 		97C147001CF9000F007C117D /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
++		8F21A9C47B3E5D6A1C0F4E82 /* Runner.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Runner.entitlements; sourceTree = "<group>"; };
+ 		97C147021CF9000F007C117D /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+ 		B856959A6E66E5F01AFCEBD1 /* Pods-RunnerTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-RunnerTests.release.xcconfig"; path = "Target Support Files/Pods-RunnerTests/Pods-RunnerTests.release.xcconfig"; sourceTree = "<group>"; };
+ 		E4DD21C33FD256DF867F57DA /* Pods-RunnerTests.profile.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-RunnerTests.profile.xcconfig"; path = "Target Support Files/Pods-RunnerTests/Pods-RunnerTests.profile.xcconfig"; sourceTree = "<group>"; };
+@@ -145,6 +146,7 @@
+ 		97C146F01CF9000F007C117D /* Runner */ = {
+ 			isa = PBXGroup;
+ 			children = (
++				8F21A9C47B3E5D6A1C0F4E82 /* Runner.entitlements */,
+ 				97C146FA1CF9000F007C117D /* Main.storyboard */,
+ 				97C146FD1CF9000F007C117D /* Assets.xcassets */,
+ 				97C146FF1CF9000F007C117D /* LaunchScreen.storyboard */,
+@@ -484,6 +486,7 @@
+ 			buildSettings = {
+ 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+ 				CLANG_ENABLE_MODULES = YES;
++				CODE_SIGN_ENTITLEMENTS = Runner/Runner.entitlements;
+ 				CURRENT_PROJECT_VERSION = "$(FLUTTER_BUILD_NUMBER)";
+ 				ENABLE_BITCODE = NO;
+ 				INFOPLIST_FILE = Runner/Info.plist;
+@@ -666,6 +669,7 @@
+ 			buildSettings = {
+ 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+ 				CLANG_ENABLE_MODULES = YES;
++				CODE_SIGN_ENTITLEMENTS = Runner/Runner.entitlements;
+ 				CURRENT_PROJECT_VERSION = "$(FLUTTER_BUILD_NUMBER)";
+ 				ENABLE_BITCODE = NO;
+ 				INFOPLIST_FILE = Runner/Info.plist;
+@@ -688,6 +692,7 @@
+ 			buildSettings = {
+ 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+ 				CLANG_ENABLE_MODULES = YES;
++				CODE_SIGN_ENTITLEMENTS = Runner/Runner.entitlements;
+ 				CURRENT_PROJECT_VERSION = "$(FLUTTER_BUILD_NUMBER)";
+ 				ENABLE_BITCODE = NO;
+ 				INFOPLIST_FILE = Runner/Info.plist;
+diff --git a/ios/Runner/Runner.entitlements b/ios/Runner/Runner.entitlements
+new file mode 100644
+index 0000000..a812db5
+--- /dev/null
++++ b/ios/Runner/Runner.entitlements
+@@ -0,0 +1,10 @@
++<?xml version="1.0" encoding="UTF-8"?>
++<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
++<plist version="1.0">
++<dict>
++	<key>com.apple.developer.applesignin</key>
++	<array>
++		<string>Default</string>
++	</array>
++</dict>
++</plist>
+diff --git a/lib/constants/app_strings.dart b/lib/constants/app_strings.dart
+index 954cb1b..20abb07 100644
+--- a/lib/constants/app_strings.dart
++++ b/lib/constants/app_strings.dart
+@@ -47,7 +47,7 @@ class AppStrings {
+   static const accountDeletionFailed = '削除に失敗しました';
+   static const accountDeletionReadPolicy = '詳しい説明を読む';
+   static const loginLegalAgreement = 'ログインにより、利用規約とプライバシーポリシーに同意したものとします。';
+-  static const loginAppleComingSoon = 'Appleログインは準備中です。';
++  static const loginAppleUnavailableOnWeb = 'このプレビューでは Apple ログインは使えません。';
+   static const plusTitle = 'カロナビ+';
+   static const plusLead =
+       '公開食品検索とテンプレートの上限を外します。記録・Health・バーコードはこれまでどおり無料です。';
+diff --git a/lib/platform/web/repositories/web_supabase_authentication_repository.dart b/lib/platform/web/repositories/web_supabase_authentication_repository.dart
+index ce1cdbb..64ea1fa 100644
+--- a/lib/platform/web/repositories/web_supabase_authentication_repository.dart
++++ b/lib/platform/web/repositories/web_supabase_authentication_repository.dart
+@@ -5,7 +5,7 @@ import '../../../repositories/account_deletion_rpc.dart';
+ import '../../../repositories/auth_exceptions.dart';
+ import '../../../repositories/authentication_repository.dart';
+ 
+-/// Web 向け Supabase OAuth 認証（Google のみ）。
++/// Web 向け Supabase OAuth 認証（Google のみ。Apple はアプリで使う）。
+ class WebSupabaseAuthenticationRepository extends AuthenticationRepository {
+   WebSupabaseAuthenticationRepository({SupabaseClient? client})
+     : _client = client ?? Supabase.instance.client;
+@@ -49,7 +49,7 @@ class WebSupabaseAuthenticationRepository extends AuthenticationRepository {
+ 
+   @override
+   Future<void> loginWithApple() async {
+-    throw UnimplementedError('Apple Sign-In is not available on Web preview.');
++    throw AppleSignInUnavailableException();
+   }
+ 
+   @override
+diff --git a/lib/repositories/apple_sign_in_client.dart b/lib/repositories/apple_sign_in_client.dart
+new file mode 100644
+index 0000000..af7088d
+--- /dev/null
++++ b/lib/repositories/apple_sign_in_client.dart
+@@ -0,0 +1,87 @@
++import 'dart:convert';
++import 'dart:math';
++
++import 'package:crypto/crypto.dart';
++import 'package:sign_in_with_apple/sign_in_with_apple.dart';
++
++import 'auth_exceptions.dart';
++
++/// Native Apple ID token and the raw nonce Supabase must verify.
++class AppleIdTokenResult {
++  const AppleIdTokenResult({
++    required this.identityToken,
++    required this.rawNonce,
++  });
++
++  final String identityToken;
++  final String rawNonce;
++}
++
++typedef AppleNonceFactory = String Function();
++typedef AppleCredentialFetcher =
++    Future<AuthorizationCredentialAppleID> Function(String hashedNonce);
++
++/// SHA-256 hashed nonce + Sign in with Apple identity token.
++class AppleSignInClient {
++  const AppleSignInClient({
++    AppleNonceFactory? nonceFactory,
++    AppleCredentialFetcher? credentialFetcher,
++  }) : _nonceFactory = nonceFactory,
++       _credentialFetcher = credentialFetcher;
++
++  final AppleNonceFactory? _nonceFactory;
++  final AppleCredentialFetcher? _credentialFetcher;
++
++  Future<AppleIdTokenResult> fetchIdToken() async {
++    final rawNonce = (_nonceFactory ?? generateAppleNonce)();
++    final hashedNonce = sha256Hex(rawNonce);
++
++    try {
++      final credential = await (_credentialFetcher ?? _defaultCredentialFetcher)(
++        hashedNonce,
++      );
++      final idToken = credential.identityToken;
++      if (idToken == null || idToken.isEmpty) {
++        throw AppleSignInFailedException('Apple identity token is missing.');
++      }
++      return AppleIdTokenResult(identityToken: idToken, rawNonce: rawNonce);
++    } on AppleSignInCancelledException {
++      rethrow;
++    } on AppleSignInFailedException {
++      rethrow;
++    } on SignInWithAppleAuthorizationException catch (error) {
++      if (error.code == AuthorizationErrorCode.canceled) {
++        throw AppleSignInCancelledException();
++      }
++      throw AppleSignInFailedException(error.message);
++    } on SignInWithAppleException catch (error) {
++      throw AppleSignInFailedException(error.toString());
++    }
++  }
++
++  static Future<AuthorizationCredentialAppleID> _defaultCredentialFetcher(
++    String hashedNonce,
++  ) {
++    return SignInWithApple.getAppleIDCredential(
++      scopes: const [
++        AppleIDAuthorizationScopes.email,
++        AppleIDAuthorizationScopes.fullName,
++      ],
++      nonce: hashedNonce,
++    );
++  }
++}
++
++String generateAppleNonce([int length = 32]) {
++  const charset =
++      '0123456789ABCDEFGHIJKLMNOPQRSTUVXYZabcdefghijklmnopqrstuvwxyz-._';
++  final random = Random.secure();
++  return List.generate(
++    length,
++    (_) => charset[random.nextInt(charset.length)],
++  ).join();
++}
++
++String sha256Hex(String input) {
++  return sha256.convert(utf8.encode(input)).toString();
++}
+diff --git a/lib/repositories/auth_exceptions.dart b/lib/repositories/auth_exceptions.dart
+index b410214..2186334 100644
+--- a/lib/repositories/auth_exceptions.dart
++++ b/lib/repositories/auth_exceptions.dart
+@@ -14,6 +14,28 @@ class GoogleSignInFailedException implements Exception {
+   String toString() => message;
+ }
+ 
++/// Apple Sign-In がユーザー操作でキャンセルされた。
++class AppleSignInCancelledException implements Exception {
++  @override
++  String toString() => 'Apple sign-in was cancelled.';
++}
++
++/// Apple Sign-In / Supabase Auth が失敗した。
++class AppleSignInFailedException implements Exception {
++  AppleSignInFailedException(this.message);
++
++  final String message;
++
++  @override
++  String toString() => message;
++}
++
++/// Web プレビューなど、この画面では Apple ログインが使えない。
++class AppleSignInUnavailableException implements Exception {
++  @override
++  String toString() => 'Apple sign-in is not available.';
++}
++
+ /// 本番に delete_own_account がまだ無い。
+ class AccountDeletionUnavailableException implements Exception {
+   @override
+diff --git a/lib/repositories/supabase_authentication_repository.dart b/lib/repositories/supabase_authentication_repository.dart
+index e606bd8..ab40bd9 100644
+--- a/lib/repositories/supabase_authentication_repository.dart
++++ b/lib/repositories/supabase_authentication_repository.dart
+@@ -6,14 +6,16 @@ import 'package:url_launcher/url_launcher.dart';
+ import '../config/supabase_config.dart';
+ import '../config/web_auth_config.dart';
+ import 'account_deletion_rpc.dart';
++import 'apple_sign_in_client.dart';
+ import 'auth_exceptions.dart';
+ import 'authentication_repository.dart';
+ 
+-/// Supabase Auth + Google Sign-In 実装。
++/// Supabase Auth + Google / Apple Sign-In 実装。
+ class SupabaseAuthenticationRepository extends AuthenticationRepository {
+   SupabaseAuthenticationRepository({
+     SupabaseClient? client,
+     GoogleSignIn? googleSignIn,
++    AppleSignInClient? appleSignInClient,
+   }) : _client = client ?? Supabase.instance.client,
+        _googleSignIn = kIsWeb
+            ? null
+@@ -25,10 +27,12 @@ class SupabaseAuthenticationRepository extends AuthenticationRepository {
+                    serverClientId: SupabaseConfig.googleWebClientId.isEmpty
+                        ? null
+                        : SupabaseConfig.googleWebClientId,
+-                 );
++                 ),
++       _appleSignInClient = appleSignInClient ?? const AppleSignInClient();
+ 
+   final SupabaseClient _client;
+   final GoogleSignIn? _googleSignIn;
++  final AppleSignInClient _appleSignInClient;
+ 
+   @override
+   AuthUser? get currentUser => _mapUser(_client.auth.currentUser);
+@@ -105,9 +109,26 @@ class SupabaseAuthenticationRepository extends AuthenticationRepository {
+ 
+   @override
+   Future<void> loginWithApple() async {
+-    throw UnimplementedError(
+-      'Apple Sign-In will be implemented in a later phase.',
+-    );
++    if (kIsWeb) {
++      throw AppleSignInUnavailableException();
++    }
++
++    try {
++      final result = await _appleSignInClient.fetchIdToken();
++      await _client.auth.signInWithIdToken(
++        provider: OAuthProvider.apple,
++        idToken: result.identityToken,
++        nonce: result.rawNonce,
++      );
++    } on AppleSignInCancelledException {
++      rethrow;
++    } on AppleSignInUnavailableException {
++      rethrow;
++    } on AppleSignInFailedException {
++      rethrow;
++    } on AuthException catch (error) {
++      throw AppleSignInFailedException(error.message);
++    }
+   }
+ 
+   @override
+@@ -147,9 +168,7 @@ class UnconfiguredAuthenticationRepository extends AuthenticationRepository {
+ 
+   @override
+   Future<void> loginWithApple() async {
+-    throw UnimplementedError(
+-      'Apple Sign-In will be implemented in a later phase.',
+-    );
++    throw AppleSignInFailedException('Supabase is not configured.');
+   }
+ 
+   @override
+diff --git a/lib/screens/auth/login_screen.dart b/lib/screens/auth/login_screen.dart
+index 1de1756..1c5ffeb 100644
+--- a/lib/screens/auth/login_screen.dart
++++ b/lib/screens/auth/login_screen.dart
+@@ -61,11 +61,34 @@ class _LoginScreenState extends State<LoginScreen> {
+   }
+ 
+   Future<void> _signInWithApple() async {
+-    ScaffoldMessenger.of(
+-      context,
+-    ).showSnackBar(
+-      const SnackBar(content: Text(AppStrings.loginAppleComingSoon)),
+-    );
++    setState(() => _isLoading = true);
++    try {
++      await widget.authenticationRepository.loginWithApple();
++      if (kIsWeb) {
++        return;
++      }
++      await widget.controller.handleAuthenticatedSession();
++    } on AppleSignInCancelledException {
++      return;
++    } on AppleSignInUnavailableException {
++      if (!mounted) {
++        return;
++      }
++      ScaffoldMessenger.of(context).showSnackBar(
++        const SnackBar(content: Text(AppStrings.loginAppleUnavailableOnWeb)),
++      );
++    } catch (error) {
++      if (!mounted) {
++        return;
++      }
++      ScaffoldMessenger.of(
++        context,
++      ).showSnackBar(SnackBar(content: Text('Appleログインに失敗しました: $error')));
++    } finally {
++      if (mounted) {
++        setState(() => _isLoading = false);
++      }
++    }
+   }
+ 
+   Widget _buildLoginContent(BuildContext context) {
+diff --git a/pubspec.yaml b/pubspec.yaml
+index c373741..f5b71aa 100644
+--- a/pubspec.yaml
++++ b/pubspec.yaml
+@@ -43,6 +43,8 @@ dependencies:
+   path_provider: ^2.1.5
+   supabase_flutter: ^2.9.1
+   google_sign_in: ^6.3.0
++  sign_in_with_apple: ^6.1.4
++  crypto: ^3.0.6
+   url_launcher: ^6.3.2
+   shared_preferences: ^2.5.3
+   uuid: ^4.6.0
+diff --git a/test/apple_sign_in_client_test.dart b/test/apple_sign_in_client_test.dart
+new file mode 100644
+index 0000000..aa023f0
+--- /dev/null
++++ b/test/apple_sign_in_client_test.dart
+@@ -0,0 +1,84 @@
++import 'package:ayg/repositories/apple_sign_in_client.dart';
++import 'package:ayg/repositories/auth_exceptions.dart';
++import 'package:flutter_test/flutter_test.dart';
++import 'package:sign_in_with_apple/sign_in_with_apple.dart';
++
++void main() {
++  test('sha256Hex is stable', () {
++    expect(
++      sha256Hex('nonce-value'),
++      'efb4e26c3deb3dd5e04408769d1b6b371ae1e7acbe1e32332550b06f784780f2',
++    );
++  });
++
++  test('generateAppleNonce is 32 url-safe characters', () {
++    final nonce = generateAppleNonce();
++    expect(nonce.length, 32);
++    expect(RegExp(r'^[0-9A-Za-z\-._]+$').hasMatch(nonce), isTrue);
++  });
++
++  test('fetchIdToken returns identity token and raw nonce', () async {
++    const rawNonce = 'raw-nonce-value';
++    var seenHashedNonce = '';
++    final client = AppleSignInClient(
++      nonceFactory: () => rawNonce,
++      credentialFetcher: (hashedNonce) async {
++        seenHashedNonce = hashedNonce;
++        return const AuthorizationCredentialAppleID(
++          userIdentifier: 'user-1',
++          givenName: null,
++          familyName: null,
++          email: 'a@example.com',
++          identityToken: 'apple-id-token',
++          authorizationCode: 'code',
++          state: null,
++        );
++      },
++    );
++
++    final result = await client.fetchIdToken();
++
++    expect(result.identityToken, 'apple-id-token');
++    expect(result.rawNonce, rawNonce);
++    expect(seenHashedNonce, sha256Hex(rawNonce));
++  });
++
++  test('missing identity token fails', () async {
++    final client = AppleSignInClient(
++      nonceFactory: () => 'raw',
++      credentialFetcher: (_) async {
++        return const AuthorizationCredentialAppleID(
++          userIdentifier: 'user-1',
++          givenName: null,
++          familyName: null,
++          email: null,
++          identityToken: null,
++          authorizationCode: 'code',
++          state: null,
++        );
++      },
++    );
++
++    expect(
++      client.fetchIdToken(),
++      throwsA(isA<AppleSignInFailedException>()),
++    );
++  });
++
++  test('canceled Apple sheet is not a failure', () async {
++    final client = AppleSignInClient(
++      nonceFactory: () => 'raw',
++      credentialFetcher: (_) async {
++        throw const SignInWithAppleAuthorizationException(
++          code: AuthorizationErrorCode.canceled,
++          message: 'canceled',
++        );
++      },
++    );
++
++    expect(
++      client.fetchIdToken(),
++      throwsA(isA<AppleSignInCancelledException>()),
++    );
++  });
++}
+diff --git a/test/authentication_repository_test.dart b/test/authentication_repository_test.dart
+index ce519eb..ba0f4a1 100644
+--- a/test/authentication_repository_test.dart
++++ b/test/authentication_repository_test.dart
+@@ -66,10 +66,29 @@ void main() {
+       expect(authRepository.isAuthenticated, isFalse);
+     });
+ 
+-    test('loginWithApple is not implemented', () {
++    test('loginWithApple sets current user', () async {
++      await authRepository.loginWithApple();
++
++      expect(authRepository.loginWithAppleCalled, isTrue);
++      expect(authRepository.currentUser?.id, 'test-user-id');
++      expect(authRepository.isAuthenticated, isTrue);
++    });
++
++    test('loginWithApple cancel throws AppleSignInCancelledException', () {
++      authRepository.simulateAppleSignInCancelled = true;
++
+       expect(
+         authRepository.loginWithApple(),
+-        throwsA(isA<UnimplementedError>()),
++        throwsA(isA<AppleSignInCancelledException>()),
++      );
++    });
++
++    test('loginWithApple failure throws AppleSignInFailedException', () {
++      authRepository.simulateAppleSignInFailure = true;
++
++      expect(
++        authRepository.loginWithApple(),
++        throwsA(isA<AppleSignInFailedException>()),
+       );
+     });
+ 
+@@ -102,6 +121,14 @@ void main() {
+         throwsA(isA<AccountDeletionUnavailableException>()),
+       );
+     });
++
++    test('loginWithApple is unavailable without Supabase', () {
++      final repository = UnconfiguredAuthenticationRepository();
++      expect(
++        repository.loginWithApple(),
++        throwsA(isA<AppleSignInFailedException>()),
++      );
++    });
+   });
+ 
+   group('AppController auth flow', () {
+diff --git a/test/mocks/mock_authentication_repository.dart b/test/mocks/mock_authentication_repository.dart
+index 459d30a..f71bd5a 100644
+--- a/test/mocks/mock_authentication_repository.dart
++++ b/test/mocks/mock_authentication_repository.dart
+@@ -13,12 +13,17 @@ class MockAuthenticationRepository extends AuthenticationRepository {
+ 
+   bool restoreSessionCalled = false;
+   bool loginWithGoogleCalled = false;
++  bool loginWithAppleCalled = false;
+   bool logoutCalled = false;
+   bool deleteOwnAccountCalled = false;
+   bool simulateDeleteUnavailable = false;
+   bool simulateGoogleSignInCancelled = false;
+   bool simulateGoogleSignInFailure = false;
++  bool simulateAppleSignInCancelled = false;
++  bool simulateAppleSignInFailure = false;
++  bool simulateAppleSignInUnavailable = false;
+   String googleSignInFailureMessage = 'Google sign-in failed.';
++  String appleSignInFailureMessage = 'Apple sign-in failed.';
+ 
+   void setCurrentUser(AuthUser? user) {
+     _currentUser = user;
+@@ -54,7 +59,21 @@ class MockAuthenticationRepository extends AuthenticationRepository {
+ 
+   @override
+   Future<void> loginWithApple() async {
+-    throw UnimplementedError('Apple Sign-In is not implemented yet.');
++    loginWithAppleCalled = true;
++    if (simulateAppleSignInCancelled) {
++      throw AppleSignInCancelledException();
++    }
++    if (simulateAppleSignInUnavailable) {
++      throw AppleSignInUnavailableException();
++    }
++    if (simulateAppleSignInFailure) {
++      throw AppleSignInFailedException(appleSignInFailureMessage);
++    }
++    _currentUser = const AuthUser(
++      id: 'test-user-id',
++      email: 'test@example.com',
++    );
++    _controller.add(_currentUser);
+   }
+ 
+   @override
+diff --git a/test/widget_test.dart b/test/widget_test.dart
+index 9263163..d0f23f1 100644
+--- a/test/widget_test.dart
++++ b/test/widget_test.dart
+@@ -118,6 +118,133 @@ void main() {
+     await authRepository.dispose();
+   });
+ 
++  testWidgets('Apple login success navigates away from LoginScreen', (
++    WidgetTester tester,
++  ) async {
++    final openFoodFactsService = createOpenFoodFactsService();
++    final healthRepository = MockHealthRepository(isAvailable: false);
++    final authRepository = MockAuthenticationRepository();
++    final dataSyncRepository = MockDataSyncRepository();
++    final controller = AppController(
++      healthRepository: healthRepository,
++      authenticationRepository: authRepository,
++      dataSyncRepository: dataSyncRepository,
++    );
++
++    await tester.pumpWidget(
++      AygApp(
++        controller: controller,
++        openFoodFactsService: openFoodFactsService,
++        healthRepository: healthRepository,
++        authenticationRepository: authRepository,
++      ),
++    );
++
++    await tester.tap(find.text('Appleでログイン'));
++    await tester.pumpAndSettle();
++
++    expect(find.text('Appleでログイン'), findsNothing);
++    expect(authRepository.isAuthenticated, isTrue);
++    expect(dataSyncRepository.ensureUserProfileCalled, isTrue);
++
++    await authRepository.dispose();
++  });
++
++  testWidgets('Apple login cancel does not show failure snackbar', (
++    WidgetTester tester,
++  ) async {
++    final openFoodFactsService = createOpenFoodFactsService();
++    final healthRepository = MockHealthRepository(isAvailable: false);
++    final authRepository = MockAuthenticationRepository()
++      ..simulateAppleSignInCancelled = true;
++    final dataSyncRepository = MockDataSyncRepository();
++    final controller = AppController(
++      healthRepository: healthRepository,
++      authenticationRepository: authRepository,
++      dataSyncRepository: dataSyncRepository,
++    );
++
++    await tester.pumpWidget(
++      AygApp(
++        controller: controller,
++        openFoodFactsService: openFoodFactsService,
++        healthRepository: healthRepository,
++        authenticationRepository: authRepository,
++      ),
++    );
++
++    await tester.tap(find.text('Appleでログイン'));
++    await tester.pumpAndSettle();
++
++    expect(find.text('Appleでログイン'), findsOneWidget);
++    expect(find.textContaining('Appleログインに失敗しました'), findsNothing);
++
++    await authRepository.dispose();
++  });
++
++  testWidgets('Apple login failure shows snackbar', (
++    WidgetTester tester,
++  ) async {
++    final openFoodFactsService = createOpenFoodFactsService();
++    final healthRepository = MockHealthRepository(isAvailable: false);
++    final authRepository = MockAuthenticationRepository()
++      ..simulateAppleSignInFailure = true;
++    final dataSyncRepository = MockDataSyncRepository();
++    final controller = AppController(
++      healthRepository: healthRepository,
++      authenticationRepository: authRepository,
++      dataSyncRepository: dataSyncRepository,
++    );
++
++    await tester.pumpWidget(
++      AygApp(
++        controller: controller,
++        openFoodFactsService: openFoodFactsService,
++        healthRepository: healthRepository,
++        authenticationRepository: authRepository,
++      ),
++    );
++
++    await tester.tap(find.text('Appleでログイン'));
++    await tester.pumpAndSettle();
++
++    expect(find.textContaining('Appleログインに失敗しました'), findsOneWidget);
++
++    await authRepository.dispose();
++  });
++
++  testWidgets('Apple login unavailable shows web preview snackbar', (
++    WidgetTester tester,
++  ) async {
++    final openFoodFactsService = createOpenFoodFactsService();
++    final healthRepository = MockHealthRepository(isAvailable: false);
++    final authRepository = MockAuthenticationRepository()
++      ..simulateAppleSignInUnavailable = true;
++    final dataSyncRepository = MockDataSyncRepository();
++    final controller = AppController(
++      healthRepository: healthRepository,
++      authenticationRepository: authRepository,
++      dataSyncRepository: dataSyncRepository,
++    );
++
++    await tester.pumpWidget(
++      AygApp(
++        controller: controller,
++        openFoodFactsService: openFoodFactsService,
++        healthRepository: healthRepository,
++        authenticationRepository: authRepository,
++      ),
++    );
++
++    await tester.tap(find.text('Appleでログイン'));
++    await tester.pumpAndSettle();
++
++    expect(find.text(AppStrings.loginAppleUnavailableOnWeb), findsOneWidget);
++    expect(find.text('Appleでログイン'), findsOneWidget);
++
++    await authRepository.dispose();
++  });
++
+   testWidgets('Google login failure shows snackbar', (
+     WidgetTester tester,
+   ) async {

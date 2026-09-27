@@ -1,0 +1,957 @@
+{
+  "url": "https://api.github.com/repos/naruto-aii/AYG/compare/3035c5819a1e54a23658ed0736599999558c26ea...f01d3d886666c57bfa60f144d0194e93a1f26d00",
+  "html_url": "https://github.com/naruto-aii/AYG/compare/3035c5819a1e54a23658ed0736599999558c26ea...f01d3d886666c57bfa60f144d0194e93a1f26d00",
+  "permalink_url": "https://github.com/naruto-aii/AYG/compare/naruto-aii:3035c58...naruto-aii:f01d3d8",
+  "diff_url": "https://github.com/naruto-aii/AYG/compare/3035c5819a1e54a23658ed0736599999558c26ea...f01d3d886666c57bfa60f144d0194e93a1f26d00.diff",
+  "patch_url": "https://github.com/naruto-aii/AYG/compare/3035c5819a1e54a23658ed0736599999558c26ea...f01d3d886666c57bfa60f144d0194e93a1f26d00.patch",
+  "base_commit": {
+    "sha": "3035c5819a1e54a23658ed0736599999558c26ea",
+    "node_id": "C_kwDOTeJwqdoAKDMwMzVjNTgxOWExZTU0YTIzNjU4ZWQwNzM2NTk5OTk5NTU4YzI2ZWE",
+    "commit": {
+      "author": {
+        "name": "Cursor Agent",
+        "email": "cursoragent@cursor.com",
+        "date": "2026-09-27T09:50:36Z"
+      },
+      "committer": {
+        "name": "Cursor Agent",
+        "email": "cursoragent@cursor.com",
+        "date": "2026-09-27T09:50:36Z"
+      },
+      "message": "fix: accept ordinary foods and compose halfwidth voiced marks\n\nWord-boundary matching and phrase exceptions stop short fragments from\nrejecting normal public food names. Halfwidth dakuten and handakuten are\ncomposed before NFKC on both the app and the server. Rollback SQL lives\nunder supabase/rollback, and a rejected publish leaves the local row private.\n\nCo-authored-by: naruto-aii <naruto-aii@users.noreply.github.com>",
+      "tree": {
+        "sha": "735011b4594c236e3a678bae9630ccb30acba1da",
+        "url": "https://api.github.com/repos/naruto-aii/AYG/git/trees/735011b4594c236e3a678bae9630ccb30acba1da"
+      },
+      "url": "https://api.github.com/repos/naruto-aii/AYG/git/commits/3035c5819a1e54a23658ed0736599999558c26ea",
+      "comment_count": 0,
+      "verification": {
+        "verified": true,
+        "reason": "valid",
+        "signature": "-----BEGIN SSH SIGNATURE-----\nU1NIU0lHAAAAAQAAADMAAAALc3NoLWVkMjU1MTkAAAAg+qImwGMCy/grKZ50VxRHz3VfWW\nAL3QNbzIy2Nwcn+nQAAAADZ2l0AAAAAAAAAAZzaGE1MTIAAABTAAAAC3NzaC1lZDI1NTE5\nAAAAQLAL06bv98Qi8ILLZTkszjRW5v4oZh+TXR9A6ngKrBmEjf4UAg45q6eDYM6UZeQZXt\nafHwGRUH56/n1JgUX40wM=\n-----END SSH SIGNATURE-----",
+        "payload": "tree 735011b4594c236e3a678bae9630ccb30acba1da\nparent 94ab79c4fc24b18dfe32cfe35f3bee43f47e864a\nauthor Cursor Agent <cursoragent@cursor.com> 1790502636 +0000\ncommitter Cursor Agent <cursoragent@cursor.com> 1790502636 +0000\n\nfix: accept ordinary foods and compose halfwidth voiced marks\n\nWord-boundary matching and phrase exceptions stop short fragments from\nrejecting normal public food names. Halfwidth dakuten and handakuten are\ncomposed before NFKC on both the app and the server. Rollback SQL lives\nunder supabase/rollback, and a rejected publish leaves the local row private.\n\nCo-authored-by: naruto-aii <naruto-aii@users.noreply.github.com>\n",
+        "verified_at": "2026-09-27T09:50:46Z"
+      }
+    },
+    "url": "https://api.github.com/repos/naruto-aii/AYG/commits/3035c5819a1e54a23658ed0736599999558c26ea",
+    "html_url": "https://github.com/naruto-aii/AYG/commit/3035c5819a1e54a23658ed0736599999558c26ea",
+    "comments_url": "https://api.github.com/repos/naruto-aii/AYG/commits/3035c5819a1e54a23658ed0736599999558c26ea/comments",
+    "author": {
+      "login": "cursoragent",
+      "id": 199161495,
+      "node_id": "U_kgDOC972lw",
+      "avatar_url": "https://avatars.githubusercontent.com/u/199161495?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/cursoragent",
+      "html_url": "https://github.com/cursoragent",
+      "followers_url": "https://api.github.com/users/cursoragent/followers",
+      "following_url": "https://api.github.com/users/cursoragent/following{/other_user}",
+      "gists_url": "https://api.github.com/users/cursoragent/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/cursoragent/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/cursoragent/subscriptions",
+      "organizations_url": "https://api.github.com/users/cursoragent/orgs",
+      "repos_url": "https://api.github.com/users/cursoragent/repos",
+      "events_url": "https://api.github.com/users/cursoragent/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/cursoragent/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "committer": {
+      "login": "cursoragent",
+      "id": 199161495,
+      "node_id": "U_kgDOC972lw",
+      "avatar_url": "https://avatars.githubusercontent.com/u/199161495?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/cursoragent",
+      "html_url": "https://github.com/cursoragent",
+      "followers_url": "https://api.github.com/users/cursoragent/followers",
+      "following_url": "https://api.github.com/users/cursoragent/following{/other_user}",
+      "gists_url": "https://api.github.com/users/cursoragent/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/cursoragent/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/cursoragent/subscriptions",
+      "organizations_url": "https://api.github.com/users/cursoragent/orgs",
+      "repos_url": "https://api.github.com/users/cursoragent/repos",
+      "events_url": "https://api.github.com/users/cursoragent/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/cursoragent/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "parents": [
+      {
+        "sha": "94ab79c4fc24b18dfe32cfe35f3bee43f47e864a",
+        "url": "https://api.github.com/repos/naruto-aii/AYG/commits/94ab79c4fc24b18dfe32cfe35f3bee43f47e864a",
+        "html_url": "https://github.com/naruto-aii/AYG/commit/94ab79c4fc24b18dfe32cfe35f3bee43f47e864a"
+      }
+    ]
+  },
+  "merge_base_commit": {
+    "sha": "947a8b1386e3edfd69056188e4efae7d79eb3831",
+    "node_id": "C_kwDOTeJwqdoAKDk0N2E4YjEzODZlM2VkZmQ2OTA1NjE4OGU0ZWZhZTdkNzllYjM4MzE",
+    "commit": {
+      "author": {
+        "name": "Cursor Agent",
+        "email": "cursoragent@cursor.com",
+        "date": "2026-09-27T09:39:08Z"
+      },
+      "committer": {
+        "name": "Cursor Agent",
+        "email": "cursoragent@cursor.com",
+        "date": "2026-09-27T09:39:08Z"
+      },
+      "message": "fix: show Japanese errors and note that revert keeps applied columns\n\nSnackbars and dialogs no longer include exception text. Document that\nreverting this pull request does not drop an already-applied column.\n\nCo-authored-by: naruto-aii <naruto-aii@users.noreply.github.com>",
+      "tree": {
+        "sha": "e8ea94b7a7cce60bad9b69fdb949ab506b01e75f",
+        "url": "https://api.github.com/repos/naruto-aii/AYG/git/trees/e8ea94b7a7cce60bad9b69fdb949ab506b01e75f"
+      },
+      "url": "https://api.github.com/repos/naruto-aii/AYG/git/commits/947a8b1386e3edfd69056188e4efae7d79eb3831",
+      "comment_count": 0,
+      "verification": {
+        "verified": true,
+        "reason": "valid",
+        "signature": "-----BEGIN SSH SIGNATURE-----\nU1NIU0lHAAAAAQAAADMAAAALc3NoLWVkMjU1MTkAAAAg+qImwGMCy/grKZ50VxRHz3VfWW\nAL3QNbzIy2Nwcn+nQAAAADZ2l0AAAAAAAAAAZzaGE1MTIAAABTAAAAC3NzaC1lZDI1NTE5\nAAAAQN0/OCUPsHa3d6E1YnM+tngD/tKmIjVVyXyWFHEWssh2/0DzK+eBNpWM0PtxUxhBUM\n2gfH1G88mrDPenk4YCsQA=\n-----END SSH SIGNATURE-----",
+        "payload": "tree e8ea94b7a7cce60bad9b69fdb949ab506b01e75f\nparent 58e02210a0f71b46322a8bf854a8c1e40acd6862\nauthor Cursor Agent <cursoragent@cursor.com> 1790501948 +0000\ncommitter Cursor Agent <cursoragent@cursor.com> 1790501948 +0000\n\nfix: show Japanese errors and note that revert keeps applied columns\n\nSnackbars and dialogs no longer include exception text. Document that\nreverting this pull request does not drop an already-applied column.\n\nCo-authored-by: naruto-aii <naruto-aii@users.noreply.github.com>\n",
+        "verified_at": "2026-09-27T09:39:10Z"
+      }
+    },
+    "url": "https://api.github.com/repos/naruto-aii/AYG/commits/947a8b1386e3edfd69056188e4efae7d79eb3831",
+    "html_url": "https://github.com/naruto-aii/AYG/commit/947a8b1386e3edfd69056188e4efae7d79eb3831",
+    "comments_url": "https://api.github.com/repos/naruto-aii/AYG/commits/947a8b1386e3edfd69056188e4efae7d79eb3831/comments",
+    "author": {
+      "login": "cursoragent",
+      "id": 199161495,
+      "node_id": "U_kgDOC972lw",
+      "avatar_url": "https://avatars.githubusercontent.com/u/199161495?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/cursoragent",
+      "html_url": "https://github.com/cursoragent",
+      "followers_url": "https://api.github.com/users/cursoragent/followers",
+      "following_url": "https://api.github.com/users/cursoragent/following{/other_user}",
+      "gists_url": "https://api.github.com/users/cursoragent/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/cursoragent/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/cursoragent/subscriptions",
+      "organizations_url": "https://api.github.com/users/cursoragent/orgs",
+      "repos_url": "https://api.github.com/users/cursoragent/repos",
+      "events_url": "https://api.github.com/users/cursoragent/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/cursoragent/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "committer": {
+      "login": "cursoragent",
+      "id": 199161495,
+      "node_id": "U_kgDOC972lw",
+      "avatar_url": "https://avatars.githubusercontent.com/u/199161495?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/cursoragent",
+      "html_url": "https://github.com/cursoragent",
+      "followers_url": "https://api.github.com/users/cursoragent/followers",
+      "following_url": "https://api.github.com/users/cursoragent/following{/other_user}",
+      "gists_url": "https://api.github.com/users/cursoragent/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/cursoragent/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/cursoragent/subscriptions",
+      "organizations_url": "https://api.github.com/users/cursoragent/orgs",
+      "repos_url": "https://api.github.com/users/cursoragent/repos",
+      "events_url": "https://api.github.com/users/cursoragent/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/cursoragent/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "parents": [
+      {
+        "sha": "58e02210a0f71b46322a8bf854a8c1e40acd6862",
+        "url": "https://api.github.com/repos/naruto-aii/AYG/commits/58e02210a0f71b46322a8bf854a8c1e40acd6862",
+        "html_url": "https://github.com/naruto-aii/AYG/commit/58e02210a0f71b46322a8bf854a8c1e40acd6862"
+      }
+    ]
+  },
+  "status": "diverged",
+  "ahead_by": 7,
+  "behind_by": 3,
+  "total_commits": 7,
+  "commits": [
+    {
+      "sha": "9c57a4266e906ca21a66fbdbd93f13b730f90fbf",
+      "node_id": "C_kwDOTeJwqdoAKDljNTdhNDI2NmU5MDZjYTIxYTY2ZmJkYmQ5M2YxM2I3MzBmOTBmYmY",
+      "commit": {
+        "author": {
+          "name": "Cursor Agent",
+          "email": "cursoragent@cursor.com",
+          "date": "2026-09-27T11:11:03Z"
+        },
+        "committer": {
+          "name": "Cursor Agent",
+          "email": "cursoragent@cursor.com",
+          "date": "2026-09-27T11:11:03Z"
+        },
+        "message": "ci: run flutter analyze and flutter test on pull requests\n\nThe workflow checks lib and test. Existing warnings stay visible and do not hide a later test failure. Prototype files under tool are outside this job.\n\nCo-authored-by: naruto-aii <naruto-aii@users.noreply.github.com>",
+        "tree": {
+          "sha": "2735b9c807427c7ec99ce88638c56025f406a51d",
+          "url": "https://api.github.com/repos/naruto-aii/AYG/git/trees/2735b9c807427c7ec99ce88638c56025f406a51d"
+        },
+        "url": "https://api.github.com/repos/naruto-aii/AYG/git/commits/9c57a4266e906ca21a66fbdbd93f13b730f90fbf",
+        "comment_count": 0,
+        "verification": {
+          "verified": true,
+          "reason": "valid",
+          "signature": "-----BEGIN SSH SIGNATURE-----\nU1NIU0lHAAAAAQAAADMAAAALc3NoLWVkMjU1MTkAAAAg+qImwGMCy/grKZ50VxRHz3VfWW\nAL3QNbzIy2Nwcn+nQAAAADZ2l0AAAAAAAAAAZzaGE1MTIAAABTAAAAC3NzaC1lZDI1NTE5\nAAAAQBhbfp7bV0BE8XivLeZqkciyR7Std7HFGCBXv+h7BDFvEoKtY5xLvZNTUSb3umzjkq\ninFtnn0XWT/oCrRR99gQ4=\n-----END SSH SIGNATURE-----",
+          "payload": "tree 2735b9c807427c7ec99ce88638c56025f406a51d\nparent 947a8b1386e3edfd69056188e4efae7d79eb3831\nauthor Cursor Agent <cursoragent@cursor.com> 1790507463 +0000\ncommitter Cursor Agent <cursoragent@cursor.com> 1790507463 +0000\n\nci: run flutter analyze and flutter test on pull requests\n\nThe workflow checks lib and test. Existing warnings stay visible and do not hide a later test failure. Prototype files under tool are outside this job.\n\nCo-authored-by: naruto-aii <naruto-aii@users.noreply.github.com>\n",
+          "verified_at": "2026-09-27T11:11:05Z"
+        }
+      },
+      "url": "https://api.github.com/repos/naruto-aii/AYG/commits/9c57a4266e906ca21a66fbdbd93f13b730f90fbf",
+      "html_url": "https://github.com/naruto-aii/AYG/commit/9c57a4266e906ca21a66fbdbd93f13b730f90fbf",
+      "comments_url": "https://api.github.com/repos/naruto-aii/AYG/commits/9c57a4266e906ca21a66fbdbd93f13b730f90fbf/comments",
+      "author": {
+        "login": "cursoragent",
+        "id": 199161495,
+        "node_id": "U_kgDOC972lw",
+        "avatar_url": "https://avatars.githubusercontent.com/u/199161495?v=4",
+        "gravatar_id": "",
+        "url": "https://api.github.com/users/cursoragent",
+        "html_url": "https://github.com/cursoragent",
+        "followers_url": "https://api.github.com/users/cursoragent/followers",
+        "following_url": "https://api.github.com/users/cursoragent/following{/other_user}",
+        "gists_url": "https://api.github.com/users/cursoragent/gists{/gist_id}",
+        "starred_url": "https://api.github.com/users/cursoragent/starred{/owner}{/repo}",
+        "subscriptions_url": "https://api.github.com/users/cursoragent/subscriptions",
+        "organizations_url": "https://api.github.com/users/cursoragent/orgs",
+        "repos_url": "https://api.github.com/users/cursoragent/repos",
+        "events_url": "https://api.github.com/users/cursoragent/events{/privacy}",
+        "received_events_url": "https://api.github.com/users/cursoragent/received_events",
+        "type": "User",
+        "user_view_type": "public",
+        "site_admin": false
+      },
+      "committer": {
+        "login": "cursoragent",
+        "id": 199161495,
+        "node_id": "U_kgDOC972lw",
+        "avatar_url": "https://avatars.githubusercontent.com/u/199161495?v=4",
+        "gravatar_id": "",
+        "url": "https://api.github.com/users/cursoragent",
+        "html_url": "https://github.com/cursoragent",
+        "followers_url": "https://api.github.com/users/cursoragent/followers",
+        "following_url": "https://api.github.com/users/cursoragent/following{/other_user}",
+        "gists_url": "https://api.github.com/users/cursoragent/gists{/gist_id}",
+        "starred_url": "https://api.github.com/users/cursoragent/starred{/owner}{/repo}",
+        "subscriptions_url": "https://api.github.com/users/cursoragent/subscriptions",
+        "organizations_url": "https://api.github.com/users/cursoragent/orgs",
+        "repos_url": "https://api.github.com/users/cursoragent/repos",
+        "events_url": "https://api.github.com/users/cursoragent/events{/privacy}",
+        "received_events_url": "https://api.github.com/users/cursoragent/received_events",
+        "type": "User",
+        "user_view_type": "public",
+        "site_admin": false
+      },
+      "parents": [
+        {
+          "sha": "947a8b1386e3edfd69056188e4efae7d79eb3831",
+          "url": "https://api.github.com/repos/naruto-aii/AYG/commits/947a8b1386e3edfd69056188e4efae7d79eb3831",
+          "html_url": "https://github.com/naruto-aii/AYG/commit/947a8b1386e3edfd69056188e4efae7d79eb3831"
+        }
+      ]
+    },
+    {
+      "sha": "12485a8bde2deb9da67d5a998a41b2c6cbebe330",
+      "node_id": "C_kwDOTeJwqdoAKDEyNDg1YThiZGUyZGViOWRhNjdkNWE5OThhNDFiMmM2Y2JlYmUzMzA",
+      "commit": {
+        "author": {
+          "name": "Cursor Agent",
+          "email": "cursoragent@cursor.com",
+          "date": "2026-09-27T11:11:26Z"
+        },
+        "committer": {
+          "name": "Cursor Agent",
+          "email": "cursoragent@cursor.com",
+          "date": "2026-09-27T11:11:26Z"
+        },
+        "message": "ci: keep analyzer warnings from blocking the test run\n\nExisting warnings in lib and test stay in the log. Errors still fail the job. Prototype files under tool are not part of this check.\n\nCo-authored-by: naruto-aii <naruto-aii@users.noreply.github.com>",
+        "tree": {
+          "sha": "21e063f9a7eff3351dc1da7e16f59c5ecd904feb",
+          "url": "https://api.github.com/repos/naruto-aii/AYG/git/trees/21e063f9a7eff3351dc1da7e16f59c5ecd904feb"
+        },
+        "url": "https://api.github.com/repos/naruto-aii/AYG/git/commits/12485a8bde2deb9da67d5a998a41b2c6cbebe330",
+        "comment_count": 0,
+        "verification": {
+          "verified": true,
+          "reason": "valid",
+          "signature": "-----BEGIN SSH SIGNATURE-----\nU1NIU0lHAAAAAQAAADMAAAALc3NoLWVkMjU1MTkAAAAg+qImwGMCy/grKZ50VxRHz3VfWW\nAL3QNbzIy2Nwcn+nQAAAADZ2l0AAAAAAAAAAZzaGE1MTIAAABTAAAAC3NzaC1lZDI1NTE5\nAAAAQMapfiWoJHnwtgoWvmMcXROUNE7Dx7sBLusYQdzk7ziB+AxFcwbSsJ4vXFu/V9J0RP\nJYBKI3o+rolNtt6F5VhAE=\n-----END SSH SIGNATURE-----",
+          "payload": "tree 21e063f9a7eff3351dc1da7e16f59c5ecd904feb\nparent 9c57a4266e906ca21a66fbdbd93f13b730f90fbf\nauthor Cursor Agent <cursoragent@cursor.com> 1790507486 +0000\ncommitter Cursor Agent <cursoragent@cursor.com> 1790507486 +0000\n\nci: keep analyzer warnings from blocking the test run\n\nExisting warnings in lib and test stay in the log. Errors still fail the job. Prototype files under tool are not part of this check.\n\nCo-authored-by: naruto-aii <naruto-aii@users.noreply.github.com>\n",
+          "verified_at": "2026-09-27T11:11:31Z"
+        }
+      },
+      "url": "https://api.github.com/repos/naruto-aii/AYG/commits/12485a8bde2deb9da67d5a998a41b2c6cbebe330",
+      "html_url": "https://github.com/naruto-aii/AYG/commit/12485a8bde2deb9da67d5a998a41b2c6cbebe330",
+      "comments_url": "https://api.github.com/repos/naruto-aii/AYG/commits/12485a8bde2deb9da67d5a998a41b2c6cbebe330/comments",
+      "author": {
+        "login": "cursoragent",
+        "id": 199161495,
+        "node_id": "U_kgDOC972lw",
+        "avatar_url": "https://avatars.githubusercontent.com/u/199161495?v=4",
+        "gravatar_id": "",
+        "url": "https://api.github.com/users/cursoragent",
+        "html_url": "https://github.com/cursoragent",
+        "followers_url": "https://api.github.com/users/cursoragent/followers",
+        "following_url": "https://api.github.com/users/cursoragent/following{/other_user}",
+        "gists_url": "https://api.github.com/users/cursoragent/gists{/gist_id}",
+        "starred_url": "https://api.github.com/users/cursoragent/starred{/owner}{/repo}",
+        "subscriptions_url": "https://api.github.com/users/cursoragent/subscriptions",
+        "organizations_url": "https://api.github.com/users/cursoragent/orgs",
+        "repos_url": "https://api.github.com/users/cursoragent/repos",
+        "events_url": "https://api.github.com/users/cursoragent/events{/privacy}",
+        "received_events_url": "https://api.github.com/users/cursoragent/received_events",
+        "type": "User",
+        "user_view_type": "public",
+        "site_admin": false
+      },
+      "committer": {
+        "login": "cursoragent",
+        "id": 199161495,
+        "node_id": "U_kgDOC972lw",
+        "avatar_url": "https://avatars.githubusercontent.com/u/199161495?v=4",
+        "gravatar_id": "",
+        "url": "https://api.github.com/users/cursoragent",
+        "html_url": "https://github.com/cursoragent",
+        "followers_url": "https://api.github.com/users/cursoragent/followers",
+        "following_url": "https://api.github.com/users/cursoragent/following{/other_user}",
+        "gists_url": "https://api.github.com/users/cursoragent/gists{/gist_id}",
+        "starred_url": "https://api.github.com/users/cursoragent/starred{/owner}{/repo}",
+        "subscriptions_url": "https://api.github.com/users/cursoragent/subscriptions",
+        "organizations_url": "https://api.github.com/users/cursoragent/orgs",
+        "repos_url": "https://api.github.com/users/cursoragent/repos",
+        "events_url": "https://api.github.com/users/cursoragent/events{/privacy}",
+        "received_events_url": "https://api.github.com/users/cursoragent/received_events",
+        "type": "User",
+        "user_view_type": "public",
+        "site_admin": false
+      },
+      "parents": [
+        {
+          "sha": "9c57a4266e906ca21a66fbdbd93f13b730f90fbf",
+          "url": "https://api.github.com/repos/naruto-aii/AYG/commits/9c57a4266e906ca21a66fbdbd93f13b730f90fbf",
+          "html_url": "https://github.com/naruto-aii/AYG/commit/9c57a4266e906ca21a66fbdbd93f13b730f90fbf"
+        }
+      ]
+    },
+    {
+      "sha": "ad750bab9c873b338839932ae084050779d81414",
+      "node_id": "C_kwDOTeJwqdoAKGFkNzUwYmFiOWM4NzNiMzM4ODM5OTMyYWUwODQwNTA3NzlkODE0MTQ",
+      "commit": {
+        "author": {
+          "name": "Cursor Agent",
+          "email": "cursoragent@cursor.com",
+          "date": "2026-09-27T08:33:07Z"
+        },
+        "committer": {
+          "name": "Cursor Agent",
+          "email": "cursoragent@cursor.com",
+          "date": "2026-09-27T11:11:34Z"
+        },
+        "message": "feat: reject banned words in public food names\n\nCheck a fixed list when a food is published and when a public row's\nname changes. The same list is enforced by publish_saved_food and the\npublic-row update trigger. Existing rows are not rewritten.\n\nCo-authored-by: naruto-aii <naruto-aii@users.noreply.github.com>",
+        "tree": {
+          "sha": "26b3b0aac486bfa1e27fc86708b9d616666d7ed7",
+          "url": "https://api.github.com/repos/naruto-aii/AYG/git/trees/26b3b0aac486bfa1e27fc86708b9d616666d7ed7"
+        },
+        "url": "https://api.github.com/repos/naruto-aii/AYG/git/commits/ad750bab9c873b338839932ae084050779d81414",
+        "comment_count": 0,
+        "verification": {
+          "verified": true,
+          "reason": "valid",
+          "signature": "-----BEGIN SSH SIGNATURE-----\nU1NIU0lHAAAAAQAAADMAAAALc3NoLWVkMjU1MTkAAAAg+qImwGMCy/grKZ50VxRHz3VfWW\nAL3QNbzIy2Nwcn+nQAAAADZ2l0AAAAAAAAAAZzaGE1MTIAAABTAAAAC3NzaC1lZDI1NTE5\nAAAAQEct5QkHyUCVkiaYvIhjdahiEZ0oTyapfVDOPZ8bSFcvpI2ewbVMewjij4NWLquAiU\nrDF/Gipf73cQ8XCWwk5ww=\n-----END SSH SIGNATURE-----",
+          "payload": "tree 26b3b0aac486bfa1e27fc86708b9d616666d7ed7\nparent 12485a8bde2deb9da67d5a998a41b2c6cbebe330\nauthor Cursor Agent <cursoragent@cursor.com> 1790497987 +0000\ncommitter Cursor Agent <cursoragent@cursor.com> 1790507494 +0000\n\nfeat: reject banned words in public food names\n\nCheck a fixed list when a food is published and when a public row's\nname changes. The same list is enforced by publish_saved_food and the\npublic-row update trigger. Existing rows are not rewritten.\n\nCo-authored-by: naruto-aii <naruto-aii@users.noreply.github.com>\n",
+          "verified_at": "2026-09-27T11:11:36Z"
+        }
+      },
+      "url": "https://api.github.com/repos/naruto-aii/AYG/commits/ad750bab9c873b338839932ae084050779d81414",
+      "html_url": "https://github.com/naruto-aii/AYG/commit/ad750bab9c873b338839932ae084050779d81414",
+      "comments_url": "https://api.github.com/repos/naruto-aii/AYG/commits/ad750bab9c873b338839932ae084050779d81414/comments",
+      "author": {
+        "login": "cursoragent",
+        "id": 199161495,
+        "node_id": "U_kgDOC972lw",
+        "avatar_url": "https://avatars.githubusercontent.com/u/199161495?v=4",
+        "gravatar_id": "",
+        "url": "https://api.github.com/users/cursoragent",
+        "html_url": "https://github.com/cursoragent",
+        "followers_url": "https://api.github.com/users/cursoragent/followers",
+        "following_url": "https://api.github.com/users/cursoragent/following{/other_user}",
+        "gists_url": "https://api.github.com/users/cursoragent/gists{/gist_id}",
+        "starred_url": "https://api.github.com/users/cursoragent/starred{/owner}{/repo}",
+        "subscriptions_url": "https://api.github.com/users/cursoragent/subscriptions",
+        "organizations_url": "https://api.github.com/users/cursoragent/orgs",
+        "repos_url": "https://api.github.com/users/cursoragent/repos",
+        "events_url": "https://api.github.com/users/cursoragent/events{/privacy}",
+        "received_events_url": "https://api.github.com/users/cursoragent/received_events",
+        "type": "User",
+        "user_view_type": "public",
+        "site_admin": false
+      },
+      "committer": {
+        "login": "cursoragent",
+        "id": 199161495,
+        "node_id": "U_kgDOC972lw",
+        "avatar_url": "https://avatars.githubusercontent.com/u/199161495?v=4",
+        "gravatar_id": "",
+        "url": "https://api.github.com/users/cursoragent",
+        "html_url": "https://github.com/cursoragent",
+        "followers_url": "https://api.github.com/users/cursoragent/followers",
+        "following_url": "https://api.github.com/users/cursoragent/following{/other_user}",
+        "gists_url": "https://api.github.com/users/cursoragent/gists{/gist_id}",
+        "starred_url": "https://api.github.com/users/cursoragent/starred{/owner}{/repo}",
+        "subscriptions_url": "https://api.github.com/users/cursoragent/subscriptions",
+        "organizations_url": "https://api.github.com/users/cursoragent/orgs",
+        "repos_url": "https://api.github.com/users/cursoragent/repos",
+        "events_url": "https://api.github.com/users/cursoragent/events{/privacy}",
+        "received_events_url": "https://api.github.com/users/cursoragent/received_events",
+        "type": "User",
+        "user_view_type": "public",
+        "site_admin": false
+      },
+      "parents": [
+        {
+          "sha": "12485a8bde2deb9da67d5a998a41b2c6cbebe330",
+          "url": "https://api.github.com/repos/naruto-aii/AYG/commits/12485a8bde2deb9da67d5a998a41b2c6cbebe330",
+          "html_url": "https://github.com/naruto-aii/AYG/commit/12485a8bde2deb9da67d5a998a41b2c6cbebe330"
+        }
+      ]
+    },
+    {
+      "sha": "eaa2816cfc1b7813adeb2afcaba4081f40d52b98",
+      "node_id": "C_kwDOTeJwqdoAKGVhYTI4MTZjZmMxYjc4MTNhZGViMmFmY2FiYTQwODFmNDBkNTJiOTg",
+      "commit": {
+        "author": {
+          "name": "Cursor Agent",
+          "email": "cursoragent@cursor.com",
+          "date": "2026-09-27T09:23:44Z"
+        },
+        "committer": {
+          "name": "Cursor Agent",
+          "email": "cursoragent@cursor.com",
+          "date": "2026-09-27T11:11:34Z"
+        },
+        "message": "fix: check every public food text field after NFKC folding\n\nApply the banned-word check to brand, normalized name, and serving unit\nas well as name. Fold Unicode NFKC, combining marks, accents, Cyrillic\nlookalikes, and digit or symbol substitutions before matching.\n\nCo-authored-by: naruto-aii <naruto-aii@users.noreply.github.com>",
+        "tree": {
+          "sha": "4936b8567333a37298e8b9a0b2800bfc4989748d",
+          "url": "https://api.github.com/repos/naruto-aii/AYG/git/trees/4936b8567333a37298e8b9a0b2800bfc4989748d"
+        },
+        "url": "https://api.github.com/repos/naruto-aii/AYG/git/commits/eaa2816cfc1b7813adeb2afcaba4081f40d52b98",
+        "comment_count": 0,
+        "verification": {
+          "verified": true,
+          "reason": "valid",
+          "signature": "-----BEGIN SSH SIGNATURE-----\nU1NIU0lHAAAAAQAAADMAAAALc3NoLWVkMjU1MTkAAAAg+qImwGMCy/grKZ50VxRHz3VfWW\nAL3QNbzIy2Nwcn+nQAAAADZ2l0AAAAAAAAAAZzaGE1MTIAAABTAAAAC3NzaC1lZDI1NTE5\nAAAAQEc5hgO/YuFhOsSDP0z53QpfBaIfARP9f62FELmAUDf2RR8MBiE5smTOCBv2XtDTU7\n6OILHRdu5ehRoaulzdcAE=\n-----END SSH SIGNATURE-----",
+          "payload": "tree 4936b8567333a37298e8b9a0b2800bfc4989748d\nparent ad750bab9c873b338839932ae084050779d81414\nauthor Cursor Agent <cursoragent@cursor.com> 1790501024 +0000\ncommitter Cursor Agent <cursoragent@cursor.com> 1790507494 +0000\n\nfix: check every public food text field after NFKC folding\n\nApply the banned-word check to brand, normalized name, and serving unit\nas well as name. Fold Unicode NFKC, combining marks, accents, Cyrillic\nlookalikes, and digit or symbol substitutions before matching.\n\nCo-authored-by: naruto-aii <naruto-aii@users.noreply.github.com>\n",
+          "verified_at": "2026-09-27T11:11:36Z"
+        }
+      },
+      "url": "https://api.github.com/repos/naruto-aii/AYG/commits/eaa2816cfc1b7813adeb2afcaba4081f40d52b98",
+      "html_url": "https://github.com/naruto-aii/AYG/commit/eaa2816cfc1b7813adeb2afcaba4081f40d52b98",
+      "comments_url": "https://api.github.com/repos/naruto-aii/AYG/commits/eaa2816cfc1b7813adeb2afcaba4081f40d52b98/comments",
+      "author": {
+        "login": "cursoragent",
+        "id": 199161495,
+        "node_id": "U_kgDOC972lw",
+        "avatar_url": "https://avatars.githubusercontent.com/u/199161495?v=4",
+        "gravatar_id": "",
+        "url": "https://api.github.com/users/cursoragent",
+        "html_url": "https://github.com/cursoragent",
+        "followers_url": "https://api.github.com/users/cursoragent/followers",
+        "following_url": "https://api.github.com/users/cursoragent/following{/other_user}",
+        "gists_url": "https://api.github.com/users/cursoragent/gists{/gist_id}",
+        "starred_url": "https://api.github.com/users/cursoragent/starred{/owner}{/repo}",
+        "subscriptions_url": "https://api.github.com/users/cursoragent/subscriptions",
+        "organizations_url": "https://api.github.com/users/cursoragent/orgs",
+        "repos_url": "https://api.github.com/users/cursoragent/repos",
+        "events_url": "https://api.github.com/users/cursoragent/events{/privacy}",
+        "received_events_url": "https://api.github.com/users/cursoragent/received_events",
+        "type": "User",
+        "user_view_type": "public",
+        "site_admin": false
+      },
+      "committer": {
+        "login": "cursoragent",
+        "id": 199161495,
+        "node_id": "U_kgDOC972lw",
+        "avatar_url": "https://avatars.githubusercontent.com/u/199161495?v=4",
+        "gravatar_id": "",
+        "url": "https://api.github.com/users/cursoragent",
+        "html_url": "https://github.com/cursoragent",
+        "followers_url": "https://api.github.com/users/cursoragent/followers",
+        "following_url": "https://api.github.com/users/cursoragent/following{/other_user}",
+        "gists_url": "https://api.github.com/users/cursoragent/gists{/gist_id}",
+        "starred_url": "https://api.github.com/users/cursoragent/starred{/owner}{/repo}",
+        "subscriptions_url": "https://api.github.com/users/cursoragent/subscriptions",
+        "organizations_url": "https://api.github.com/users/cursoragent/orgs",
+        "repos_url": "https://api.github.com/users/cursoragent/repos",
+        "events_url": "https://api.github.com/users/cursoragent/events{/privacy}",
+        "received_events_url": "https://api.github.com/users/cursoragent/received_events",
+        "type": "User",
+        "user_view_type": "public",
+        "site_admin": false
+      },
+      "parents": [
+        {
+          "sha": "ad750bab9c873b338839932ae084050779d81414",
+          "url": "https://api.github.com/repos/naruto-aii/AYG/commits/ad750bab9c873b338839932ae084050779d81414",
+          "html_url": "https://github.com/naruto-aii/AYG/commit/ad750bab9c873b338839932ae084050779d81414"
+        }
+      ]
+    },
+    {
+      "sha": "43cdda3d0c8ec98df2f752b03cd0f6a0b04890ae",
+      "node_id": "C_kwDOTeJwqdoAKDQzY2RkYTNkMGM4ZWM5OGRmMmY3NTJiMDNjZDBmNmEwYjA0ODkwYWU",
+      "commit": {
+        "author": {
+          "name": "Cursor Agent",
+          "email": "cursoragent@cursor.com",
+          "date": "2026-09-27T09:50:36Z"
+        },
+        "committer": {
+          "name": "Cursor Agent",
+          "email": "cursoragent@cursor.com",
+          "date": "2026-09-27T11:11:34Z"
+        },
+        "message": "fix: accept ordinary foods and compose halfwidth voiced marks\n\nWord-boundary matching and phrase exceptions stop short fragments from\nrejecting normal public food names. Halfwidth dakuten and handakuten are\ncomposed before NFKC on both the app and the server. Rollback SQL lives\nunder supabase/rollback, and a rejected publish leaves the local row private.\n\nCo-authored-by: naruto-aii <naruto-aii@users.noreply.github.com>",
+        "tree": {
+          "sha": "e04631eaa489c88a70ead8430865eb265cfd60a8",
+          "url": "https://api.github.com/repos/naruto-aii/AYG/git/trees/e04631eaa489c88a70ead8430865eb265cfd60a8"
+        },
+        "url": "https://api.github.com/repos/naruto-aii/AYG/git/commits/43cdda3d0c8ec98df2f752b03cd0f6a0b04890ae",
+        "comment_count": 0,
+        "verification": {
+          "verified": true,
+          "reason": "valid",
+          "signature": "-----BEGIN SSH SIGNATURE-----\nU1NIU0lHAAAAAQAAADMAAAALc3NoLWVkMjU1MTkAAAAg+qImwGMCy/grKZ50VxRHz3VfWW\nAL3QNbzIy2Nwcn+nQAAAADZ2l0AAAAAAAAAAZzaGE1MTIAAABTAAAAC3NzaC1lZDI1NTE5\nAAAAQPRFaJZBli2vMe1sMDM2PirDkExwtH9uxUs9/ZNET0GThSuMO50qbujqXk74VEatBu\n0H7CjBexQ9ggi6dz1MQQ4=\n-----END SSH SIGNATURE-----",
+          "payload": "tree e04631eaa489c88a70ead8430865eb265cfd60a8\nparent eaa2816cfc1b7813adeb2afcaba4081f40d52b98\nauthor Cursor Agent <cursoragent@cursor.com> 1790502636 +0000\ncommitter Cursor Agent <cursoragent@cursor.com> 1790507494 +0000\n\nfix: accept ordinary foods and compose halfwidth voiced marks\n\nWord-boundary matching and phrase exceptions stop short fragments from\nrejecting normal public food names. Halfwidth dakuten and handakuten are\ncomposed before NFKC on both the app and the server. Rollback SQL lives\nunder supabase/rollback, and a rejected publish leaves the local row private.\n\nCo-authored-by: naruto-aii <naruto-aii@users.noreply.github.com>\n",
+          "verified_at": "2026-09-27T11:11:36Z"
+        }
+      },
+      "url": "https://api.github.com/repos/naruto-aii/AYG/commits/43cdda3d0c8ec98df2f752b03cd0f6a0b04890ae",
+      "html_url": "https://github.com/naruto-aii/AYG/commit/43cdda3d0c8ec98df2f752b03cd0f6a0b04890ae",
+      "comments_url": "https://api.github.com/repos/naruto-aii/AYG/commits/43cdda3d0c8ec98df2f752b03cd0f6a0b04890ae/comments",
+      "author": {
+        "login": "cursoragent",
+        "id": 199161495,
+        "node_id": "U_kgDOC972lw",
+        "avatar_url": "https://avatars.githubusercontent.com/u/199161495?v=4",
+        "gravatar_id": "",
+        "url": "https://api.github.com/users/cursoragent",
+        "html_url": "https://github.com/cursoragent",
+        "followers_url": "https://api.github.com/users/cursoragent/followers",
+        "following_url": "https://api.github.com/users/cursoragent/following{/other_user}",
+        "gists_url": "https://api.github.com/users/cursoragent/gists{/gist_id}",
+        "starred_url": "https://api.github.com/users/cursoragent/starred{/owner}{/repo}",
+        "subscriptions_url": "https://api.github.com/users/cursoragent/subscriptions",
+        "organizations_url": "https://api.github.com/users/cursoragent/orgs",
+        "repos_url": "https://api.github.com/users/cursoragent/repos",
+        "events_url": "https://api.github.com/users/cursoragent/events{/privacy}",
+        "received_events_url": "https://api.github.com/users/cursoragent/received_events",
+        "type": "User",
+        "user_view_type": "public",
+        "site_admin": false
+      },
+      "committer": {
+        "login": "cursoragent",
+        "id": 199161495,
+        "node_id": "U_kgDOC972lw",
+        "avatar_url": "https://avatars.githubusercontent.com/u/199161495?v=4",
+        "gravatar_id": "",
+        "url": "https://api.github.com/users/cursoragent",
+        "html_url": "https://github.com/cursoragent",
+        "followers_url": "https://api.github.com/users/cursoragent/followers",
+        "following_url": "https://api.github.com/users/cursoragent/following{/other_user}",
+        "gists_url": "https://api.github.com/users/cursoragent/gists{/gist_id}",
+        "starred_url": "https://api.github.com/users/cursoragent/starred{/owner}{/repo}",
+        "subscriptions_url": "https://api.github.com/users/cursoragent/subscriptions",
+        "organizations_url": "https://api.github.com/users/cursoragent/orgs",
+        "repos_url": "https://api.github.com/users/cursoragent/repos",
+        "events_url": "https://api.github.com/users/cursoragent/events{/privacy}",
+        "received_events_url": "https://api.github.com/users/cursoragent/received_events",
+        "type": "User",
+        "user_view_type": "public",
+        "site_admin": false
+      },
+      "parents": [
+        {
+          "sha": "eaa2816cfc1b7813adeb2afcaba4081f40d52b98",
+          "url": "https://api.github.com/repos/naruto-aii/AYG/commits/eaa2816cfc1b7813adeb2afcaba4081f40d52b98",
+          "html_url": "https://github.com/naruto-aii/AYG/commit/eaa2816cfc1b7813adeb2afcaba4081f40d52b98"
+        }
+      ]
+    },
+    {
+      "sha": "c4e0246f8d3da610fd94ab51b25d9ca7462b6ea2",
+      "node_id": "C_kwDOTeJwqdoAKGM0ZTAyNDZmOGQzZGE2MTBmZDk0YWI1MWIyNWQ5Y2E3NDYyYjZlYTI",
+      "commit": {
+        "author": {
+          "name": "Cursor Agent",
+          "email": "cursoragent@cursor.com",
+          "date": "2026-09-27T10:58:08Z"
+        },
+        "committer": {
+          "name": "Cursor Agent",
+          "email": "cursoragent@cursor.com",
+          "date": "2026-09-27T11:11:34Z"
+        },
+        "message": "fix: pin public food SQL functions to an empty search_path\n\npublish_saved_food is SECURITY DEFINER, and the seven helpers and the public-row trigger used search_path = public. They now use an empty search_path and schema-qualified names. The rollback file still restores the previous definitions.\n\nCo-authored-by: naruto-aii <naruto-aii@users.noreply.github.com>",
+        "tree": {
+          "sha": "58a104c89cce62a23e26df3279b53562f6f8c54d",
+          "url": "https://api.github.com/repos/naruto-aii/AYG/git/trees/58a104c89cce62a23e26df3279b53562f6f8c54d"
+        },
+        "url": "https://api.github.com/repos/naruto-aii/AYG/git/commits/c4e0246f8d3da610fd94ab51b25d9ca7462b6ea2",
+        "comment_count": 0,
+        "verification": {
+          "verified": true,
+          "reason": "valid",
+          "signature": "-----BEGIN SSH SIGNATURE-----\nU1NIU0lHAAAAAQAAADMAAAALc3NoLWVkMjU1MTkAAAAg+qImwGMCy/grKZ50VxRHz3VfWW\nAL3QNbzIy2Nwcn+nQAAAADZ2l0AAAAAAAAAAZzaGE1MTIAAABTAAAAC3NzaC1lZDI1NTE5\nAAAAQFf1LfzEI1gb8X3fFNI6xSGiXCNhIgoZc4yPNl4B9vVKWBZ0yxNFwdgJi8Gm9dV8v/\nnd/c75G1gKOH9LgSQNWAQ=\n-----END SSH SIGNATURE-----",
+          "payload": "tree 58a104c89cce62a23e26df3279b53562f6f8c54d\nparent 43cdda3d0c8ec98df2f752b03cd0f6a0b04890ae\nauthor Cursor Agent <cursoragent@cursor.com> 1790506688 +0000\ncommitter Cursor Agent <cursoragent@cursor.com> 1790507494 +0000\n\nfix: pin public food SQL functions to an empty search_path\n\npublish_saved_food is SECURITY DEFINER, and the seven helpers and the public-row trigger used search_path = public. They now use an empty search_path and schema-qualified names. The rollback file still restores the previous definitions.\n\nCo-authored-by: naruto-aii <naruto-aii@users.noreply.github.com>\n",
+          "verified_at": "2026-09-27T11:11:36Z"
+        }
+      },
+      "url": "https://api.github.com/repos/naruto-aii/AYG/commits/c4e0246f8d3da610fd94ab51b25d9ca7462b6ea2",
+      "html_url": "https://github.com/naruto-aii/AYG/commit/c4e0246f8d3da610fd94ab51b25d9ca7462b6ea2",
+      "comments_url": "https://api.github.com/repos/naruto-aii/AYG/commits/c4e0246f8d3da610fd94ab51b25d9ca7462b6ea2/comments",
+      "author": {
+        "login": "cursoragent",
+        "id": 199161495,
+        "node_id": "U_kgDOC972lw",
+        "avatar_url": "https://avatars.githubusercontent.com/u/199161495?v=4",
+        "gravatar_id": "",
+        "url": "https://api.github.com/users/cursoragent",
+        "html_url": "https://github.com/cursoragent",
+        "followers_url": "https://api.github.com/users/cursoragent/followers",
+        "following_url": "https://api.github.com/users/cursoragent/following{/other_user}",
+        "gists_url": "https://api.github.com/users/cursoragent/gists{/gist_id}",
+        "starred_url": "https://api.github.com/users/cursoragent/starred{/owner}{/repo}",
+        "subscriptions_url": "https://api.github.com/users/cursoragent/subscriptions",
+        "organizations_url": "https://api.github.com/users/cursoragent/orgs",
+        "repos_url": "https://api.github.com/users/cursoragent/repos",
+        "events_url": "https://api.github.com/users/cursoragent/events{/privacy}",
+        "received_events_url": "https://api.github.com/users/cursoragent/received_events",
+        "type": "User",
+        "user_view_type": "public",
+        "site_admin": false
+      },
+      "committer": {
+        "login": "cursoragent",
+        "id": 199161495,
+        "node_id": "U_kgDOC972lw",
+        "avatar_url": "https://avatars.githubusercontent.com/u/199161495?v=4",
+        "gravatar_id": "",
+        "url": "https://api.github.com/users/cursoragent",
+        "html_url": "https://github.com/cursoragent",
+        "followers_url": "https://api.github.com/users/cursoragent/followers",
+        "following_url": "https://api.github.com/users/cursoragent/following{/other_user}",
+        "gists_url": "https://api.github.com/users/cursoragent/gists{/gist_id}",
+        "starred_url": "https://api.github.com/users/cursoragent/starred{/owner}{/repo}",
+        "subscriptions_url": "https://api.github.com/users/cursoragent/subscriptions",
+        "organizations_url": "https://api.github.com/users/cursoragent/orgs",
+        "repos_url": "https://api.github.com/users/cursoragent/repos",
+        "events_url": "https://api.github.com/users/cursoragent/events{/privacy}",
+        "received_events_url": "https://api.github.com/users/cursoragent/received_events",
+        "type": "User",
+        "user_view_type": "public",
+        "site_admin": false
+      },
+      "parents": [
+        {
+          "sha": "43cdda3d0c8ec98df2f752b03cd0f6a0b04890ae",
+          "url": "https://api.github.com/repos/naruto-aii/AYG/commits/43cdda3d0c8ec98df2f752b03cd0f6a0b04890ae",
+          "html_url": "https://github.com/naruto-aii/AYG/commit/43cdda3d0c8ec98df2f752b03cd0f6a0b04890ae"
+        }
+      ]
+    },
+    {
+      "sha": "f01d3d886666c57bfa60f144d0194e93a1f26d00",
+      "node_id": "C_kwDOTeJwqdoAKGYwMWQzZDg4NjY2NmM1N2JmYTYwZjE0NGQwMTk0ZTkzYTFmMjZkMDA",
+      "commit": {
+        "author": {
+          "name": "Cursor Agent",
+          "email": "cursoragent@cursor.com",
+          "date": "2026-09-27T11:09:41Z"
+        },
+        "committer": {
+          "name": "Cursor Agent",
+          "email": "cursoragent@cursor.com",
+          "date": "2026-09-27T11:11:34Z"
+        },
+        "message": "fix: reject explicit compound names without blocking ordinary foods\n\nLonger explicit compounds match as whole terms, including when a food word is attached. Short fragments stay boundary-only, so names such as cafe latte and smoked salt still pass.\n\nCo-authored-by: naruto-aii <naruto-aii@users.noreply.github.com>",
+        "tree": {
+          "sha": "c99c30bd715328476484d9dcae18f57f3fcd3603",
+          "url": "https://api.github.com/repos/naruto-aii/AYG/git/trees/c99c30bd715328476484d9dcae18f57f3fcd3603"
+        },
+        "url": "https://api.github.com/repos/naruto-aii/AYG/git/commits/f01d3d886666c57bfa60f144d0194e93a1f26d00",
+        "comment_count": 0,
+        "verification": {
+          "verified": true,
+          "reason": "valid",
+          "signature": "-----BEGIN SSH SIGNATURE-----\nU1NIU0lHAAAAAQAAADMAAAALc3NoLWVkMjU1MTkAAAAg+qImwGMCy/grKZ50VxRHz3VfWW\nAL3QNbzIy2Nwcn+nQAAAADZ2l0AAAAAAAAAAZzaGE1MTIAAABTAAAAC3NzaC1lZDI1NTE5\nAAAAQF3H2s0xIxcFzfzhjFKVN9pSh0i5kRYYO85HbsF0JBSnMR9ynYCzrdj0oQOwPf3Dhb\nvRuYLP7q/9X+Kxu6pm/QQ=\n-----END SSH SIGNATURE-----",
+          "payload": "tree c99c30bd715328476484d9dcae18f57f3fcd3603\nparent c4e0246f8d3da610fd94ab51b25d9ca7462b6ea2\nauthor Cursor Agent <cursoragent@cursor.com> 1790507381 +0000\ncommitter Cursor Agent <cursoragent@cursor.com> 1790507494 +0000\n\nfix: reject explicit compound names without blocking ordinary foods\n\nLonger explicit compounds match as whole terms, including when a food word is attached. Short fragments stay boundary-only, so names such as cafe latte and smoked salt still pass.\n\nCo-authored-by: naruto-aii <naruto-aii@users.noreply.github.com>\n",
+          "verified_at": "2026-09-27T11:11:36Z"
+        }
+      },
+      "url": "https://api.github.com/repos/naruto-aii/AYG/commits/f01d3d886666c57bfa60f144d0194e93a1f26d00",
+      "html_url": "https://github.com/naruto-aii/AYG/commit/f01d3d886666c57bfa60f144d0194e93a1f26d00",
+      "comments_url": "https://api.github.com/repos/naruto-aii/AYG/commits/f01d3d886666c57bfa60f144d0194e93a1f26d00/comments",
+      "author": {
+        "login": "cursoragent",
+        "id": 199161495,
+        "node_id": "U_kgDOC972lw",
+        "avatar_url": "https://avatars.githubusercontent.com/u/199161495?v=4",
+        "gravatar_id": "",
+        "url": "https://api.github.com/users/cursoragent",
+        "html_url": "https://github.com/cursoragent",
+        "followers_url": "https://api.github.com/users/cursoragent/followers",
+        "following_url": "https://api.github.com/users/cursoragent/following{/other_user}",
+        "gists_url": "https://api.github.com/users/cursoragent/gists{/gist_id}",
+        "starred_url": "https://api.github.com/users/cursoragent/starred{/owner}{/repo}",
+        "subscriptions_url": "https://api.github.com/users/cursoragent/subscriptions",
+        "organizations_url": "https://api.github.com/users/cursoragent/orgs",
+        "repos_url": "https://api.github.com/users/cursoragent/repos",
+        "events_url": "https://api.github.com/users/cursoragent/events{/privacy}",
+        "received_events_url": "https://api.github.com/users/cursoragent/received_events",
+        "type": "User",
+        "user_view_type": "public",
+        "site_admin": false
+      },
+      "committer": {
+        "login": "cursoragent",
+        "id": 199161495,
+        "node_id": "U_kgDOC972lw",
+        "avatar_url": "https://avatars.githubusercontent.com/u/199161495?v=4",
+        "gravatar_id": "",
+        "url": "https://api.github.com/users/cursoragent",
+        "html_url": "https://github.com/cursoragent",
+        "followers_url": "https://api.github.com/users/cursoragent/followers",
+        "following_url": "https://api.github.com/users/cursoragent/following{/other_user}",
+        "gists_url": "https://api.github.com/users/cursoragent/gists{/gist_id}",
+        "starred_url": "https://api.github.com/users/cursoragent/starred{/owner}{/repo}",
+        "subscriptions_url": "https://api.github.com/users/cursoragent/subscriptions",
+        "organizations_url": "https://api.github.com/users/cursoragent/orgs",
+        "repos_url": "https://api.github.com/users/cursoragent/repos",
+        "events_url": "https://api.github.com/users/cursoragent/events{/privacy}",
+        "received_events_url": "https://api.github.com/users/cursoragent/received_events",
+        "type": "User",
+        "user_view_type": "public",
+        "site_admin": false
+      },
+      "parents": [
+        {
+          "sha": "c4e0246f8d3da610fd94ab51b25d9ca7462b6ea2",
+          "url": "https://api.github.com/repos/naruto-aii/AYG/commits/c4e0246f8d3da610fd94ab51b25d9ca7462b6ea2",
+          "html_url": "https://github.com/naruto-aii/AYG/commit/c4e0246f8d3da610fd94ab51b25d9ca7462b6ea2"
+        }
+      ]
+    }
+  ],
+  "files": [
+    {
+      "sha": "8bd37099e9b54c62157b27208dae5b028ca61e09",
+      "filename": ".github/workflows/ci.yml",
+      "status": "added",
+      "additions": 24,
+      "deletions": 0,
+      "changes": 24,
+      "blob_url": "https://github.com/naruto-aii/AYG/blob/f01d3d886666c57bfa60f144d0194e93a1f26d00/.github%2Fworkflows%2Fci.yml",
+      "raw_url": "https://github.com/naruto-aii/AYG/raw/f01d3d886666c57bfa60f144d0194e93a1f26d00/.github%2Fworkflows%2Fci.yml",
+      "contents_url": "https://api.github.com/repos/naruto-aii/AYG/contents/.github%2Fworkflows%2Fci.yml?ref=f01d3d886666c57bfa60f144d0194e93a1f26d00",
+      "patch": "@@ -0,0 +1,24 @@\n+name: CI\n+\n+on:\n+  pull_request:\n+  push:\n+    branches:\n+      - web-preview\n+      - main\n+\n+jobs:\n+  flutter:\n+    runs-on: ubuntu-latest\n+    timeout-minutes: 30\n+    steps:\n+      - uses: actions/checkout@v4\n+      - uses: subosito/flutter-action@v2\n+        with:\n+          channel: stable\n+          cache: true\n+      - run: flutter pub get\n+      # lib and test already have warnings. Errors still fail the job.\n+      # tool/ holds prototypes that are not part of the app.\n+      - run: flutter analyze lib test --no-fatal-infos --no-fatal-warnings\n+      - run: flutter test"
+    },
+    {
+      "sha": "cedb0601f32dc335c4d7167a39385e9104da4332",
+      "filename": "lib/models/saved_food_persistence_error.dart",
+      "status": "modified",
+      "additions": 14,
+      "deletions": 4,
+      "changes": 18,
+      "blob_url": "https://github.com/naruto-aii/AYG/blob/f01d3d886666c57bfa60f144d0194e93a1f26d00/lib%2Fmodels%2Fsaved_food_persistence_error.dart",
+      "raw_url": "https://github.com/naruto-aii/AYG/raw/f01d3d886666c57bfa60f144d0194e93a1f26d00/lib%2Fmodels%2Fsaved_food_persistence_error.dart",
+      "contents_url": "https://api.github.com/repos/naruto-aii/AYG/contents/lib%2Fmodels%2Fsaved_food_persistence_error.dart?ref=f01d3d886666c57bfa60f144d0194e93a1f26d00",
+      "patch": "@@ -1,6 +1,7 @@\n import 'package:flutter/foundation.dart';\n import 'package:supabase_flutter/supabase_flutter.dart';\n \n+import '../moderation/public_food_name_moderation.dart';\n import '../repositories/exceptions/food_master_exceptions.dart';\n \n /// 食品保存失敗のユーザー向けエラーコード。\n@@ -94,7 +95,11 @@ class SavedFoodPersistenceException implements Exception {\n             .toLowerCase();\n \n     SavedFoodErrorCode errorCode;\n-    if (combined.contains('jwt') ||\n+    var message = error.message;\n+    if (combined.contains('public food name is not allowed')) {\n+      errorCode = SavedFoodErrorCode.validationFailed;\n+      message = PublicFoodNameModeration.rejectionMessage;\n+    } else if (combined.contains('jwt') ||\n         combined.contains('not authenticated') ||\n         error.code == 'PGRST301') {\n       errorCode = SavedFoodErrorCode.authRequired;\n@@ -124,7 +129,7 @@ class SavedFoodPersistenceException implements Exception {\n \n     return SavedFoodPersistenceException(\n       errorCode: errorCode,\n-      message: error.message,\n+      message: message,\n       repositoryStep: repositoryStep,\n       tableName: tableName,\n       operation: operation,\n@@ -143,16 +148,21 @@ class SavedFoodPersistenceException implements Exception {\n     final errorCode = switch (error) {\n       FoodMasterAuthenticationException() => SavedFoodErrorCode.authRequired,\n       FoodMasterPermissionException() => SavedFoodErrorCode.permissionDenied,\n-      FoodMasterValidationException() => SavedFoodErrorCode.validationFailed,\n+      FoodMasterValidationException() ||\n+      PublicFoodNameRejectedException() => SavedFoodErrorCode.validationFailed,\n       FoodMasterConflictException() => SavedFoodErrorCode.conflict,\n       FoodMasterTableMissingException() => SavedFoodErrorCode.tableMissing,\n       FoodMasterNetworkException() => SavedFoodErrorCode.networkFailed,\n       _ => SavedFoodErrorCode.insertFailed,\n     };\n \n+    final message = error is PublicFoodNameRejectedException\n+        ? PublicFoodNameModeration.rejectionMessage\n+        : error.message;\n+\n     return SavedFoodPersistenceException(\n       errorCode: errorCode,\n-      message: error.message,\n+      message: message,\n       repositoryStep: repositoryStep,\n       tableName: 'saved_foods',\n       operation: operation,"
+    },
+    {
+      "sha": "dd5e4ab6adf3c8ff0c8a88d0842f85e4ba1e9f94",
+      "filename": "lib/moderation/public_food_banned_words.dart",
+      "status": "added",
+      "additions": 104,
+      "deletions": 0,
+      "changes": 104,
+      "blob_url": "https://github.com/naruto-aii/AYG/blob/f01d3d886666c57bfa60f144d0194e93a1f26d00/lib%2Fmoderation%2Fpublic_food_banned_words.dart",
+      "raw_url": "https://github.com/naruto-aii/AYG/raw/f01d3d886666c57bfa60f144d0194e93a1f26d00/lib%2Fmoderation%2Fpublic_food_banned_words.dart",
+      "contents_url": "https://api.github.com/repos/naruto-aii/AYG/contents/lib%2Fmoderation%2Fpublic_food_banned_words.dart?ref=f01d3d886666c57bfa60f144d0194e93a1f26d00",
+      "patch": "@@ -0,0 +1,104 @@\n+/// Fixed banned words for public food names.\n+///\n+/// One list, checked at publish time and when a public row's name changes.\n+/// There is no admin editor and no remote dictionary.\n+const List<String> publicFoodBannedWords = <String>[\n+  'fuck',\n+  'fucking',\n+  'motherfucker',\n+  'shit',\n+  'bullshit',\n+  'asshole',\n+  'bitch',\n+  'bastard',\n+  'cunt',\n+  'dick',\n+  'cock',\n+  'pussy',\n+  'whore',\n+  'slut',\n+  'nigger',\n+  'nigga',\n+  'faggot',\n+  'retard',\n+  'rape',\n+  'くそ',\n+  'くそったれ',\n+  'ちくしょう',\n+  'ちんこ',\n+  'ちんぽ',\n+  'まんこ',\n+  'うんこ',\n+  'きんたま',\n+  'ファック',\n+  'セックス',\n+  'フェラ',\n+  '中出し',\n+  '死ね',\n+  '殺す',\n+  'きちがい',\n+  '池沼',\n+  'エロ',\n+  // Full explicit compounds. Not boundary-only, so they match as substrings.\n+  // The short fragments above stay boundary-only.\n+  'おまんこ',\n+  'フェラチオ',\n+  'イラマチオ',\n+  'クンニ',\n+  'パイズリ',\n+  '顔射',\n+  'ぶっかけ',\n+  'ごっくん',\n+  'ザーメン',\n+  'オナニー',\n+  '潮吹き',\n+  '素股',\n+  '手コキ',\n+  '手マン',\n+  '肉便器',\n+  'fellatio',\n+  'cunnilingus',\n+];\n+\n+/// Halfwidth katakana, mapped to hiragana. Both strings are the same length.\n+const String publicFoodHalfwidthKatakanaFrom =\n+    'ｦｧｨｩｪｫｬｭｮｯｰｱｲｳｴｵｶｷｸｹｺｻｼｽｾｿﾀﾁﾂﾃﾄﾅﾆﾇﾈﾉﾊﾋﾌﾍﾎﾏﾐﾑﾒﾓﾔﾕﾖﾗﾘﾙﾚﾛﾜﾝ';\n+\n+const String publicFoodHalfwidthKatakanaTo =\n+    'をぁぃぅぇぉゃゅょっーあいうえおかきくけこさしすせそたちつてとなにぬねのはひふへほまみむめもやゆよらりるれろわん';\n+\n+/// 1:1 confusable fold applied after NFKC. Both strings are the same length.\n+/// Accents, Cyrillic/Latin lookalikes, and symbol/digit substitutions.\n+/// Kept identical to the translate() pair in the banned-name migration.\n+const String publicFoodConfusableFrom =\n+    'àáâãäåÀÁÂÃÄÅèéêëÈÉÊËìíîïÌÍÎÏòóôõöÒÓÔÕÖùúûüÙÚÛÜýÿÝŸñÑçÇаАеЕоОрРсСуУхХіІјЈѕЅԁԀ013457@\\$!';\n+\n+const String publicFoodConfusableTo =\n+    'aaaaaaaaaaaaeeeeeeeeiiiiiiiioooooooooouuuuuuuuyyyynnccaaeeooppccyyxxiijjssddoieastasi';\n+\n+/// Halfwidth katakana bases that take a dakuten (U+FF9E), and the fullwidth\n+/// katakana they become. Both strings are the same length. Applied before NFKC.\n+const String publicFoodHalfwidthDakutenBase = 'ｶｷｸｹｺｻｼｽｾｿﾀﾁﾂﾃﾄﾊﾋﾌﾍﾎ';\n+\n+const String publicFoodHalfwidthDakutenTo = 'ガギグゲゴザジズゼゾダヂヅデドバビブベボ';\n+\n+/// Halfwidth katakana bases that take a handakuten (U+FF9F).\n+const String publicFoodHalfwidthHandakutenBase = 'ﾊﾋﾌﾍﾎ';\n+\n+const String publicFoodHalfwidthHandakutenTo = 'パピプペポ';\n+\n+/// Normalized terms that match only on a word boundary.\n+/// Longer Japanese terms still match as substrings.\n+const List<String> publicFoodBoundaryOnlyTerms = <String>[\n+  'えろ',\n+  'くそ',\n+  'ふぇら',\n+  'まんこ',\n+];\n+\n+/// Normalized phrases removed before the banned-word scan.\n+/// A banned word beside one of these phrases is still rejected.\n+const List<String> publicFoodAllowedPhrases = <String>[\n+  'cock tail',\n+  'rape seed',\n+];"
+    },
+    {
+      "sha": "49ebcad0f6568ce4f9428f85a4aba9d1185cbe6c",
+      "filename": "lib/moderation/public_food_name_moderation.dart",
+      "status": "added",
+      "additions": 313,
+      "deletions": 0,
+      "changes": 313,
+      "blob_url": "https://github.com/naruto-aii/AYG/blob/f01d3d886666c57bfa60f144d0194e93a1f26d00/lib%2Fmoderation%2Fpublic_food_name_moderation.dart",
+      "raw_url": "https://github.com/naruto-aii/AYG/raw/f01d3d886666c57bfa60f144d0194e93a1f26d00/lib%2Fmoderation%2Fpublic_food_name_moderation.dart",
+      "contents_url": "https://api.github.com/repos/naruto-aii/AYG/contents/lib%2Fmoderation%2Fpublic_food_name_moderation.dart?ref=f01d3d886666c57bfa60f144d0194e93a1f26d00",
+      "patch": "@@ -0,0 +1,313 @@\n+import 'package:unorm_dart/unorm_dart.dart' as unorm;\n+\n+import '../utils/food_name_normalizer.dart';\n+import 'public_food_banned_words.dart';\n+\n+/// Client check for public food text.\n+///\n+/// Order: compose halfwidth voiced marks (U+FF9E / U+FF9F), Unicode NFKC,\n+/// strip combining marks U+0300–U+036F (kana voicing U+3099/U+309A stays),\n+/// accent / lookalike / digit-symbol fold, then case fold, kana fold, and\n+/// separator folding. Allowed food phrases are removed before the scan.\n+/// Latin terms and [publicFoodBoundaryOnlyTerms] match on a word boundary.\n+/// Other Japanese terms of length >= 2 match as substrings.\n+class PublicFoodNameModeration {\n+  const PublicFoodNameModeration._();\n+\n+  static const rejectionMessage = 'この食品名は公開できません。別の名前を入力してください。';\n+\n+  static final RegExp _combiningMarks = RegExp(r'[\\u0300-\\u036F]');\n+\n+  static bool isBanned(String raw) {\n+    final spaced = _stripAllowedPhrases(\n+      normalizeForMatch(prepareForMatch(raw)),\n+    );\n+    if (spaced.isEmpty) {\n+      return false;\n+    }\n+    final compact = spaced.replaceAll(' ', '');\n+    for (final term in publicFoodBannedWords) {\n+      final normalizedTerm = normalizeForMatch(\n+        prepareForMatch(term),\n+      ).replaceAll(' ', '');\n+      if (normalizedTerm.isEmpty) {\n+        continue;\n+      }\n+      if (_useSubstring(normalizedTerm)) {\n+        if (compact.contains(normalizedTerm)) {\n+          return true;\n+        }\n+      } else if (_containsBounded(spaced, normalizedTerm) ||\n+          _containsBounded(compact, normalizedTerm)) {\n+        return true;\n+      }\n+    }\n+    return false;\n+  }\n+\n+  /// True when a public field is changing into a banned value.\n+  /// An unchanged field is left alone so older rows can still edit other fields.\n+  static bool rejectsPublicUpdate({\n+    required String previousName,\n+    required String nextName,\n+    String? previousBrand,\n+    String? nextBrand,\n+    String? previousNormalizedName,\n+    String? nextNormalizedName,\n+    String? previousServingUnitLabel,\n+    String? nextServingUnitLabel,\n+  }) {\n+    return _changedIntoBanned(previousName, nextName) ||\n+        _changedIntoBanned(previousBrand, nextBrand) ||\n+        _changedIntoBanned(previousNormalizedName, nextNormalizedName) ||\n+        _changedIntoBanned(previousServingUnitLabel, nextServingUnitLabel);\n+  }\n+\n+  static bool anyFieldBanned({\n+    required String name,\n+    String? normalizedName,\n+    String? brand,\n+    String? servingUnitLabel,\n+  }) {\n+    return isBanned(name) ||\n+        isBanned(normalizedName ?? '') ||\n+        isBanned(brand ?? '') ||\n+        isBanned(servingUnitLabel ?? '');\n+  }\n+\n+  static bool _changedIntoBanned(String? previous, String? next) {\n+    final before = previous ?? '';\n+    final after = next ?? '';\n+    if (FoodNameNormalizer.normalize(before) ==\n+        FoodNameNormalizer.normalize(after)) {\n+      return false;\n+    }\n+    return isBanned(after);\n+  }\n+\n+  /// Halfwidth voiced marks, then NFKC, then confusable folding.\n+  /// Separator folding happens afterwards.\n+  static String prepareForMatch(String raw) {\n+    final voiced = _composeHalfwidthVoiced(raw);\n+    final composed = unorm.nfkc(voiced).replaceAll(_combiningMarks, '');\n+    return _foldConfusables(composed);\n+  }\n+\n+  static String _composeHalfwidthVoiced(String raw) {\n+    final runes = raw.runes.toList();\n+    final buffer = StringBuffer();\n+    for (var i = 0; i < runes.length; i++) {\n+      if (i + 1 < runes.length) {\n+        final mark = runes[i + 1];\n+        final Map<int, int>? table = switch (mark) {\n+          0xFF9E => _dakuten,\n+          0xFF9F => _handakuten,\n+          _ => null,\n+        };\n+        final mapped = table?[runes[i]];\n+        if (mapped != null) {\n+          buffer.writeCharCode(mapped);\n+          i++;\n+          continue;\n+        }\n+      }\n+      buffer.writeCharCode(runes[i]);\n+    }\n+    return buffer.toString();\n+  }\n+\n+  static String _stripAllowedPhrases(String spaced) {\n+    var current = spaced;\n+    for (final phrase in publicFoodAllowedPhrases) {\n+      current = _removeBounded(current, phrase);\n+    }\n+    return current.replaceAll(RegExp(r' +'), ' ').trim();\n+  }\n+\n+  /// Removes bounded [phrase] occurrences, leaving a space in their place.\n+  static String _removeBounded(String haystack, String phrase) {\n+    if (phrase.isEmpty || haystack.isEmpty) {\n+      return haystack;\n+    }\n+    final buffer = StringBuffer();\n+    var read = 0;\n+    var from = 0;\n+    while (from <= haystack.length) {\n+      final index = haystack.indexOf(phrase, from);\n+      if (index < 0) {\n+        buffer.write(haystack.substring(read));\n+        break;\n+      }\n+      final beforeOk =\n+          index == 0 || !_isWordCode(haystack.codeUnitAt(index - 1));\n+      final afterIndex = index + phrase.length;\n+      final afterOk =\n+          afterIndex >= haystack.length ||\n+          !_isWordCode(haystack.codeUnitAt(afterIndex));\n+      if (beforeOk && afterOk) {\n+        buffer.write(haystack.substring(read, index));\n+        buffer.write(' ');\n+        read = afterIndex;\n+        from = afterIndex;\n+      } else {\n+        from = index + 1;\n+      }\n+    }\n+    return buffer.toString();\n+  }\n+\n+  static String _foldConfusables(String value) {\n+    final expanded = value\n+        .replaceAll('ß', 'ss')\n+        .replaceAll('æ', 'ae')\n+        .replaceAll('Æ', 'ae')\n+        .replaceAll('œ', 'oe')\n+        .replaceAll('Œ', 'oe');\n+    final buffer = StringBuffer();\n+    for (final rune in expanded.runes) {\n+      final mapped = _confusableMap[rune];\n+      if (mapped == null) {\n+        buffer.writeCharCode(rune);\n+      } else {\n+        buffer.writeCharCode(mapped);\n+      }\n+    }\n+    return buffer.toString();\n+  }\n+\n+  static String normalizeForMatch(String raw) {\n+    final buffer = StringBuffer();\n+    var pendingSpace = false;\n+    for (final rune in raw.runes) {\n+      final mapped = _mapRune(rune);\n+      if (mapped == null) {\n+        if (buffer.isNotEmpty) {\n+          pendingSpace = true;\n+        }\n+        continue;\n+      }\n+      if (pendingSpace) {\n+        buffer.write(' ');\n+        pendingSpace = false;\n+      }\n+      buffer.writeCharCode(mapped);\n+    }\n+    return buffer.toString();\n+  }\n+\n+  static bool _useSubstring(String term) {\n+    if (RegExp('[a-z0-9]').hasMatch(term)) {\n+      return false;\n+    }\n+    if (publicFoodBoundaryOnlyTerms.contains(term)) {\n+      return false;\n+    }\n+    return term.runes.length >= 2;\n+  }\n+\n+  static bool _containsBounded(String haystack, String term) {\n+    var start = 0;\n+    while (true) {\n+      final index = haystack.indexOf(term, start);\n+      if (index < 0) {\n+        return false;\n+      }\n+      final beforeOk =\n+          index == 0 || !_isWordCode(haystack.codeUnitAt(index - 1));\n+      final afterIndex = index + term.length;\n+      final afterOk =\n+          afterIndex >= haystack.length ||\n+          !_isWordCode(haystack.codeUnitAt(afterIndex));\n+      if (beforeOk && afterOk) {\n+        return true;\n+      }\n+      start = index + 1;\n+    }\n+  }\n+\n+  static int? _mapRune(int rune) {\n+    if (rune == 0x3000 ||\n+        rune == 0x20 ||\n+        rune == 0x09 ||\n+        rune == 0x0A ||\n+        rune == 0x0D) {\n+      return null;\n+    }\n+\n+    var code = rune;\n+    if (code >= 0xFF10 && code <= 0xFF19) {\n+      code = 0x30 + (code - 0xFF10);\n+    } else if (code >= 0xFF21 && code <= 0xFF3A) {\n+      code = 0x61 + (code - 0xFF21);\n+    } else if (code >= 0xFF41 && code <= 0xFF5A) {\n+      code = 0x61 + (code - 0xFF41);\n+    } else {\n+      final halfwidth = _halfwidthKatakana[code];\n+      if (halfwidth != null) {\n+        code = halfwidth;\n+      }\n+    }\n+\n+    if (code >= 0x30A1 && code <= 0x30F3) {\n+      code -= 0x60;\n+    }\n+    if (code >= 0x41 && code <= 0x5A) {\n+      code = 0x61 + (code - 0x41);\n+    }\n+    if (_isWordCode(code)) {\n+      return code;\n+    }\n+    return null;\n+  }\n+\n+  static bool _isWordCode(int code) {\n+    if (code >= 0x30 && code <= 0x39) {\n+      return true;\n+    }\n+    if (code >= 0x61 && code <= 0x7A) {\n+      return true;\n+    }\n+    if (code >= 0x3041 && code <= 0x3096) {\n+      return true;\n+    }\n+    if (code >= 0x30A1 && code <= 0x30FA) {\n+      return true;\n+    }\n+    if (code >= 0x4E00 && code <= 0x9FFF) {\n+      return true;\n+    }\n+    return code == 0x30FC;\n+  }\n+\n+  static final Map<int, int> _confusableMap = _buildConfusableMap();\n+  static final Map<int, int> _halfwidthKatakana = _buildHalfwidthMap();\n+  static final Map<int, int> _dakuten = _pairMap(\n+    publicFoodHalfwidthDakutenBase,\n+    publicFoodHalfwidthDakutenTo,\n+  );\n+  static final Map<int, int> _handakuten = _pairMap(\n+    publicFoodHalfwidthHandakutenBase,\n+    publicFoodHalfwidthHandakutenTo,\n+  );\n+\n+  static Map<int, int> _buildConfusableMap() {\n+    return _pairMap(publicFoodConfusableFrom, publicFoodConfusableTo);\n+  }\n+\n+  static Map<int, int> _buildHalfwidthMap() {\n+    return _pairMap(\n+      publicFoodHalfwidthKatakanaFrom,\n+      publicFoodHalfwidthKatakanaTo,\n+    );\n+  }\n+\n+  static Map<int, int> _pairMap(String fromText, String toText) {\n+    final from = fromText.runes.toList();\n+    final to = toText.runes.toList();\n+    final map = <int, int>{};\n+    for (var i = 0; i < from.length && i < to.length; i++) {\n+      map[from[i]] = to[i];\n+    }\n+    return map;\n+  }\n+}"
+    },
+    {
+      "sha": "57fabb3f73cd6a9e04598b9ccf432e73cc18e063",
+      "filename": "lib/repositories/exceptions/food_master_exceptions.dart",
+      "status": "modified",
+      "additions": 7,
+      "deletions": 0,
+      "changes": 7,
+      "blob_url": "https://github.com/naruto-aii/AYG/blob/f01d3d886666c57bfa60f144d0194e93a1f26d00/lib%2Frepositories%2Fexceptions%2Ffood_master_exceptions.dart",
+      "raw_url": "https://github.com/naruto-aii/AYG/raw/f01d3d886666c57bfa60f144d0194e93a1f26d00/lib%2Frepositories%2Fexceptions%2Ffood_master_exceptions.dart",
+      "contents_url": "https://api.github.com/repos/naruto-aii/AYG/contents/lib%2Frepositories%2Fexceptions%2Ffood_master_exceptions.dart?ref=f01d3d886666c57bfa60f144d0194e93a1f26d00",
+      "patch": "@@ -8,6 +8,7 @@ enum PublishFailureKind {\n   validation,\n   alreadyPublic,\n   moderationBlocked,\n+  bannedName,\n   notAuthenticated,\n   network,\n   unknown,\n@@ -74,6 +75,12 @@ class PublishSavedFoodException extends FoodMasterException {\n   final PublishFailureKind kind;\n }\n \n+class PublicFoodNameRejectedException extends FoodMasterException {\n+  const PublicFoodNameRejectedException([\n+    super.message = 'public food name is not allowed',\n+  ]);\n+}\n+\n class FoodMasterNotFoundException extends FoodMasterException {\n   const FoodMasterNotFoundException([super.message = 'Resource not found.']);\n }"
+    },
+    {
+      "sha": "f5a024cf952f2ac94a50a41173a39016adea76c5",
+      "filename": "lib/repositories/supabase/supabase_error_mapper.dart",
+      "status": "modified",
+      "additions": 11,
+      "deletions": 0,
+      "changes": 11,
+      "blob_url": "https://github.com/naruto-aii/AYG/blob/f01d3d886666c57bfa60f144d0194e93a1f26d00/lib%2Frepositories%2Fsupabase%2Fsupabase_error_mapper.dart",
+      "raw_url": "https://github.com/naruto-aii/AYG/raw/f01d3d886666c57bfa60f144d0194e93a1f26d00/lib%2Frepositories%2Fsupabase%2Fsupabase_error_mapper.dart",
+      "contents_url": "https://api.github.com/repos/naruto-aii/AYG/contents/lib%2Frepositories%2Fsupabase%2Fsupabase_error_mapper.dart?ref=f01d3d886666c57bfa60f144d0194e93a1f26d00",
+      "patch": "@@ -69,6 +69,13 @@ class SupabaseErrorMapper {\n       );\n     }\n \n+    if (mapped is PublicFoodNameRejectedException) {\n+      return PublishSavedFoodException(\n+        kind: PublishFailureKind.bannedName,\n+        message: mapped.message,\n+      );\n+    }\n+\n     if (mapped is FoodMasterValidationException) {\n       return PublishSavedFoodException(\n         kind: PublishFailureKind.validation,\n@@ -97,6 +104,10 @@ class SupabaseErrorMapper {\n     final details = (error.details?.toString() ?? '').toLowerCase();\n     final combined = '$message $details';\n \n+    if (combined.contains('public food name is not allowed')) {\n+      return const PublicFoodNameRejectedException();\n+    }\n+\n     if (combined.contains('duplicate public food') ||\n         (combined.contains('duplicate key') && context.contains('publish'))) {\n       return const FoodMasterDuplicateException();"
+    },
+    {
+      "sha": "c5d287f1e2c582104ea2e8760005a84e077ae0c5",
+      "filename": "lib/services/publish_error_messages.dart",
+      "status": "modified",
+      "additions": 9,
+      "deletions": 0,
+      "changes": 9,
+      "blob_url": "https://github.com/naruto-aii/AYG/blob/f01d3d886666c57bfa60f144d0194e93a1f26d00/lib%2Fservices%2Fpublish_error_messages.dart",
+      "raw_url": "https://github.com/naruto-aii/AYG/raw/f01d3d886666c57bfa60f144d0194e93a1f26d00/lib%2Fservices%2Fpublish_error_messages.dart",
+      "contents_url": "https://api.github.com/repos/naruto-aii/AYG/contents/lib%2Fservices%2Fpublish_error_messages.dart?ref=f01d3d886666c57bfa60f144d0194e93a1f26d00",
+      "patch": "@@ -1,3 +1,4 @@\n+import '../moderation/public_food_name_moderation.dart';\n import '../repositories/exceptions/food_master_exceptions.dart';\n \n /// publish_saved_food RPC 失敗のユーザー向けメッセージ。\n@@ -17,7 +18,13 @@ class PublishErrorMessages {\n     if (error is FoodMasterAuthenticationException) {\n       return messageForKind(PublishFailureKind.notAuthenticated);\n     }\n+    if (error is PublicFoodNameRejectedException) {\n+      return PublicFoodNameModeration.rejectionMessage;\n+    }\n     if (error is FoodMasterValidationException) {\n+      if (error.message.contains(PublicFoodNameModeration.rejectionMessage)) {\n+        return PublicFoodNameModeration.rejectionMessage;\n+      }\n       return messageForKind(PublishFailureKind.validation);\n     }\n     if (error is FoodMasterPermissionException) {\n@@ -36,6 +43,8 @@ class PublishErrorMessages {\n       PublishFailureKind.rateLimitDaily => '本日公開できる上限に達しました',\n       PublishFailureKind.notOwner => 'この食品を公開する権限がありません',\n       PublishFailureKind.invalidState => 'この食品は現在公開できません',\n+      PublishFailureKind.bannedName =>\n+        PublicFoodNameModeration.rejectionMessage,\n       PublishFailureKind.validation => '公開前の入力内容を確認してください',\n       PublishFailureKind.alreadyPublic => 'すでに公開されています',\n       PublishFailureKind.moderationBlocked => 'モデレーション状態により公開できません',"
+    },
+    {
+      "sha": "b186bac29df664a2afea0a9c84686dec8f425419",
+      "filename": "lib/services/saved_food_publish_validator.dart",
+      "status": "modified",
+      "additions": 9,
+      "deletions": 0,
+      "changes": 9,
+      "blob_url": "https://github.com/naruto-aii/AYG/blob/f01d3d886666c57bfa60f144d0194e93a1f26d00/lib%2Fservices%2Fsaved_food_publish_validator.dart",
+      "raw_url": "https://github.com/naruto-aii/AYG/raw/f01d3d886666c57bfa60f144d0194e93a1f26d00/lib%2Fservices%2Fsaved_food_publish_validator.dart",
+      "contents_url": "https://api.github.com/repos/naruto-aii/AYG/contents/lib%2Fservices%2Fsaved_food_publish_validator.dart?ref=f01d3d886666c57bfa60f144d0194e93a1f26d00",
+      "patch": "@@ -1,4 +1,5 @@\n import '../constants/app_strings.dart';\n+import '../moderation/public_food_name_moderation.dart';\n import '../models/food_source_type.dart';\n import '../models/food_status.dart';\n import '../models/moderation_status.dart';\n@@ -37,6 +38,14 @@ class SavedFoodPublishValidator {\n     if (normalized.isEmpty) {\n       errors.add('食品名が無効です');\n     }\n+    if (PublicFoodNameModeration.anyFieldBanned(\n+      name: food.name,\n+      normalizedName: food.normalizedName,\n+      brand: food.brand,\n+      servingUnitLabel: food.servingUnitLabel,\n+    )) {\n+      errors.add(PublicFoodNameModeration.rejectionMessage);\n+    }\n     if (food.baseAmount <= 0) {\n       errors.add('基準量は0より大きい値を入力してください');\n     }"
+    },
+    {
+      "sha": "aafb5571b5f048aed375a0965d614d24a330581a",
+      "filename": "lib/state/app_controller.dart",
+      "status": "modified",
+      "additions": 14,
+      "deletions": 0,
+      "changes": 14,
+      "blob_url": "https://github.com/naruto-aii/AYG/blob/f01d3d886666c57bfa60f144d0194e93a1f26d00/lib%2Fstate%2Fapp_controller.dart",
+      "raw_url": "https://github.com/naruto-aii/AYG/raw/f01d3d886666c57bfa60f144d0194e93a1f26d00/lib%2Fstate%2Fapp_controller.dart",
+      "contents_url": "https://api.github.com/repos/naruto-aii/AYG/contents/lib%2Fstate%2Fapp_controller.dart?ref=f01d3d886666c57bfa60f144d0194e93a1f26d00",
+      "patch": "@@ -67,6 +67,7 @@ import '../services/local_user_data_clearer_base.dart';\n import '../services/meal_template_apply_service.dart';\n import '../services/meal_template_dependency_service.dart';\n import '../services/meal_template_totals_service.dart';\n+import '../moderation/public_food_name_moderation.dart';\n import '../services/nutrition_engine.dart';\n import '../services/public_food_search_service.dart';\n import '../services/public_food_similar_service.dart';\n@@ -1228,6 +1229,19 @@ class AppController extends ChangeNotifier {\n       throw StateError('Public update confirmation is required');\n     }\n \n+    if (PublicFoodNameModeration.rejectsPublicUpdate(\n+      previousName: existing.name,\n+      nextName: food.name,\n+      previousBrand: existing.brand,\n+      nextBrand: food.brand,\n+      previousNormalizedName: existing.normalizedName,\n+      nextNormalizedName: food.normalizedName,\n+      previousServingUnitLabel: existing.servingUnitLabel,\n+      nextServingUnitLabel: food.servingUnitLabel,\n+    )) {\n+      throw const PublicFoodNameRejectedException();\n+    }\n+\n     return _updateOwnSavedFood(food, previous: existing);\n   }\n "
+    },
+    {
+      "sha": "cf61848cf3b7ac43ca8e7c89b3ad5802427a52e9",
+      "filename": "pubspec.lock",
+      "status": "modified",
+      "additions": 8,
+      "deletions": 0,
+      "changes": 8,
+      "blob_url": "https://github.com/naruto-aii/AYG/blob/f01d3d886666c57bfa60f144d0194e93a1f26d00/pubspec.lock",
+      "raw_url": "https://github.com/naruto-aii/AYG/raw/f01d3d886666c57bfa60f144d0194e93a1f26d00/pubspec.lock",
+      "contents_url": "https://api.github.com/repos/naruto-aii/AYG/contents/pubspec.lock?ref=f01d3d886666c57bfa60f144d0194e93a1f26d00",
+      "patch": "@@ -1084,6 +1084,14 @@ packages:\n       url: \"https://pub.dev\"\n     source: hosted\n     version: \"1.4.0\"\n+  unorm_dart:\n+    dependency: \"direct main\"\n+    description:\n+      name: unorm_dart\n+      sha256: \"0c69186b03ca6addab0774bcc0f4f17b88d4ce78d9d4d8f0619e30a99ead58e7\"\n+      url: \"https://pub.dev\"\n+    source: hosted\n+    version: \"0.3.2\"\n   url_launcher:\n     dependency: \"direct main\"\n     description:"
+    },
+    {
+      "sha": "80ac378e4fd4b53328d80b7f9afc20738dbad4b3",
+      "filename": "pubspec.yaml",
+      "status": "modified",
+      "additions": 1,
+      "deletions": 0,
+      "changes": 1,
+      "blob_url": "https://github.com/naruto-aii/AYG/blob/f01d3d886666c57bfa60f144d0194e93a1f26d00/pubspec.yaml",
+      "raw_url": "https://github.com/naruto-aii/AYG/raw/f01d3d886666c57bfa60f144d0194e93a1f26d00/pubspec.yaml",
+      "contents_url": "https://api.github.com/repos/naruto-aii/AYG/contents/pubspec.yaml?ref=f01d3d886666c57bfa60f144d0194e93a1f26d00",
+      "patch": "@@ -50,6 +50,7 @@ dependencies:\n   crypto: ^3.0.7\n   material_symbols_icons: ^4.2960.0\n   in_app_purchase: ^3.2.3\n+  unorm_dart: ^0.3.2\n \n dev_dependencies:\n   flutter_test:"
+    },
+    {
+      "sha": "bdc3ccf4887cefef85737c2732c2e47717b192c3",
+      "filename": "supabase/migrations/20260927120000_reject_banned_public_food_names.sql",
+      "status": "added",
+      "additions": 566,
+      "deletions": 0,
+      "changes": 566,
+      "blob_url": "https://github.com/naruto-aii/AYG/blob/f01d3d886666c57bfa60f144d0194e93a1f26d00/supabase%2Fmigrations%2F20260927120000_reject_banned_public_food_names.sql",
+      "raw_url": "https://github.com/naruto-aii/AYG/raw/f01d3d886666c57bfa60f144d0194e93a1f26d00/supabase%2Fmigrations%2F20260927120000_reject_banned_public_food_names.sql",
+      "contents_url": "https://api.github.com/repos/naruto-aii/AYG/contents/supabase%2Fmigrations%2F20260927120000_reject_banned_public_food_names.sql?ref=f01d3d886666c57bfa60f144d0194e93a1f26d00",
+      "patch": "@@ -0,0 +1,566 @@\n+-- Reject banned public food text at publish time and when a public row's\n+-- name, normalized_name, brand, or serving_unit_label changes.\n+-- Does not scan or rewrite existing rows.\n+--\n+-- search_path is empty on every function below. Names are schema-qualified\n+-- (public. or pg_catalog.). publish_saved_food is SECURITY DEFINER, so a\n+-- caller-controlled search_path must not apply.\n+\n+-- pg_catalog.normalize(text, NFKC) needs PostgreSQL 13 or newer.\n+-- supabase/config.toml sets major_version = 17.\n+-- Halfwidth dakuten (U+FF9E) and handakuten (U+FF9F) are composed before\n+-- NFKC so Dart and Postgres agree even when one NFKC implementation does not.\n+\n+create or replace function public.compose_halfwidth_voiced(p_text text)\n+returns text\n+language plpgsql\n+immutable\n+set search_path = ''\n+as $$\n+declare\n+  v text := pg_catalog.coalesce(p_text, '');\n+  v_out text := '';\n+  i integer := 1;\n+  n integer := pg_catalog.char_length(v);\n+  ch text;\n+  nxt text;\n+  base_at integer;\n+  dakuten_base constant text := 'ｶｷｸｹｺｻｼｽｾｿﾀﾁﾂﾃﾄﾊﾋﾌﾍﾎ';\n+  dakuten_to constant text := 'ガギグゲゴザジズゼゾダヂヅデドバビブベボ';\n+  handakuten_base constant text := 'ﾊﾋﾌﾍﾎ';\n+  handakuten_to constant text := 'パピプペポ';\n+begin\n+  while i <= n loop\n+    ch := pg_catalog.substr(v, i, 1);\n+    if i < n then\n+      nxt := pg_catalog.substr(v, i + 1, 1);\n+      if nxt = pg_catalog.chr(65438) then\n+        base_at := pg_catalog.strpos(dakuten_base, ch);\n+        if base_at > 0 then\n+          v_out := v_out || pg_catalog.substr(dakuten_to, base_at, 1);\n+          i := i + 2;\n+          continue;\n+        end if;\n+      elsif nxt = pg_catalog.chr(65439) then\n+        base_at := pg_catalog.strpos(handakuten_base, ch);\n+        if base_at > 0 then\n+          v_out := v_out || pg_catalog.substr(handakuten_to, base_at, 1);\n+          i := i + 2;\n+          continue;\n+        end if;\n+      end if;\n+    end if;\n+    v_out := v_out || ch;\n+    i := i + 1;\n+  end loop;\n+  return v_out;\n+end;\n+$$;\n+\n+create or replace function public.normalize_public_food_name(p_name text)\n+returns text\n+language plpgsql\n+immutable\n+set search_path = ''\n+as $$\n+declare\n+  v text := pg_catalog.normalize(\n+    public.compose_halfwidth_voiced(pg_catalog.coalesce(p_name, '')),\n+    'NFKC'::pg_catalog.normalization_form\n+  );\n+  v_out text := '';\n+  i integer;\n+  ch text;\n+  cp integer;\n+  hw_from constant text := 'ｦｧｨｩｪｫｬｭｮｯｰｱｲｳｴｵｶｷｸｹｺｻｼｽｾｿﾀﾁﾂﾃﾄﾅﾆﾇﾈﾉﾊﾋﾌﾍﾎﾏﾐﾑﾒﾓﾔﾕﾖﾗﾘﾙﾚﾛﾜﾝ';\n+  hw_to constant text := 'をぁぃぅぇぉゃゅょっーあいうえおかきくけこさしすせそたちつてとなにぬねのはひふへほまみむめもやゆよらりるれろわん';\n+  hw_at integer;\n+  -- Same pair as publicFoodConfusableFrom / publicFoodConfusableTo.\n+  fold_from constant text := 'àáâãäåÀÁÂÃÄÅèéêëÈÉÊËìíîïÌÍÎÏòóôõöÒÓÔÕÖùúûüÙÚÛÜýÿÝŸñÑçÇаАеЕоОрРсСуУхХіІјЈѕЅԁԀ013457@$!';\n+  fold_to constant text := 'aaaaaaaaaaaaeeeeeeeeiiiiiiiioooooooooouuuuuuuuyyyynnccaaeeooppccyyxxiijjssddoieastasi';\n+begin\n+  -- Multi-character folds, then the 1:1 confusable map. Separator folding\n+  -- is the loop below. Combining marks U+0300–U+036F are dropped there\n+  -- and are not turned into spaces. Kana voicing U+3099/U+309A is kept.\n+  v := pg_catalog.replace(v, 'ß', 'ss');\n+  v := pg_catalog.replace(v, 'æ', 'ae');\n+  v := pg_catalog.replace(v, 'Æ', 'ae');\n+  v := pg_catalog.replace(v, 'œ', 'oe');\n+  v := pg_catalog.replace(v, 'Œ', 'oe');\n+  v := pg_catalog.translate(v, fold_from, fold_to);\n+\n+  for i in 1..pg_catalog.char_length(v) loop\n+    ch := pg_catalog.substr(v, i, 1);\n+    cp := pg_catalog.ascii(ch);\n+\n+    if cp between 768 and 879 then\n+      continue;\n+    end if;\n+\n+    if cp = 12288 or cp = 32 or cp = 9 or cp = 10 or cp = 13 then\n+      if v_out <> '' and pg_catalog.right(v_out, 1) <> ' ' then\n+        v_out := v_out || ' ';\n+      end if;\n+      continue;\n+    end if;\n+\n+    if cp between 65296 and 65305 then\n+      cp := 48 + (cp - 65296);\n+    elsif cp between 65313 and 65338 then\n+      cp := 97 + (cp - 65313);\n+    elsif cp between 65345 and 65370 then\n+      cp := 97 + (cp - 65345);\n+    else\n+      hw_at := pg_catalog.strpos(hw_from, ch);\n+      if hw_at > 0 then\n+        ch := pg_catalog.substr(hw_to, hw_at, 1);\n+        cp := pg_catalog.ascii(ch);\n+      end if;\n+    end if;\n+\n+    if cp between 12449 and 12531 then\n+      cp := cp - 96;\n+    end if;\n+\n+    if cp between 65 and 90 then\n+      cp := 97 + (cp - 65);\n+    end if;\n+\n+    if cp between 97 and 122\n+       or cp between 48 and 57\n+       or cp between 12353 and 12438\n+       or cp between 12449 and 12538\n+       or cp between 19968 and 40959\n+       or cp = 12540 then\n+      v_out := v_out || pg_catalog.chr(cp);\n+    elsif v_out <> '' and pg_catalog.right(v_out, 1) <> ' ' then\n+      v_out := v_out || ' ';\n+    end if;\n+  end loop;\n+\n+  return pg_catalog.btrim(v_out);\n+end;\n+$$;\n+\n+create or replace function public.public_food_name_char_is_word(p_char text)\n+returns boolean\n+language sql\n+immutable\n+set search_path = ''\n+as $$\n+  select p_char is not null\n+     and (\n+       pg_catalog.ascii(p_char) between 48 and 57\n+       or pg_catalog.ascii(p_char) between 97 and 122\n+       or pg_catalog.ascii(p_char) between 12353 and 12438\n+       or pg_catalog.ascii(p_char) between 12449 and 12538\n+       or pg_catalog.ascii(p_char) between 19968 and 40959\n+       or pg_catalog.ascii(p_char) = 12540\n+     );\n+$$;\n+\n+create or replace function public.public_food_name_contains_term(\n+  p_name text,\n+  p_term text\n+)\n+returns boolean\n+language plpgsql\n+immutable\n+set search_path = ''\n+as $$\n+declare\n+  v_from integer := 1;\n+  v_at integer;\n+  v_before text;\n+  v_after text;\n+begin\n+  if p_term is null or p_term = '' or p_name is null or p_name = '' then\n+    return false;\n+  end if;\n+\n+  loop\n+    v_at := pg_catalog.strpos(pg_catalog.substr(p_name, v_from), p_term);\n+    exit when v_at = 0;\n+    v_at := v_from + v_at - 1;\n+\n+    if v_at = 1 then\n+      v_before := null;\n+    else\n+      v_before := pg_catalog.substr(p_name, v_at - 1, 1);\n+    end if;\n+\n+    if v_at + pg_catalog.char_length(p_term) > pg_catalog.char_length(p_name) then\n+      v_after := null;\n+    else\n+      v_after := pg_catalog.substr(p_name, v_at + pg_catalog.char_length(p_term), 1);\n+    end if;\n+\n+    if (v_before is null or not public.public_food_name_char_is_word(v_before))\n+       and (v_after is null or not public.public_food_name_char_is_word(v_after)) then\n+      return true;\n+    end if;\n+\n+    v_from := v_at + 1;\n+  end loop;\n+\n+  return false;\n+end;\n+$$;\n+\n+create or replace function public.public_food_name_strip_phrase(\n+  p_name text,\n+  p_phrase text\n+)\n+returns text\n+language plpgsql\n+immutable\n+set search_path = ''\n+as $$\n+declare\n+  v text := pg_catalog.coalesce(p_name, '');\n+  v_from integer := 1;\n+  v_at integer;\n+  v_before text;\n+  v_after text;\n+begin\n+  if p_phrase is null or p_phrase = '' then\n+    return v;\n+  end if;\n+\n+  loop\n+    v_at := pg_catalog.strpos(pg_catalog.substr(v, v_from), p_phrase);\n+    exit when v_at = 0;\n+    v_at := v_from + v_at - 1;\n+\n+    if v_at = 1 then\n+      v_before := null;\n+    else\n+      v_before := pg_catalog.substr(v, v_at - 1, 1);\n+    end if;\n+\n+    if v_at + pg_catalog.char_length(p_phrase) > pg_catalog.char_length(v) then\n+      v_after := null;\n+    else\n+      v_after := pg_catalog.substr(v, v_at + pg_catalog.char_length(p_phrase), 1);\n+    end if;\n+\n+    if (v_before is null or not public.public_food_name_char_is_word(v_before))\n+       and (v_after is null or not public.public_food_name_char_is_word(v_after)) then\n+      v := pg_catalog.substr(v, 1, pg_catalog.greatest(v_at - 1, 0))\n+        || ' '\n+        || pg_catalog.substr(v, v_at + pg_catalog.char_length(p_phrase));\n+      v_from := pg_catalog.greatest(v_at, 1);\n+    else\n+      v_from := v_at + 1;\n+    end if;\n+  end loop;\n+\n+  return v;\n+end;\n+$$;\n+\n+create or replace function public.public_food_name_term_uses_substring(p_term text)\n+returns boolean\n+language sql\n+immutable\n+set search_path = ''\n+as $$\n+  select not pg_catalog.regexp_like(p_term, '[a-z0-9]')\n+     and pg_catalog.char_length(p_term) >= 2\n+     and p_term not in (\n+       -- PUBLIC_FOOD_BOUNDARY_ONLY\n+       'えろ',\n+       'くそ',\n+       'ふぇら',\n+       'まんこ'\n+       -- /PUBLIC_FOOD_BOUNDARY_ONLY\n+     );\n+$$;\n+\n+create or replace function public.public_food_name_is_banned(p_name text)\n+returns boolean\n+language plpgsql\n+immutable\n+set search_path = ''\n+as $$\n+declare\n+  v_spaced text := public.normalize_public_food_name(p_name);\n+  v_compact text;\n+  v_term text;\n+  v_norm text;\n+  v_phrase text;\n+  v_words text[] := array[\n+    -- PUBLIC_FOOD_BANNED_WORDS\n+    'fuck',\n+    'fucking',\n+    'motherfucker',\n+    'shit',\n+    'bullshit',\n+    'asshole',\n+    'bitch',\n+    'bastard',\n+    'cunt',\n+    'dick',\n+    'cock',\n+    'pussy',\n+    'whore',\n+    'slut',\n+    'nigger',\n+    'nigga',\n+    'faggot',\n+    'retard',\n+    'rape',\n+    'くそ',\n+    'くそったれ',\n+    'ちくしょう',\n+    'ちんこ',\n+    'ちんぽ',\n+    'まんこ',\n+    'うんこ',\n+    'きんたま',\n+    'ファック',\n+    'セックス',\n+    'フェラ',\n+    '中出し',\n+    '死ね',\n+    '殺す',\n+    'きちがい',\n+    '池沼',\n+    'エロ',\n+    'おまんこ',\n+    'フェラチオ',\n+    'イラマチオ',\n+    'クンニ',\n+    'パイズリ',\n+    '顔射',\n+    'ぶっかけ',\n+    'ごっくん',\n+    'ザーメン',\n+    'オナニー',\n+    '潮吹き',\n+    '素股',\n+    '手コキ',\n+    '手マン',\n+    '肉便器',\n+    'fellatio',\n+    'cunnilingus'\n+    -- /PUBLIC_FOOD_BANNED_WORDS\n+  ];\n+  v_phrases text[] := array[\n+    -- PUBLIC_FOOD_ALLOWED_PHRASES\n+    'cock tail',\n+    'rape seed'\n+    -- /PUBLIC_FOOD_ALLOWED_PHRASES\n+  ];\n+begin\n+  if v_spaced = '' then\n+    return false;\n+  end if;\n+\n+  foreach v_phrase in array v_phrases loop\n+    v_spaced := public.public_food_name_strip_phrase(v_spaced, v_phrase);\n+  end loop;\n+  v_spaced := pg_catalog.btrim(pg_catalog.regexp_replace(v_spaced, ' +', ' ', 'g'));\n+  if v_spaced = '' then\n+    return false;\n+  end if;\n+  v_compact := pg_catalog.replace(v_spaced, ' ', '');\n+\n+  foreach v_term in array v_words loop\n+    v_norm := pg_catalog.replace(public.normalize_public_food_name(v_term), ' ', '');\n+    if v_norm = '' then\n+      continue;\n+    end if;\n+\n+    if public.public_food_name_term_uses_substring(v_norm) then\n+      if pg_catalog.strpos(v_compact, v_norm) > 0 then\n+        return true;\n+      end if;\n+    elsif public.public_food_name_contains_term(v_spaced, v_norm)\n+       or public.public_food_name_contains_term(v_compact, v_norm) then\n+      return true;\n+    end if;\n+  end loop;\n+\n+  return false;\n+end;\n+$$;\n+\n+revoke all on function public.compose_halfwidth_voiced(text) from public, anon;\n+revoke all on function public.normalize_public_food_name(text) from public, anon;\n+revoke all on function public.public_food_name_char_is_word(text) from public, anon;\n+revoke all on function public.public_food_name_contains_term(text, text) from public, anon;\n+revoke all on function public.public_food_name_strip_phrase(text, text) from public, anon;\n+revoke all on function public.public_food_name_term_uses_substring(text) from public, anon;\n+revoke all on function public.public_food_name_is_banned(text) from public, anon;\n+\n+grant execute on function public.compose_halfwidth_voiced(text) to authenticated;\n+grant execute on function public.normalize_public_food_name(text) to authenticated;\n+grant execute on function public.public_food_name_char_is_word(text) to authenticated;\n+grant execute on function public.public_food_name_contains_term(text, text) to authenticated;\n+grant execute on function public.public_food_name_strip_phrase(text, text) to authenticated;\n+grant execute on function public.public_food_name_term_uses_substring(text) to authenticated;\n+grant execute on function public.public_food_name_is_banned(text) to authenticated;\n+\n+-- Name changes on an already public row. Other columns stay editable.\n+create or replace function public.validate_saved_foods_public_row()\n+returns trigger\n+language plpgsql\n+set search_path = ''\n+as $$\n+begin\n+  if old.visibility <> 'public' or new.visibility <> 'public' then\n+    return new;\n+  end if;\n+\n+  if new.base_amount <= 0 then\n+    raise exception 'base_amount must be positive';\n+  end if;\n+\n+  if pg_catalog.btrim(new.name) = '' or pg_catalog.btrim(new.normalized_name) = '' then\n+    raise exception 'name and normalized_name are required';\n+  end if;\n+\n+  if new.name is distinct from old.name\n+     and public.public_food_name_is_banned(new.name) then\n+    raise exception 'public food name is not allowed';\n+  end if;\n+\n+  if new.normalized_name is distinct from old.normalized_name\n+     and public.public_food_name_is_banned(new.normalized_name) then\n+    raise exception 'public food name is not allowed';\n+  end if;\n+\n+  if new.brand is distinct from old.brand\n+     and public.public_food_name_is_banned(pg_catalog.coalesce(new.brand, '')) then\n+    raise exception 'public food name is not allowed';\n+  end if;\n+\n+  if new.serving_unit_label is distinct from old.serving_unit_label\n+     and public.public_food_name_is_banned(pg_catalog.coalesce(new.serving_unit_label, '')) then\n+    raise exception 'public food name is not allowed';\n+  end if;\n+\n+  if pg_catalog.coalesce(new.kcal_per_base, 0) < 0\n+     or pg_catalog.coalesce(new.protein_per_base, 0) < 0\n+     or pg_catalog.coalesce(new.fat_per_base, 0) < 0\n+     or pg_catalog.coalesce(new.carb_per_base, 0) < 0 then\n+    raise exception 'nutrition values must be non-negative';\n+  end if;\n+\n+  if (old.normalized_name, old.base_amount, old.unit_type)\n+     is distinct from (new.normalized_name, new.base_amount, new.unit_type)\n+     and exists (\n+       select 1\n+       from public.saved_foods sf\n+       where sf.visibility = 'public'\n+         and sf.status = 'active'\n+         and sf.deleted_at is null\n+         and sf.normalized_name = new.normalized_name\n+         and sf.unit_type = new.unit_type\n+         and sf.base_amount = new.base_amount\n+         and not (sf.user_id = new.user_id and sf.food_id = new.food_id)\n+     ) then\n+    raise exception 'duplicate public food exists';\n+  end if;\n+\n+  return new;\n+end;\n+$$;\n+\n+create or replace function public.publish_saved_food(p_food_id text)\n+returns public.saved_foods\n+language plpgsql\n+security definer\n+set search_path = ''\n+as $$\n+declare\n+  v_owner pg_catalog.uuid := auth.uid();\n+  v_row public.saved_foods%rowtype;\n+begin\n+  if v_owner is null then\n+    raise exception 'not authenticated';\n+  end if;\n+\n+  select * into v_row\n+  from public.saved_foods\n+  where user_id = v_owner and food_id = p_food_id\n+  for update;\n+\n+  if not found then\n+    raise exception 'food not found';\n+  end if;\n+\n+  if v_row.visibility = 'public' then\n+    raise exception 'food is already public';\n+  end if;\n+\n+  if v_row.status <> 'active' or v_row.deleted_at is not null then\n+    raise exception 'food is not publishable';\n+  end if;\n+\n+  if v_row.moderation_status not in ('none', 'reported', 'under_review') then\n+    raise exception 'moderation_status blocks publish';\n+  end if;\n+\n+  if v_row.base_amount <= 0 then\n+    raise exception 'base_amount must be positive';\n+  end if;\n+\n+  if v_row.unit_type not in ('g', 'ml', 'piece', 'serving') then\n+    raise exception 'invalid unit_type';\n+  end if;\n+\n+  if pg_catalog.btrim(v_row.name) = '' or pg_catalog.btrim(v_row.normalized_name) = '' then\n+    raise exception 'name and normalized_name are required';\n+  end if;\n+\n+  if public.public_food_name_is_banned(v_row.name)\n+     or public.public_food_name_is_banned(v_row.normalized_name)\n+     or public.public_food_name_is_banned(pg_catalog.coalesce(v_row.brand, ''))\n+     or public.public_food_name_is_banned(pg_catalog.coalesce(v_row.serving_unit_label, '')) then\n+    raise exception 'public food name is not allowed';\n+  end if;\n+\n+  if pg_catalog.coalesce(v_row.kcal_per_base, 0) < 0\n+     or pg_catalog.coalesce(v_row.protein_per_base, 0) < 0\n+     or pg_catalog.coalesce(v_row.fat_per_base, 0) < 0\n+     or pg_catalog.coalesce(v_row.carb_per_base, 0) < 0 then\n+    raise exception 'nutrition values must be non-negative';\n+  end if;\n+\n+  if exists (\n+    select 1\n+    from public.saved_foods sf\n+    where sf.visibility = 'public'\n+      and sf.status = 'active'\n+      and sf.deleted_at is null\n+      and sf.normalized_name = v_row.normalized_name\n+      and sf.unit_type = v_row.unit_type\n+      and sf.base_amount = v_row.base_amount\n+      and not (sf.user_id = v_row.user_id and sf.food_id = v_row.food_id)\n+  ) then\n+    raise exception 'duplicate public food exists';\n+  end if;\n+\n+  -- Step 4: lock buckets and verify headroom (no increment yet).\n+  perform public.ensure_publish_rate_limit_headroom(v_owner);\n+\n+  -- Step 5: publicize (any failure rolls back the whole transaction).\n+  perform pg_catalog.set_config('ayg.allow_saved_food_publish', 'on', true);\n+\n+  update public.saved_foods\n+  set visibility = 'public'\n+  where user_id = v_owner and food_id = p_food_id\n+  returning * into v_row;\n+\n+  if not found then\n+    raise exception 'visibility update failed';\n+  end if;\n+\n+  -- Step 4 (count update): only after successful publicization.\n+  perform public.increment_publish_rate_limit(v_owner);\n+\n+  return v_row;\n+end;\n+$$;"
+    },
+    {
+      "sha": "96d3f5dc771cd5316bd229e117c62155147b1b02",
+      "filename": "supabase/rollback/20260927120000_reject_banned_public_food_names_down.sql",
+      "status": "added",
+      "additions": 155,
+      "deletions": 0,
+      "changes": 155,
+      "blob_url": "https://github.com/naruto-aii/AYG/blob/f01d3d886666c57bfa60f144d0194e93a1f26d00/supabase%2Frollback%2F20260927120000_reject_banned_public_food_names_down.sql",
+      "raw_url": "https://github.com/naruto-aii/AYG/raw/f01d3d886666c57bfa60f144d0194e93a1f26d00/supabase%2Frollback%2F20260927120000_reject_banned_public_food_names_down.sql",
+      "contents_url": "https://api.github.com/repos/naruto-aii/AYG/contents/supabase%2Frollback%2F20260927120000_reject_banned_public_food_names_down.sql?ref=f01d3d886666c57bfa60f144d0194e93a1f26d00",
+      "patch": "@@ -0,0 +1,155 @@\n+-- Down for 20260927120000_reject_banned_public_food_names.sql.\n+-- Not under supabase/migrations, so `db push` does not apply it.\n+-- Restores validate_saved_foods_public_row and publish_saved_food to the\n+-- bodies from 20260723120000_add_food_master_public_v1_1.sql.\n+-- Does not drop the validate_saved_foods_public_row trigger.\n+-- Then drops the banned-name helper functions.\n+\n+begin;\n+\n+create or replace function public.validate_saved_foods_public_row()\n+returns trigger\n+language plpgsql\n+as $$\n+begin\n+  if old.visibility <> 'public' or new.visibility <> 'public' then\n+    return new;\n+  end if;\n+\n+  if new.base_amount <= 0 then\n+    raise exception 'base_amount must be positive';\n+  end if;\n+\n+  if btrim(new.name) = '' or btrim(new.normalized_name) = '' then\n+    raise exception 'name and normalized_name are required';\n+  end if;\n+\n+  if coalesce(new.kcal_per_base, 0) < 0\n+     or coalesce(new.protein_per_base, 0) < 0\n+     or coalesce(new.fat_per_base, 0) < 0\n+     or coalesce(new.carb_per_base, 0) < 0 then\n+    raise exception 'nutrition values must be non-negative';\n+  end if;\n+\n+  if (old.normalized_name, old.base_amount, old.unit_type)\n+     is distinct from (new.normalized_name, new.base_amount, new.unit_type)\n+     and exists (\n+       select 1\n+       from public.saved_foods sf\n+       where sf.visibility = 'public'\n+         and sf.status = 'active'\n+         and sf.deleted_at is null\n+         and sf.normalized_name = new.normalized_name\n+         and sf.unit_type = new.unit_type\n+         and sf.base_amount = new.base_amount\n+         and not (sf.user_id = new.user_id and sf.food_id = new.food_id)\n+     ) then\n+    raise exception 'duplicate public food exists';\n+  end if;\n+\n+  return new;\n+end;\n+$$;\n+\n+create or replace function public.publish_saved_food(p_food_id text)\n+returns public.saved_foods\n+language plpgsql\n+security definer\n+set search_path = public\n+as $$\n+declare\n+  v_owner uuid := auth.uid();\n+  v_row public.saved_foods%rowtype;\n+begin\n+  if v_owner is null then\n+    raise exception 'not authenticated';\n+  end if;\n+\n+  select * into v_row\n+  from public.saved_foods\n+  where user_id = v_owner and food_id = p_food_id\n+  for update;\n+\n+  if not found then\n+    raise exception 'food not found';\n+  end if;\n+\n+  if v_row.visibility = 'public' then\n+    raise exception 'food is already public';\n+  end if;\n+\n+  if v_row.status <> 'active' or v_row.deleted_at is not null then\n+    raise exception 'food is not publishable';\n+  end if;\n+\n+  if v_row.moderation_status not in ('none', 'reported', 'under_review') then\n+    raise exception 'moderation_status blocks publish';\n+  end if;\n+\n+  if v_row.base_amount <= 0 then\n+    raise exception 'base_amount must be positive';\n+  end if;\n+\n+  if v_row.unit_type not in ('g', 'ml', 'piece', 'serving') then\n+    raise exception 'invalid unit_type';\n+  end if;\n+\n+  if btrim(v_row.name) = '' or btrim(v_row.normalized_name) = '' then\n+    raise exception 'name and normalized_name are required';\n+  end if;\n+\n+  if coalesce(v_row.kcal_per_base, 0) < 0\n+     or coalesce(v_row.protein_per_base, 0) < 0\n+     or coalesce(v_row.fat_per_base, 0) < 0\n+     or coalesce(v_row.carb_per_base, 0) < 0 then\n+    raise exception 'nutrition values must be non-negative';\n+  end if;\n+\n+  if exists (\n+    select 1\n+    from public.saved_foods sf\n+    where sf.visibility = 'public'\n+      and sf.status = 'active'\n+      and sf.deleted_at is null\n+      and sf.normalized_name = v_row.normalized_name\n+      and sf.unit_type = v_row.unit_type\n+      and sf.base_amount = v_row.base_amount\n+      and not (sf.user_id = v_row.user_id and sf.food_id = v_row.food_id)\n+  ) then\n+    raise exception 'duplicate public food exists';\n+  end if;\n+\n+  -- Step 4: lock buckets and verify headroom (no increment yet).\n+  perform public.ensure_publish_rate_limit_headroom(v_owner);\n+\n+  -- Step 5: publicize (any failure rolls back the whole transaction).\n+  perform set_config('ayg.allow_saved_food_publish', 'on', true);\n+\n+  update public.saved_foods\n+  set visibility = 'public'\n+  where user_id = v_owner and food_id = p_food_id\n+  returning * into v_row;\n+\n+  if not found then\n+    raise exception 'visibility update failed';\n+  end if;\n+\n+  -- Step 4 (count update): only after successful publicization.\n+  perform public.increment_publish_rate_limit(v_owner);\n+\n+  return v_row;\n+end;\n+$$;\n+\n+revoke all on function public.publish_saved_food(text) from public;\n+grant execute on function public.publish_saved_food(text) to authenticated;\n+\n+drop function if exists public.public_food_name_is_banned(text);\n+drop function if exists public.public_food_name_term_uses_substring(text);\n+drop function if exists public.public_food_name_strip_phrase(text, text);\n+drop function if exists public.public_food_name_contains_term(text, text);\n+drop function if exists public.public_food_name_char_is_word(text);\n+drop function if exists public.normalize_public_food_name(text);\n+drop function if exists public.compose_halfwidth_voiced(text);\n+\n+commit;"
+    },
+    {
+      "sha": "8ba0b7576535a07dc3bfd251f3c327b8c0c0392d",
+      "filename": "supabase/tests/public_food_banned_name_test.sql",
+      "status": "added",
+      "additions": 261,
+      "deletions": 0,
+      "changes": 261,
+      "blob_url": "https://github.com/naruto-aii/AYG/blob/f01d3d886666c57bfa60f144d0194e93a1f26d00/supabase%2Ftests%2Fpublic_food_banned_name_test.sql",
+      "raw_url": "https://github.com/naruto-aii/AYG/raw/f01d3d886666c57bfa60f144d0194e93a1f26d00/supabase%2Ftests%2Fpublic_food_banned_name_test.sql",
+      "contents_url": "https://api.github.com/repos/naruto-aii/AYG/contents/supabase%2Ftests%2Fpublic_food_banned_name_test.sql?ref=f01d3d886666c57bfa60f144d0194e93a1f26d00",
+      "patch": "@@ -0,0 +1,261 @@\n+-- Public food name filter. Local Supabase only. Does not touch production.\n+-- Run after the banned-name migration and the shared helpers:\n+--   psql \"$DB_URL\" -v ON_ERROR_STOP=1 -f supabase/tests/food_master_v1_1_test_helpers.sql\n+--   psql \"$DB_URL\" -v ON_ERROR_STOP=1 -f supabase/tests/public_food_banned_name_test.sql\n+\n+do $$\n+declare\n+  v_user uuid := '66666666-6666-6666-6666-666666666666';\n+  v_kcal double precision;\n+begin\n+  perform ayg_test.assert_true(\n+    not public.public_food_name_is_banned('キャベツ'),\n+    'ordinary name is allowed'\n+  );\n+  perform ayg_test.assert_true(\n+    public.public_food_name_is_banned('ＦＵＣＫ'),\n+    'full-width latin name is rejected'\n+  );\n+  perform ayg_test.assert_true(\n+    public.public_food_name_is_banned('f u c k'),\n+    'spaced latin name is rejected'\n+  );\n+  perform ayg_test.assert_true(\n+    not public.public_food_name_is_banned('shiitake'),\n+    'shiitake is not a banned token'\n+  );\n+  perform ayg_test.assert_true(\n+    not public.public_food_name_is_banned('イエロー'),\n+    'yellow is not rejected by a short kana term'\n+  );\n+  perform ayg_test.assert_true(\n+    public.public_food_name_is_banned(U&'f\\00FAck'),\n+    'precomposed accent is rejected'\n+  );\n+  perform ayg_test.assert_true(\n+    public.public_food_name_is_banned(U&'fu\\0301ck'),\n+    'combining accent is rejected'\n+  );\n+  perform ayg_test.assert_true(\n+    public.public_food_name_is_banned(U&'fu\\0441k'),\n+    'cyrillic lookalike is rejected'\n+  );\n+  perform ayg_test.assert_true(\n+    public.public_food_name_is_banned('5h1t'),\n+    'digit substitution is rejected'\n+  );\n+  perform ayg_test.assert_true(\n+    public.public_food_name_is_banned('c0ck'),\n+    'zero substitution is rejected'\n+  );\n+  perform ayg_test.assert_true(\n+    public.public_food_name_is_banned('$hit'),\n+    'dollar substitution is rejected'\n+  );\n+  perform ayg_test.assert_true(\n+    public.public_food_name_is_banned('sh!t'),\n+    'exclamation substitution is rejected'\n+  );\n+  perform ayg_test.assert_true(\n+    public.public_food_name_is_banned(U&'\\FF77\\FF81\\FF76\\FF9E\\FF72'),\n+    'halfwidth voiced kana is rejected'\n+  );\n+  perform ayg_test.assert_true(\n+    not public.public_food_name_is_banned('sea bass'),\n+    'sea bass stays allowed'\n+  );\n+  perform ayg_test.assert_true(\n+    not public.public_food_name_is_banned('cocktail'),\n+    'cocktail stays allowed'\n+  );\n+  perform ayg_test.assert_true(\n+    not public.public_food_name_is_banned('カフェラテ'),\n+    'cafe latte stays allowed'\n+  );\n+  perform ayg_test.assert_true(\n+    not public.public_food_name_is_banned('ポークソテー'),\n+    'pork saute stays allowed'\n+  );\n+  perform ayg_test.assert_true(\n+    not public.public_food_name_is_banned('ポークソーセージ'),\n+    'pork sausage stays allowed'\n+  );\n+  perform ayg_test.assert_true(\n+    not public.public_food_name_is_banned('ミルクソフト'),\n+    'milk soft stays allowed'\n+  );\n+  perform ayg_test.assert_true(\n+    not public.public_food_name_is_banned('スモークソルト'),\n+    'smoked salt stays allowed'\n+  );\n+  perform ayg_test.assert_true(\n+    not public.public_food_name_is_banned('サンマンコ'),\n+    'sanmanko stays allowed'\n+  );\n+  perform ayg_test.assert_true(\n+    not public.public_food_name_is_banned('Cock tail'),\n+    'spaced cocktail phrase stays allowed'\n+  );\n+  perform ayg_test.assert_true(\n+    not public.public_food_name_is_banned('rape seed oil'),\n+    'rape seed oil stays allowed'\n+  );\n+  perform ayg_test.assert_true(\n+    not public.public_food_name_is_banned('ブラックソース'),\n+    'black sauce stays allowed'\n+  );\n+  perform ayg_test.assert_true(\n+    not public.public_food_name_is_banned('やくそう'),\n+    'herbal medicine stays allowed'\n+  );\n+  perform ayg_test.assert_true(\n+    public.public_food_name_is_banned('おまんこ'),\n+    'explicit compound is rejected'\n+  );\n+  perform ayg_test.assert_true(\n+    public.public_food_name_is_banned('オマンコ'),\n+    'katakana explicit compound is rejected'\n+  );\n+  perform ayg_test.assert_true(\n+    public.public_food_name_is_banned('フェラチオ'),\n+    'explicit compound fellatio is rejected'\n+  );\n+  perform ayg_test.assert_true(\n+    public.public_food_name_is_banned('ふぇらちお'),\n+    'hiragana explicit compound is rejected'\n+  );\n+  perform ayg_test.assert_true(\n+    public.public_food_name_is_banned('イラマチオ'),\n+    'explicit compound irrumatio is rejected'\n+  );\n+  perform ayg_test.assert_true(\n+    public.public_food_name_is_banned('おまんこカレー'),\n+    'explicit compound beside a food word is rejected'\n+  );\n+  perform ayg_test.assert_true(\n+    public.public_food_name_is_banned('fellatio'),\n+    'latin explicit compound is rejected'\n+  );\n+  perform ayg_test.assert_true(\n+    public.public_food_name_is_banned('くそ'),\n+    'bare short kana term is rejected'\n+  );\n+  perform ayg_test.assert_true(\n+    public.public_food_name_is_banned('フェラ'),\n+    'bare kana term is rejected'\n+  );\n+  perform ayg_test.assert_true(\n+    public.public_food_name_is_banned('まんこ'),\n+    'bare short term is rejected'\n+  );\n+  perform ayg_test.assert_true(\n+    public.public_food_name_is_banned('cock'),\n+    'bare latin term is rejected'\n+  );\n+  perform ayg_test.assert_true(\n+    public.public_food_name_is_banned('rape'),\n+    'bare rape is rejected'\n+  );\n+  perform ayg_test.assert_true(\n+    public.public_food_name_is_banned('fuck rape seed oil'),\n+    'banned word beside an allowed phrase is rejected'\n+  );\n+  perform ayg_test.assert_true(\n+    public.public_food_name_is_banned(U&'\\FF81\\FF9D\\FF8E\\FF9F'),\n+    'halfwidth handakuten is rejected'\n+  );\n+\n+  delete from public.saved_foods where user_id = v_user;\n+  delete from public.users where id = v_user;\n+  delete from auth.users where id = v_user;\n+\n+  insert into auth.users (\n+    id, instance_id, aud, role, email, encrypted_password,\n+    email_confirmed_at, created_at, updated_at\n+  ) values (\n+    v_user, '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated',\n+    'banned-name@test.local', crypt('testpass', gen_salt('bf')), now(), now(), now()\n+  );\n+  insert into public.users (id, email) values (v_user, 'banned-name@test.local');\n+\n+  perform ayg_test.set_auth(v_user);\n+  insert into public.saved_foods (\n+    user_id, food_id, name, normalized_name, base_amount, unit_type, visibility\n+  ) values\n+    (v_user, 'banned-publish', 'fuck', 'fuck', 100, 'g', 'private'),\n+    (v_user, 'ok-publish', 'キャベツ', 'キャベツ', 100, 'g', 'private'),\n+    (v_user, 'brand-banned', 'キャベツ', 'キャベツ', 100, 'g', 'private');\n+\n+  update public.saved_foods\n+  set brand = 'shit'\n+  where user_id = v_user and food_id = 'brand-banned';\n+\n+  perform ayg_test.assert_raises(\n+    $sql$select public.publish_saved_food('banned-publish')$sql$,\n+    '%public food name is not allowed%'\n+  );\n+  perform ayg_test.assert_raises(\n+    $sql$select public.publish_saved_food('brand-banned')$sql$,\n+    '%public food name is not allowed%'\n+  );\n+\n+  perform public.publish_saved_food('ok-publish');\n+\n+  perform ayg_test.assert_raises(\n+    format(\n+      $sql$update public.saved_foods\n+        set name = 'うんこ', normalized_name = 'うんこ'\n+        where user_id = '%s' and food_id = 'ok-publish'$sql$,\n+      v_user\n+    ),\n+    '%public food name is not allowed%'\n+  );\n+\n+  perform ayg_test.assert_raises(\n+    format(\n+      $sql$update public.saved_foods\n+        set brand = 'c0ck'\n+        where user_id = '%s' and food_id = 'ok-publish'$sql$,\n+      v_user\n+    ),\n+    '%public food name is not allowed%'\n+  );\n+  perform ayg_test.assert_raises(\n+    format(\n+      $sql$update public.saved_foods\n+        set serving_unit_label = 'sh!t'\n+        where user_id = '%s' and food_id = 'ok-publish'$sql$,\n+      v_user\n+    ),\n+    '%public food name is not allowed%'\n+  );\n+\n+  update public.saved_foods\n+  set kcal_per_base = 40\n+  where user_id = v_user and food_id = 'ok-publish';\n+\n+  select kcal_per_base into v_kcal\n+  from public.saved_foods\n+  where user_id = v_user and food_id = 'ok-publish';\n+  perform ayg_test.assert_true(v_kcal = 40, 'non-name update of a public row still works');\n+\n+  perform ayg_test.set_service_role();\n+  insert into public.saved_foods (\n+    user_id, food_id, name, normalized_name, base_amount, unit_type, visibility\n+  ) values (\n+    v_user, 'legacy-banned', 'fuck', 'fuck', 50, 'g', 'public'\n+  );\n+\n+  update public.saved_foods\n+  set kcal_per_base = 12\n+  where user_id = v_user and food_id = 'legacy-banned';\n+\n+  select kcal_per_base into v_kcal\n+  from public.saved_foods\n+  where user_id = v_user and food_id = 'legacy-banned';\n+  perform ayg_test.assert_true(\n+    v_kcal = 12,\n+    'existing banned name can still change other fields'\n+  );\n+end;\n+$$;"
+    },
+    {
+      "sha": "69db19a9f4bb616a765e401167c1d5b787b7b479",
+      "filename": "test/public_food_name_moderation_test.dart",
+      "status": "added",
+      "additions": 416,
+      "deletions": 0,
+      "changes": 416,
+      "blob_url": "https://github.com/naruto-aii/AYG/blob/f01d3d886666c57bfa60f144d0194e93a1f26d00/test%2Fpublic_food_name_moderation_test.dart",
+      "raw_url": "https://github.com/naruto-aii/AYG/raw/f01d3d886666c57bfa60f144d0194e93a1f26d00/test%2Fpublic_food_name_moderation_test.dart",
+      "contents_url": "https://api.github.com/repos/naruto-aii/AYG/contents/test%2Fpublic_food_name_moderation_test.dart?ref=f01d3d886666c57bfa60f144d0194e93a1f26d00",
+      "patch": "@@ -0,0 +1,416 @@\n+import 'dart:io';\n+\n+import 'package:ayg/moderation/public_food_banned_words.dart';\n+import 'package:ayg/moderation/public_food_name_moderation.dart';\n+import 'package:ayg/models/food_source_type.dart';\n+import 'package:ayg/models/food_status.dart';\n+import 'package:ayg/models/food_unit_type.dart';\n+import 'package:ayg/models/food_visibility.dart';\n+import 'package:ayg/models/saved_food.dart';\n+import 'package:ayg/repositories/exceptions/food_master_exceptions.dart';\n+import 'package:ayg/repositories/supabase/supabase_error_mapper.dart';\n+import 'package:ayg/services/publish_error_messages.dart';\n+import 'package:ayg/services/saved_food_publish_validator.dart';\n+import 'package:flutter_test/flutter_test.dart';\n+import 'package:supabase_flutter/supabase_flutter.dart';\n+\n+void main() {\n+  group('PublicFoodNameModeration', () {\n+    test('halfwidth katakana maps are the same length', () {\n+      expect(\n+        publicFoodHalfwidthKatakanaFrom.runes.length,\n+        publicFoodHalfwidthKatakanaTo.runes.length,\n+      );\n+    });\n+\n+    test('allows ordinary food names', () {\n+      const names = [\n+        'キャベツ',\n+        '鶏むね肉',\n+        '味噌汁',\n+        'バナナ',\n+        'イエロー',\n+        'shiitake',\n+        'sea bass',\n+        'grape',\n+        'cocktail',\n+        'classic',\n+        'カフェラテ',\n+        'ポークソテー',\n+        'ポークソーセージ',\n+        'ミルクソフト',\n+        'スモークソルト',\n+        'サンマンコ',\n+        'Cock tail',\n+        'rape seed oil',\n+        'ブラックソース',\n+        'やくそう',\n+      ];\n+      for (final name in names) {\n+        expect(PublicFoodNameModeration.isBanned(name), isFalse, reason: name);\n+      }\n+    });\n+\n+    test('rejects normalized latin, kana, and spacing', () {\n+      expect(PublicFoodNameModeration.isBanned('  FUCK '), isTrue);\n+      expect(PublicFoodNameModeration.isBanned('ｆｕｃｋ'), isTrue);\n+      expect(PublicFoodNameModeration.isBanned('f u c k'), isTrue);\n+      expect(PublicFoodNameModeration.isBanned('ﾌｧｯｸ'), isTrue);\n+      expect(PublicFoodNameModeration.isBanned('ファック'), isTrue);\n+      expect(PublicFoodNameModeration.isBanned('うんこカレー'), isTrue);\n+      expect(PublicFoodNameModeration.isBanned('チンコ'), isTrue);\n+    });\n+\n+    test(\n+      'rejects accent, combining, lookalike, digit, and symbol bypasses',\n+      () {\n+        expect(PublicFoodNameModeration.isBanned('fúck'), isTrue);\n+        expect(PublicFoodNameModeration.isBanned('fu\\u0301ck'), isTrue);\n+        expect(PublicFoodNameModeration.isBanned('fu\\u0441k'), isTrue);\n+        expect(PublicFoodNameModeration.isBanned('5h1t'), isTrue);\n+        expect(PublicFoodNameModeration.isBanned('c0ck'), isTrue);\n+        expect(PublicFoodNameModeration.isBanned(r'$hit'), isTrue);\n+        expect(PublicFoodNameModeration.isBanned('sh!t'), isTrue);\n+        // ｷﾁｶﾞｲ — halfwidth ka plus voiced mark becomes が after NFKC.\n+        expect(\n+          PublicFoodNameModeration.isBanned('\\uFF77\\uFF81\\uFF76\\uFF9E\\uFF72'),\n+          isTrue,\n+        );\n+        // ﾁﾝﾎﾟ — halfwidth ho plus handakuten (U+FF9F) becomes ぽ.\n+        expect(\n+          PublicFoodNameModeration.isBanned('\\uFF81\\uFF9D\\uFF8E\\uFF9F'),\n+          isTrue,\n+        );\n+      },\n+    );\n+\n+    test(\n+      'still rejects a whole short term and a term beside an allowed phrase',\n+      () {\n+        expect(PublicFoodNameModeration.isBanned('くそ'), isTrue);\n+        expect(PublicFoodNameModeration.isBanned('フェラ'), isTrue);\n+        expect(PublicFoodNameModeration.isBanned('まんこ'), isTrue);\n+        expect(PublicFoodNameModeration.isBanned('cock'), isTrue);\n+        expect(PublicFoodNameModeration.isBanned('rape'), isTrue);\n+        expect(PublicFoodNameModeration.isBanned('fuck rape seed oil'), isTrue);\n+        expect(PublicFoodNameModeration.isBanned('Cock tail sauce'), isFalse);\n+      },\n+    );\n+\n+    test('rejects explicit compounds and still allows ordinary foods', () {\n+      const allowed = [\n+        'カフェラテ',\n+        'ポークソテー',\n+        'スモークソルト',\n+        'Cock tail',\n+        'rape seed oil',\n+        'ブラックソース',\n+        'やくそう',\n+        'サンマンコ',\n+      ];\n+      const rejected = [\n+        'おまんこ',\n+        'オマンコ',\n+        'フェラチオ',\n+        'ふぇらちお',\n+        'イラマチオ',\n+        'クンニ',\n+        'パイズリ',\n+        'おまんこカレー',\n+        'fellatio',\n+        'cunnilingus',\n+      ];\n+      for (final name in allowed) {\n+        expect(PublicFoodNameModeration.isBanned(name), isFalse, reason: name);\n+      }\n+      for (final name in rejected) {\n+        expect(PublicFoodNameModeration.isBanned(name), isTrue, reason: name);\n+      }\n+    });\n+\n+    test('does not treat an unchanged public name as a new rejection', () {\n+      expect(\n+        PublicFoodNameModeration.rejectsPublicUpdate(\n+          previousName: 'fuck',\n+          nextName: 'fuck',\n+        ),\n+        isFalse,\n+      );\n+      expect(\n+        PublicFoodNameModeration.rejectsPublicUpdate(\n+          previousName: 'キャベツ',\n+          nextName: 'うんこ',\n+        ),\n+        isTrue,\n+      );\n+      expect(\n+        PublicFoodNameModeration.rejectsPublicUpdate(\n+          previousName: 'キャベツ',\n+          nextName: 'キャベツ',\n+          previousBrand: 'fuck',\n+          nextBrand: 'fuck',\n+        ),\n+        isFalse,\n+      );\n+      expect(\n+        PublicFoodNameModeration.rejectsPublicUpdate(\n+          previousName: 'キャベツ',\n+          nextName: 'キャベツ',\n+          previousBrand: 'acme',\n+          nextBrand: 'fúck',\n+        ),\n+        isTrue,\n+      );\n+    });\n+  });\n+\n+  group('SavedFoodPublishValidator banned names', () {\n+    const validator = SavedFoodPublishValidator();\n+\n+    test('adds the Japanese message for a banned public name', () {\n+      final result = validator.validate(\n+        food: _food('fuck rice'),\n+        ownerUserId: 'user-a',\n+      );\n+      expect(result.isValid, isFalse);\n+      expect(\n+        result.errors,\n+        contains(PublicFoodNameModeration.rejectionMessage),\n+      );\n+    });\n+\n+    test(\n+      'rejects a clean name when brand, normalized name, or unit is banned',\n+      () {\n+        for (final food in [\n+          _food('キャベツ').copyWith(brand: 'fuck'),\n+          _food('キャベツ').copyWith(normalizedName: '5h1t'),\n+          _food('キャベツ').copyWith(servingUnitLabel: r'$hit'),\n+        ]) {\n+          final result = validator.validate(food: food, ownerUserId: 'user-a');\n+          expect(\n+            result.isValid,\n+            isFalse,\n+            reason: food.brand ?? food.normalizedName,\n+          );\n+          expect(\n+            result.errors,\n+            contains(PublicFoodNameModeration.rejectionMessage),\n+          );\n+        }\n+      },\n+    );\n+  });\n+\n+  group('banned name errors', () {\n+    test('maps the database exception to the Japanese message', () {\n+      final mapped = SupabaseErrorMapper.mapPublishFailure(\n+        const PostgrestException(message: 'public food name is not allowed'),\n+      );\n+      expect(mapped.kind, PublishFailureKind.bannedName);\n+      expect(\n+        PublishErrorMessages.messageFor(mapped),\n+        PublicFoodNameModeration.rejectionMessage,\n+      );\n+      expect(\n+        PublishErrorMessages.messageFor(\n+          const PublicFoodNameRejectedException(),\n+        ),\n+        PublicFoodNameModeration.rejectionMessage,\n+      );\n+    });\n+  });\n+\n+  group('banned word list parity', () {\n+    late String migration;\n+\n+    setUpAll(() {\n+      migration = File(\n+        'supabase/migrations/20260927120000_reject_banned_public_food_names.sql',\n+      ).readAsStringSync();\n+    });\n+\n+    test('SQL list matches the Dart list', () {\n+      expect(\n+        _sqlMarkedList(migration, 'PUBLIC_FOOD_BANNED_WORDS'),\n+        publicFoodBannedWords,\n+      );\n+    });\n+\n+    test('SQL boundary terms and allowed phrases match Dart', () {\n+      expect(\n+        publicFoodHalfwidthDakutenBase.runes.length,\n+        publicFoodHalfwidthDakutenTo.runes.length,\n+      );\n+      expect(\n+        publicFoodHalfwidthHandakutenBase.runes.length,\n+        publicFoodHalfwidthHandakutenTo.runes.length,\n+      );\n+      expect(\n+        _sqlMarkedList(migration, 'PUBLIC_FOOD_BOUNDARY_ONLY'),\n+        publicFoodBoundaryOnlyTerms,\n+      );\n+      expect(\n+        _sqlMarkedList(migration, 'PUBLIC_FOOD_ALLOWED_PHRASES'),\n+        publicFoodAllowedPhrases,\n+      );\n+      expect(migration, contains(publicFoodHalfwidthDakutenBase));\n+      expect(migration, contains(publicFoodHalfwidthDakutenTo));\n+      expect(migration, contains(publicFoodHalfwidthHandakutenBase));\n+      expect(migration, contains(publicFoodHalfwidthHandakutenTo));\n+      expect(\n+        migration,\n+        contains(\n+          'public.compose_halfwidth_voiced(pg_catalog.coalesce(p_name, \\'\\'))',\n+        ),\n+      );\n+    });\n+\n+    test('rollback file restores publish without dropping the trigger', () {\n+      final downPath =\n+          'supabase/rollback/20260927120000_reject_banned_public_food_names_down.sql';\n+      final down = File(downPath).readAsStringSync();\n+      expect(\n+        File(\n+          'supabase/migrations/20260927120000_reject_banned_public_food_names_down.sql',\n+        ).existsSync(),\n+        isFalse,\n+      );\n+      expect(\n+        down,\n+        contains('create or replace function public.publish_saved_food'),\n+      );\n+      expect(\n+        down,\n+        contains(\n+          'create or replace function public.validate_saved_foods_public_row',\n+        ),\n+      );\n+      expect(down, isNot(contains('public food name is not allowed')));\n+      expect(\n+        down,\n+        contains(\n+          'drop function if exists public.compose_halfwidth_voiced(text)',\n+        ),\n+      );\n+      expect(\n+        down,\n+        contains(\n+          'drop function if exists public.public_food_name_strip_phrase(text, text)',\n+        ),\n+      );\n+      expect(\n+        down,\n+        contains(\n+          'grant execute on function public.publish_saved_food(text) to authenticated',\n+        ),\n+      );\n+      expect(down.toLowerCase(), isNot(contains('drop trigger')));\n+    });\n+\n+    test('SQL uses the same halfwidth katakana map', () {\n+      expect(migration, contains(publicFoodHalfwidthKatakanaFrom));\n+      expect(migration, contains(publicFoodHalfwidthKatakanaTo));\n+    });\n+\n+    test('SQL folds NFKC and the same confusable map', () {\n+      expect(\n+        publicFoodConfusableFrom.runes.length,\n+        publicFoodConfusableTo.runes.length,\n+      );\n+      expect(migration, contains('pg_catalog.normalize'));\n+      expect(migration, contains('NFKC'));\n+      expect(migration, contains('major_version = 17'));\n+      expect(migration, contains('cp between 768 and 879'));\n+      expect(migration, contains(publicFoodConfusableFrom));\n+      expect(migration, contains(publicFoodConfusableTo));\n+      expect(migration, contains(\"pg_catalog.replace(v, 'ß', 'ss')\"));\n+      expect(migration, contains(\"pg_catalog.replace(v, 'œ', 'oe')\"));\n+    });\n+\n+    test('functions use an empty search_path and schema-qualified names', () {\n+      expect(\"set search_path = ''\".allMatches(migration).length, 9);\n+      expect(migration.contains('set search_path = public'), isFalse);\n+      final publish = migration.indexOf(\n+        'function public.publish_saved_food',\n+      );\n+      expect(publish, greaterThanOrEqualTo(0));\n+      final publishSql = migration.substring(publish);\n+      expect(publishSql, contains('security definer'));\n+      expect(publishSql, contains(\"set search_path = ''\"));\n+      expect(publishSql, contains('auth.uid()'));\n+      expect(publishSql, contains('pg_catalog.set_config('));\n+      expect(publishSql.contains('set search_path = public'), isFalse);\n+    });\n+\n+    test('publish and public-field updates call the check', () {\n+      expect(\n+        migration,\n+        contains('public.public_food_name_is_banned(v_row.name)'),\n+      );\n+      expect(\n+        migration,\n+        contains('public.public_food_name_is_banned(v_row.normalized_name)'),\n+      );\n+      expect(\n+        migration,\n+        contains(\n+          \"public.public_food_name_is_banned(pg_catalog.coalesce(v_row.brand, ''))\",\n+        ),\n+      );\n+      expect(\n+        migration,\n+        contains(\n+          \"public.public_food_name_is_banned(pg_catalog.coalesce(v_row.serving_unit_label, ''))\",\n+        ),\n+      );\n+      expect(migration, contains('new.name is distinct from old.name'));\n+      expect(\n+        migration,\n+        contains('new.normalized_name is distinct from old.normalized_name'),\n+      );\n+      expect(migration, contains('new.brand is distinct from old.brand'));\n+      expect(\n+        migration,\n+        contains(\n+          'new.serving_unit_label is distinct from old.serving_unit_label',\n+        ),\n+      );\n+      expect(migration, contains('public food name is not allowed'));\n+      expect('update public.saved_foods'.allMatches(migration).length, 1);\n+      expect(migration, contains(\"set visibility = 'public'\"));\n+    });\n+  });\n+}\n+\n+List<String> _sqlMarkedList(String migration, String name) {\n+  final start = migration.indexOf('-- $name');\n+  final end = migration.indexOf('-- /$name');\n+  expect(start, greaterThanOrEqualTo(0));\n+  expect(end, greaterThan(start));\n+  final block = migration.substring(start, end);\n+  return RegExp(\n+    \"'([^']*)'\",\n+  ).allMatches(block).map((match) => match.group(1)!).toList();\n+}\n+\n+SavedFood _food(String name) {\n+  return SavedFood(\n+    foodId: 'food-1',\n+    ownerUserId: 'user-a',\n+    name: name,\n+    normalizedName: name.toLowerCase(),\n+    baseAmount: 100,\n+    unitType: FoodUnitType.g,\n+    servingUnitLabel: 'g',\n+    visibility: FoodVisibility.private,\n+    status: FoodStatus.active,\n+    kcalPerBase: 165,\n+    proteinPerBase: 10,\n+    fatPerBase: 5,\n+    carbPerBase: 20,\n+    sourceType: FoodSourceType.manual,\n+    createdAt: DateTime(2026, 7, 20),\n+    updatedAt: DateTime(2026, 7, 20),\n+  );\n+}"
+    },
+    {
+      "sha": "235abac09eb3ed58c4da6d3dd611916b1b8842dc",
+      "filename": "test/supabase_migration_live_test.dart",
+      "status": "modified",
+      "additions": 90,
+      "deletions": 0,
+      "changes": 90,
+      "blob_url": "https://github.com/naruto-aii/AYG/blob/f01d3d886666c57bfa60f144d0194e93a1f26d00/test%2Fsupabase_migration_live_test.dart",
+      "raw_url": "https://github.com/naruto-aii/AYG/raw/f01d3d886666c57bfa60f144d0194e93a1f26d00/test%2Fsupabase_migration_live_test.dart",
+      "contents_url": "https://api.github.com/repos/naruto-aii/AYG/contents/test%2Fsupabase_migration_live_test.dart?ref=f01d3d886666c57bfa60f144d0194e93a1f26d00",
+      "patch": "@@ -147,5 +147,95 @@ void main() {\n         );\n       },\n     );\n+\n+    test('banned public food name function is installed', () async {\n+      if (!available) {\n+        markTestSkipped('Local Supabase not available');\n+        return;\n+      }\n+\n+      await _applyMigration(\n+        '20260927120000_reject_banned_public_food_names.sql',\n+      );\n+\n+      expect(\n+        await _psql(\"SELECT public.public_food_name_is_banned('キャベツ');\"),\n+        'f',\n+      );\n+      expect(\n+        await _psql(\"SELECT public.public_food_name_is_banned('f u c k');\"),\n+        't',\n+      );\n+      expect(\n+        await _psql(\"SELECT public.public_food_name_is_banned('shiitake');\"),\n+        'f',\n+      );\n+      expect(\n+        await _psql(r\"SELECT public.public_food_name_is_banned(U&'f\\00FAck');\"),\n+        't',\n+      );\n+      expect(\n+        await _psql(r\"SELECT public.public_food_name_is_banned(U&'fu\\0441k');\"),\n+        't',\n+      );\n+      expect(\n+        await _psql(\"SELECT public.public_food_name_is_banned('5h1t');\"),\n+        't',\n+      );\n+      expect(\n+        await _psql(r\"SELECT public.public_food_name_is_banned('$hit');\"),\n+        't',\n+      );\n+      expect(\n+        await _psql(\"SELECT public.public_food_name_is_banned('カフェラテ');\"),\n+        'f',\n+      );\n+      expect(\n+        await _psql(\"SELECT public.public_food_name_is_banned('ポークソテー');\"),\n+        'f',\n+      );\n+      expect(\n+        await _psql(\"SELECT public.public_food_name_is_banned('ポークソーセージ');\"),\n+        'f',\n+      );\n+      expect(\n+        await _psql(\"SELECT public.public_food_name_is_banned('ミルクソフト');\"),\n+        'f',\n+      );\n+      expect(\n+        await _psql(\"SELECT public.public_food_name_is_banned('スモークソルト');\"),\n+        'f',\n+      );\n+      expect(\n+        await _psql(\"SELECT public.public_food_name_is_banned('サンマンコ');\"),\n+        'f',\n+      );\n+      expect(\n+        await _psql(\"SELECT public.public_food_name_is_banned('Cock tail');\"),\n+        'f',\n+      );\n+      expect(\n+        await _psql(\n+          \"SELECT public.public_food_name_is_banned('rape seed oil');\",\n+        ),\n+        'f',\n+      );\n+      expect(\n+        await _psql(\n+          r\"SELECT public.public_food_name_is_banned(U&'\\FF81\\FF9D\\FF8E\\FF9F');\",\n+        ),\n+        't',\n+      );\n+      expect(\n+        await _psql(\"SELECT public.public_food_name_is_banned('くそ');\"),\n+        't',\n+      );\n+      expect(\n+        await _psql(\n+          \"SELECT proname FROM pg_proc WHERE proname = 'publish_saved_food';\",\n+        ),\n+        'publish_saved_food',\n+      );\n+    });\n   });\n }"
+    },
+    {
+      "sha": "4b8050683d07d5cc6a139d14e2ea7c6978e842d9",
+      "filename": "test/synced_saved_food_repository_test.dart",
+      "status": "modified",
+      "additions": 23,
+      "deletions": 0,
+      "changes": 23,
+      "blob_url": "https://github.com/naruto-aii/AYG/blob/f01d3d886666c57bfa60f144d0194e93a1f26d00/test%2Fsynced_saved_food_repository_test.dart",
+      "raw_url": "https://github.com/naruto-aii/AYG/raw/f01d3d886666c57bfa60f144d0194e93a1f26d00/test%2Fsynced_saved_food_repository_test.dart",
+      "contents_url": "https://api.github.com/repos/naruto-aii/AYG/contents/test%2Fsynced_saved_food_repository_test.dart?ref=f01d3d886666c57bfa60f144d0194e93a1f26d00",
+      "patch": "@@ -6,8 +6,10 @@ import 'package:ayg/models/moderation_status.dart';\n import 'package:ayg/models/saved_food.dart';\n import 'package:ayg/repositories/contracts/saved_food_local_store.dart';\n import 'package:ayg/repositories/contracts/saved_food_remote_store.dart';\n+import 'package:ayg/moderation/public_food_name_moderation.dart';\n import 'package:ayg/repositories/exceptions/food_master_exceptions.dart';\n import 'package:ayg/repositories/synced_saved_food_repository.dart';\n+import 'package:ayg/services/publish_error_messages.dart';\n import 'package:flutter_test/flutter_test.dart';\n \n class _FakeLocalStore implements SavedFoodLocalStore {\n@@ -214,6 +216,27 @@ void main() {\n       expect(local.stored?.visibility, FoodVisibility.private);\n     });\n \n+    test('banned-name publish failure keeps local private', () async {\n+      final local = _FakeLocalStore()..stored = _sampleFood('u1', 'f1');\n+      const failure = PublishSavedFoodException(\n+        kind: PublishFailureKind.bannedName,\n+        message: 'public food name is not allowed',\n+      );\n+      final remote = _FakeRemoteStore()..publishError = failure;\n+      final repo = SyncedSavedFoodRepository(local: local, remote: remote);\n+\n+      await expectLater(\n+        repo.publish(ownerUserId: 'u1', foodId: 'f1'),\n+        throwsA(isA<PublishSavedFoodException>()),\n+      );\n+      expect(local.stored?.visibility, FoodVisibility.private);\n+      expect(\n+        PublishErrorMessages.messageFor(failure),\n+        PublicFoodNameModeration.rejectionMessage,\n+      );\n+      expect(remote.publishError, same(failure));\n+    });\n+\n     test('searchPublic requires remote', () async {\n       final repo = SyncedSavedFoodRepository(local: _FakeLocalStore());\n       await expectLater("
+    }
+  ]
+}

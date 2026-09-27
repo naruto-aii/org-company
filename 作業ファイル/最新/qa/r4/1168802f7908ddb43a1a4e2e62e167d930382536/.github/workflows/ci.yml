@@ -1,0 +1,57 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - web-preview
+      - main
+
+jobs:
+  flutter:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      - run: flutter pub get
+      # lib and test already have warnings. Errors still fail the job.
+      # tool/ holds prototypes that are not part of the app.
+      - run: flutter analyze lib test --no-fatal-infos --no-fatal-warnings
+      - run: flutter test
+
+  sql:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_HOST_AUTH_METHOD: trust
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install the local Vault stand-in
+        run: |
+          cid="$(docker ps -q --filter ancestor=postgres:17 | head -n 1)"
+          test -n "$cid"
+          sharedir="$(docker exec "$cid" pg_config --sharedir)"
+          docker cp supabase/tests/pg_ext/supabase_vault.control \
+            "$cid:${sharedir}/extension/supabase_vault.control"
+          docker cp supabase/tests/pg_ext/supabase_vault--1.0.sql \
+            "$cid:${sharedir}/extension/supabase_vault--1.0.sql"
+      - name: Install psql
+        run: sudo apt-get update && sudo apt-get install -y postgresql-client
+      - name: Apply migrations and execute SQL functions
+        run: DATABASE_URL=postgres://postgres@127.0.0.1:5432/postgres bash supabase/tests/run_sql_smoke.sh
