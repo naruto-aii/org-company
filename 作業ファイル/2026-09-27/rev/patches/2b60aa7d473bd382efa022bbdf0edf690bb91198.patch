@@ -1,0 +1,26 @@
+From 2b60aa7d473bd382efa022bbdf0edf690bb91198 Mon Sep 17 00:00:00 2001
+From: Cursor Agent <cursoragent@cursor.com>
+Date: Sun, 27 Sep 2026 08:20:53 +0000
+Subject: [PATCH] fix: drop the unused Health write usage string
+
+HealthKit authorization is read-only, so Info.plist keeps
+NSHealthShareUsageDescription and no longer declares a write purpose.
+
+Co-authored-by: naruto-aii <naruto-aii@users.noreply.github.com>
+---
+ ios/Runner/Info.plist | 2 --
+ 1 file changed, 2 deletions(-)
+
+diff --git a/ios/Runner/Info.plist b/ios/Runner/Info.plist
+index cc5b052..f4f99f0 100644
+--- a/ios/Runner/Info.plist
++++ b/ios/Runner/Info.plist
+@@ -72,8 +72,6 @@
+   <string>商品バーコードを読み取り、食事登録を簡単にするためにカメラを使用します。</string>
+   <key>NSHealthShareUsageDescription</key>
+   <string>生年月日、性別、身長、体重、アクティブエネルギー、ワークアウトを取得し、カロリー目標の計算にだけ使います。広告やマーケティングには使いません。</string>
+-  <key>NSHealthUpdateUsageDescription</key>
+-  <string>許諾いただいた範囲で、カロナビの記録を Health に書き戻すために使います。広告やマーケティングには使いません。</string>
+   <key>UIApplicationSupportsIndirectInputEvents</key>
+ 	<true/>
+ 	<key>UILaunchStoryboardName</key>

@@ -1,0 +1,114 @@
+'カフェラテ' dart-> None sql-> None 
+'ポークソテー' dart-> None sql-> None 
+'ポークソーセージ' dart-> None sql-> None 
+'ミルクソフト' dart-> None sql-> None 
+'ブラックソース' dart-> None sql-> None 
+'スモークソルト' dart-> None sql-> None 
+'やくそう' dart-> None sql-> None 
+'サンマンコ' dart-> None sql-> None 
+'Cock tail' dart-> None sql-> None 
+'rape seed oil' dart-> None sql-> None 
+'cocktail' dart-> None sql-> None 
+'rapeseed oil' dart-> None sql-> None 
+'Cocktail sauce' dart-> None sql-> None 
+'ちんぽ' dart-> ちんぽ sql-> ちんぽ 
+'まんこ' dart-> まんこ sql-> まんこ 
+'fuck' dart-> fuck sql-> fuck 
+'FUCK' dart-> fuck sql-> fuck 
+'ｆｕｃｋ' dart-> fuck sql-> fuck 
+'f u c k' dart-> fuck sql-> fuck 
+'fúck' dart-> fuck sql-> fuck 
+'ﾁﾝﾎﾟ' dart-> ちんぽ sql-> ちんぽ 
+'ﾁﾝﾎ' dart-> None sql-> None 
+'チンポ' dart-> ちんぽ sql-> ちんぽ 
+'うんこ' dart-> うんこ sql-> うんこ 
+'くそ' dart-> くそ sql-> くそ 
+'クソ' dart-> くそ sql-> くそ 
+'フェラ' dart-> フェラ sql-> フェラ 
+'エロ' dart-> エロ sql-> エロ 
+'cock' dart-> cock sql-> cock 
+'rape' dart-> rape sql-> rape 
+'おまんこ' dart-> None sql-> None 
+'クソまずい' dart-> None sql-> None 
+'クソうまいカレー' dart-> None sql-> None 
+'クソ うまい' dart-> くそ sql-> くそ 
+'フェラチオ' dart-> None sql-> None 
+'エロい' dart-> None sql-> None 
+'エロ肉' dart-> None sql-> None 
+'くそったれ' dart-> くそったれ sql-> くそったれ 
+'ちんこ' dart-> ちんこ sql-> ちんこ 
+'cock tail' dart-> None sql-> None 
+'Cock-tail' dart-> None sql-> None 
+'fuck rape seed oil' dart-> fuck sql-> fuck 
+'rape seed' dart-> None sql-> None 
+'shit cock tail' dart-> shit sql-> shit 
+'cock tail cock' dart-> cock sql-> cock 
+'カロリー100' dart-> None sql-> None 
+'1日分の野菜' dart-> None sql-> None 
+'S&B' dart-> None sql-> None 
+'7種の具' dart-> None sql-> None 
+'ドリンク5本' dart-> None sql-> None 
+'エロンガ' dart-> None sql-> None 
+'ベーコンエッグ' dart-> None sql-> None 
+'チンゲン菜' dart-> None sql-> None 
+'パチンコ玉' dart-> ちんこ sql-> ちんこ 
+'ちんすこう' dart-> None sql-> None 
+'豚まん' dart-> None sql-> None 
+'ちくわ' dart-> None sql-> None 
+"Dick's burger" dart-> dick sql-> dick 
+'Hancock' dart-> None sql-> None 
+'scunthorpe' dart-> None sql-> None 
+'Shiitake' dart-> None sql-> None 
+'Assam tea' dart-> None sql-> None 
+'Bitchu' dart-> None sql-> None 
+'Cocoa' dart-> None sql-> None 
+'d1ck' dart-> dick sql-> dick 
+'D!ck' dart-> dick sql-> dick 
+'grape' dart-> None sql-> None 
+'ｴﾛ' dart-> エロ sql-> エロ 
+'ﾏﾝｺ' dart-> まんこ sql-> まんこ 
+'ま ん こ' dart-> まんこ sql-> まんこ 
+'マ・ン・コ' dart-> まんこ sql-> まんこ 
+'ち ん ぽ' dart-> ちんぽ sql-> ちんぽ 
+'ﾁﾝﾎﾞ' dart-> None sql-> None 
+'ちんぼ' dart-> None sql-> None 
+'チ〇ポ' dart-> None sql-> None 
+'ちんﾎﾟ' dart-> ちんぽ sql-> ちんぽ 
+'ｾｯｸｽ' dart-> セックス sql-> セックス 
+'中出し' dart-> 中出し sql-> 中出し 
+'中 出し' dart-> 中出し sql-> 中出し 
+'fck' dart-> None sql-> None 
+'phuck' dart-> None sql-> None 
+'sh1t' dart-> shit sql-> shit 
+'5h1t' dart-> shit sql-> shit 
+'c0ck' dart-> cock sql-> cock 
+'$hit' dart-> shit sql-> shit 
+'ﾁﾝﾎﾟ' dart-> ちんぽ sql-> ちんぽ 
+'ちんころ' ちんこ ちんこ
+'チンコロ' ちんこ ちんこ
+'ウンコ' うんこ うんこ
+'うんこ汁' うんこ うんこ
+'きんたま' きんたま きんたま
+'金玉' None None
+'キンタマ' きんたま きんたま
+'タマキン' None None
+'セックス' セックス セックス
+'sexy' None None
+'Dick' dick dick
+'dickens' None None
+'Cocktail' None None
+'cocktails' None None
+'rape' rape rape
+'Rapeseed' None None
+'grapes' None None
+'shitake mushroom' None None
+'Scunthorpe' None None
+'Assorted' None None
+'Bassett' None None
+'Matsutake' None None
+'ソテー' None None
+'くそみそ' None None
+'味噌くそ' None None
+'クソゲー' None None
+'クソ旨' None None
+'くそうまい' None None

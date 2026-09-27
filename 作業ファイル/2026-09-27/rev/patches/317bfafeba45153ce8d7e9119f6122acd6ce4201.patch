@@ -1,0 +1,413 @@
+From 317bfafeba45153ce8d7e9119f6122acd6ce4201 Mon Sep 17 00:00:00 2001
+From: Cursor Agent <cursoragent@cursor.com>
+Date: Sun, 27 Sep 2026 08:16:31 +0000
+Subject: [PATCH] fix: make the merged suite pass on current Flutter
+
+Return immediately after markTestSkipped so tests that need a local
+Supabase skip instead of failing when port 54321 is closed. Format
+whole-kilogram strength summaries as 80kg, clear the account-deletion
+spinner before the unavailable dialog, and treat keyboard dismiss as
+the text field losing focus.
+
+Co-authored-by: naruto-aii <naruto-aii@users.noreply.github.com>
+---
+ dart_test.yaml                                |  6 ++++
+ lib/models/strength_workout_log.dart          | 17 ++++++----
+ .../settings/account_deletion_screen.dart     |  7 ++--
+ lib/widgets/common/app_keyboard_dismiss.dart  | 33 ++++++++++---------
+ test/account_deletion_screen_test.dart        |  4 +++
+ test/app_keyboard_dismiss_test.dart           | 19 ++++++++---
+ test/goal_pace_sync_regression_test.dart      |  1 +
+ ...pabase_alcohol_entry_integration_test.dart |  3 ++
+ ...se_food_entry_delete_integration_test.dart |  5 +++
+ ...upabase_hardening_migration_live_test.dart |  3 ++
+ test/supabase_migration_live_test.dart        |  2 ++
+ ...aved_food_repository_integration_test.dart |  8 +++++
+ 12 files changed, 77 insertions(+), 31 deletions(-)
+ create mode 100644 dart_test.yaml
+
+diff --git a/dart_test.yaml b/dart_test.yaml
+new file mode 100644
+index 0000000..7e3a999
+--- /dev/null
++++ b/dart_test.yaml
+@@ -0,0 +1,6 @@
++# Live Supabase tests. Run them only when the local CLI is up:
++#   flutter test --tags integration
++# Skip them (the default suite still skips each test when port 54321 is closed):
++#   flutter test --exclude-tags integration
++tags:
++  integration:
+diff --git a/lib/models/strength_workout_log.dart b/lib/models/strength_workout_log.dart
+index 918853b..edef943 100644
+--- a/lib/models/strength_workout_log.dart
++++ b/lib/models/strength_workout_log.dart
+@@ -66,18 +66,24 @@ class StrengthWorkoutLog {
+           }
+           final first = exercise.sets.first;
+           final same = exercise.sets.every(
+-            (set) =>
+-                set.weightKg == first.weightKg && set.reps == first.reps,
++            (set) => set.weightKg == first.weightKg && set.reps == first.reps,
+           );
+           final setLabel = '${exercise.sets.length}セット';
+           if (same && first.weightKg != null && first.reps != null) {
+-            return '${exercise.name} $setLabel ${first.weightKg}kg×${first.reps}';
++            return '${exercise.name} $setLabel ${_formatKg(first.weightKg!)}kg×${first.reps}';
+           }
+           return '${exercise.name} $setLabel';
+         })
+         .join(' · ');
+   }
+ 
++  static String _formatKg(double value) {
++    if (value == value.roundToDouble()) {
++      return value.toStringAsFixed(0);
++    }
++    return value.toString();
++  }
++
+   Map<String, Object?> toJson() => {
+     'exercises': exercises.map((exercise) => exercise.toJson()).toList(),
+   };
+@@ -140,10 +146,7 @@ class StrengthNotesCodec {
+       final decoded = jsonDecode(jsonText);
+       if (decoded is Map<String, dynamic>) {
+         final log = StrengthWorkoutLog.fromJson(decoded);
+-        return StrengthNotesPayload(
+-          log: log.isEmpty ? null : log,
+-          memo: memo,
+-        );
++        return StrengthNotesPayload(log: log.isEmpty ? null : log, memo: memo);
+       }
+     } catch (_) {}
+     return StrengthNotesPayload(memo: memo.isEmpty ? text.trim() : memo);
+diff --git a/lib/screens/settings/account_deletion_screen.dart b/lib/screens/settings/account_deletion_screen.dart
+index 7b0fac1..0639a34 100644
+--- a/lib/screens/settings/account_deletion_screen.dart
++++ b/lib/screens/settings/account_deletion_screen.dart
+@@ -83,6 +83,7 @@ class _AccountDeletionScreenState extends State<AccountDeletionScreen> {
+       if (!mounted) {
+         return;
+       }
++      setState(() => _isDeleting = false);
+       await _showUnavailable();
+     } on AccountDeletionFailedException catch (error) {
+       if (!mounted) {
+@@ -180,10 +181,8 @@ class _AccountDeletionScreenState extends State<AccountDeletionScreen> {
+               const SizedBox(height: AppSpacing.sm),
+               SecondaryButton(
+                 label: AppStrings.accountDeletionReadPolicy,
+-                onPressed: () => showLegalDocument(
+-                  context,
+-                  LegalDocument.accountDeletion,
+-                ),
++                onPressed: () =>
++                    showLegalDocument(context, LegalDocument.accountDeletion),
+               ),
+             ],
+           ),
+diff --git a/lib/widgets/common/app_keyboard_dismiss.dart b/lib/widgets/common/app_keyboard_dismiss.dart
+index 7d09002..c62b806 100644
+--- a/lib/widgets/common/app_keyboard_dismiss.dart
++++ b/lib/widgets/common/app_keyboard_dismiss.dart
+@@ -73,21 +73,24 @@ class AppKeyboardHost extends StatelessWidget {
+                   bottom: false,
+                   child: SizedBox(
+                     height: AppKeyboardHost.accessoryHeight,
+-                    child: Row(
+-                      children: [
+-                        const SizedBox(width: 4),
+-                        IconButton(
+-                          tooltip: '閉じる',
+-                          onPressed: dismissAppKeyboard,
+-                          icon: const Icon(Icons.close),
+-                        ),
+-                        const Spacer(),
+-                        TextButton(
+-                          onPressed: dismissAppKeyboard,
+-                          child: const Text('完了'),
+-                        ),
+-                        const SizedBox(width: 8),
+-                      ],
++                    child: Focus(
++                      canRequestFocus: false,
++                      descendantsAreFocusable: false,
++                      child: Row(
++                        children: [
++                          const SizedBox(width: 4),
++                          IconButton(
++                            onPressed: dismissAppKeyboard,
++                            icon: const Icon(Icons.close, semanticLabel: '閉じる'),
++                          ),
++                          const Spacer(),
++                          TextButton(
++                            onPressed: dismissAppKeyboard,
++                            child: const Text('完了'),
++                          ),
++                          const SizedBox(width: 8),
++                        ],
++                      ),
+                     ),
+                   ),
+                 ),
+diff --git a/test/account_deletion_screen_test.dart b/test/account_deletion_screen_test.dart
+index 4355937..878f0ac 100644
+--- a/test/account_deletion_screen_test.dart
++++ b/test/account_deletion_screen_test.dart
+@@ -69,6 +69,10 @@ void main() {
+       ),
+     );
+ 
++    await tester.scrollUntilVisible(
++      find.text(AppStrings.settingsAccountDeletion),
++      200,
++    );
+     await tester.tap(find.text(AppStrings.settingsAccountDeletion));
+     await tester.pumpAndSettle();
+ 
+diff --git a/test/app_keyboard_dismiss_test.dart b/test/app_keyboard_dismiss_test.dart
+index fdfbc1e..d571c4a 100644
+--- a/test/app_keyboard_dismiss_test.dart
++++ b/test/app_keyboard_dismiss_test.dart
+@@ -19,15 +19,16 @@ void main() {
+     await tester.pump();
+ 
+     expect(find.text('完了'), findsOneWidget);
+-    expect(find.byTooltip('閉じる'), findsOneWidget);
++    expect(find.byIcon(Icons.close), findsOneWidget);
+ 
+     await tester.tap(find.byType(TextField));
+     await tester.pump();
+-    expect(FocusManager.instance.primaryFocus?.hasFocus, isTrue);
++    expect(_editableHasFocus(tester), isTrue);
+ 
+     await tester.tap(find.text('完了'));
+     await tester.pump();
+-    expect(FocusManager.instance.primaryFocus?.hasFocus, isFalse);
++    expect(_editableHasFocus(tester), isFalse);
++    expect(tester.testTextInput.isVisible, isFalse);
+   });
+ 
+   testWidgets('tapping outside a field dismisses focus', (tester) async {
+@@ -48,10 +49,18 @@ void main() {
+ 
+     await tester.tap(find.byType(TextField));
+     await tester.pump();
+-    expect(FocusManager.instance.primaryFocus?.hasFocus, isTrue);
++    expect(_editableHasFocus(tester), isTrue);
+ 
+     await tester.tap(find.text('外'));
+     await tester.pump();
+-    expect(FocusManager.instance.primaryFocus?.hasFocus, isFalse);
++    expect(_editableHasFocus(tester), isFalse);
++    expect(tester.testTextInput.isVisible, isFalse);
+   });
+ }
++
++bool _editableHasFocus(WidgetTester tester) {
++  return tester
++      .widget<EditableText>(find.byType(EditableText))
++      .focusNode
++      .hasFocus;
++}
+diff --git a/test/goal_pace_sync_regression_test.dart b/test/goal_pace_sync_regression_test.dart
+index db3abc7..35caecb 100644
+--- a/test/goal_pace_sync_regression_test.dart
++++ b/test/goal_pace_sync_regression_test.dart
+@@ -271,6 +271,7 @@ void main() {
+     test('push pull round-trip and RLS isolation', () async {
+       if (!available) {
+         markTestSkipped('Local Supabase not available');
++        return;
+       }
+ 
+       late SupabaseClient ownerClient;
+diff --git a/test/supabase_alcohol_entry_integration_test.dart b/test/supabase_alcohol_entry_integration_test.dart
+index 5245085..d2be7f8 100644
+--- a/test/supabase_alcohol_entry_integration_test.dart
++++ b/test/supabase_alcohol_entry_integration_test.dart
+@@ -74,6 +74,7 @@ void main() {
+     test('CRUD with RLS isolation', () async {
+       if (!supabaseAvailable) {
+         markTestSkipped('Local Supabase not available at $_localUrl');
++        return;
+       }
+ 
+       final suffix = DateTime.now().microsecondsSinceEpoch;
+@@ -226,6 +227,7 @@ void main() {
+       test('deletes locally and remotely without resurrection', () async {
+         if (!supabaseAvailable) {
+           markTestSkipped('Local Supabase not available at $_localUrl');
++          return;
+         }
+ 
+         final suffix = DateTime.now().microsecondsSinceEpoch;
+@@ -274,6 +276,7 @@ void main() {
+       test('keeps local entry when remote delete finds no row', () async {
+         if (!supabaseAvailable) {
+           markTestSkipped('Local Supabase not available at $_localUrl');
++          return;
+         }
+ 
+         final suffix = DateTime.now().microsecondsSinceEpoch;
+diff --git a/test/supabase_food_entry_delete_integration_test.dart b/test/supabase_food_entry_delete_integration_test.dart
+index df330fa..e655481 100644
+--- a/test/supabase_food_entry_delete_integration_test.dart
++++ b/test/supabase_food_entry_delete_integration_test.dart
+@@ -95,6 +95,7 @@ void main() {
+     test('deleteFoodEntry removes own row from Supabase', () async {
+       if (!supabaseAvailable) {
+         markTestSkipped('Local Supabase not available at $_localUrl');
++        return;
+       }
+ 
+       final suffix = DateTime.now().microsecondsSinceEpoch;
+@@ -131,6 +132,7 @@ void main() {
+     test('deleteFoodEntry throws when row is missing', () async {
+       if (!supabaseAvailable) {
+         markTestSkipped('Local Supabase not available at $_localUrl');
++        return;
+       }
+ 
+       final suffix = DateTime.now().microsecondsSinceEpoch;
+@@ -158,6 +160,7 @@ void main() {
+     test('deleteFoodEntry throws for other users row (RLS)', () async {
+       if (!supabaseAvailable) {
+         markTestSkipped('Local Supabase not available at $_localUrl');
++        return;
+       }
+ 
+       final suffix = DateTime.now().microsecondsSinceEpoch;
+@@ -249,6 +252,7 @@ void main() {
+       test('deletes locally and stays deleted after remote pull', () async {
+         if (!supabaseAvailable) {
+           markTestSkipped('Local Supabase not available at $_localUrl');
++          return;
+         }
+ 
+         final suffix = DateTime.now().microsecondsSinceEpoch;
+@@ -311,6 +315,7 @@ void main() {
+       test('keeps local entry when remote delete finds no row', () async {
+         if (!supabaseAvailable) {
+           markTestSkipped('Local Supabase not available at $_localUrl');
++          return;
+         }
+ 
+         final suffix = DateTime.now().microsecondsSinceEpoch;
+diff --git a/test/supabase_hardening_migration_live_test.dart b/test/supabase_hardening_migration_live_test.dart
+index 14860ee..906ad52 100644
+--- a/test/supabase_hardening_migration_live_test.dart
++++ b/test/supabase_hardening_migration_live_test.dart
+@@ -105,6 +105,7 @@ void main() {
+     test('grants and policies after full db reset', () async {
+       if (!available) {
+         markTestSkipped('Local Supabase not available');
++        return;
+       }
+ 
+       // anon: no TRUNCATE/REFERENCES/TRIGGER on any public table
+@@ -214,6 +215,7 @@ void main() {
+     test('anon can read public saved_foods; authenticated CRUD own row', () async {
+       if (!available) {
+         markTestSkipped('Local Supabase not available');
++        return;
+       }
+ 
+       const ownerId = '11111111-1111-1111-1111-111111111111';
+@@ -265,6 +267,7 @@ void main() {
+       () async {
+         if (!available) {
+           markTestSkipped('Local Supabase not available');
++          return;
+         }
+ 
+         const ownerId = '22222222-2222-2222-2222-222222222222';
+diff --git a/test/supabase_migration_live_test.dart b/test/supabase_migration_live_test.dart
+index 2ba82a3..7c5d17e 100644
+--- a/test/supabase_migration_live_test.dart
++++ b/test/supabase_migration_live_test.dart
+@@ -66,6 +66,7 @@ void main() {
+     test('workout_templates migration applies with RLS and grants', () async {
+       if (!available) {
+         markTestSkipped('Local Supabase not available');
++        return;
+       }
+ 
+       await _applyMigration('20260728120000_add_workout_templates_v1.sql');
+@@ -119,6 +120,7 @@ void main() {
+       () async {
+         if (!available) {
+           markTestSkipped('Local Supabase not available');
++          return;
+         }
+ 
+         await _applyMigration(
+diff --git a/test/supabase_saved_food_repository_integration_test.dart b/test/supabase_saved_food_repository_integration_test.dart
+index 492b4ca..3d2381e 100644
+--- a/test/supabase_saved_food_repository_integration_test.dart
++++ b/test/supabase_saved_food_repository_integration_test.dart
+@@ -116,6 +116,7 @@ void main() {
+     test('private save, publish RPC, fetch public', () async {
+       if (!available) {
+         markTestSkipped('Local Supabase not available at $_localUrl');
++        return;
+       }
+ 
+       final suffix = DateTime.now().microsecondsSinceEpoch;
+@@ -153,6 +154,7 @@ void main() {
+     test('duplicate publish maps to PublishSavedFoodException', () async {
+       if (!available) {
+         markTestSkipped('Local Supabase not available at $_localUrl');
++        return;
+       }
+ 
+       final suffix = DateTime.now().microsecondsSinceEpoch;
+@@ -204,6 +206,7 @@ void main() {
+     test('not owner publish rejected', () async {
+       if (!available) {
+         markTestSkipped('Local Supabase not available at $_localUrl');
++        return;
+       }
+ 
+       final suffix = DateTime.now().microsecondsSinceEpoch;
+@@ -243,6 +246,7 @@ void main() {
+     test('unpublish and public edit bump version', () async {
+       if (!available) {
+         markTestSkipped('Local Supabase not available at $_localUrl');
++        return;
+       }
+ 
+       final suffix = DateTime.now().microsecondsSinceEpoch;
+@@ -302,6 +306,7 @@ void main() {
+     test('searchPublic returns public foods only', () async {
+       if (!available) {
+         markTestSkipped('Local Supabase not available at $_localUrl');
++        return;
+       }
+ 
+       final suffix = DateTime.now().microsecondsSinceEpoch;
+@@ -349,6 +354,7 @@ void main() {
+     test('searchPublic finds barcode exact match', () async {
+       if (!available) {
+         markTestSkipped('Local Supabase not available at $_localUrl');
++        return;
+       }
+ 
+       final suffix = DateTime.now().microsecondsSinceEpoch;
+@@ -380,6 +386,7 @@ void main() {
+     test('copyPublicToPrivate creates own private snapshot', () async {
+       if (!available) {
+         markTestSkipped('Local Supabase not available at $_localUrl');
++        return;
+       }
+ 
+       final suffix = DateTime.now().microsecondsSinceEpoch;
+@@ -436,6 +443,7 @@ void main() {
+       () async {
+         if (!available) {
+           markTestSkipped('Local Supabase not available at $_localUrl');
++          return;
+         }
+ 
+         final suffix = DateTime.now().microsecondsSinceEpoch;

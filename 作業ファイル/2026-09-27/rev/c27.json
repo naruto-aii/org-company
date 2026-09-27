@@ -1,0 +1,84 @@
+[
+  {
+    "sha": "244fe3502a58e63f57c61090dd9a535ef5ae865d",
+    "node_id": "C_kwDOTeJwqdoAKDI0NGZlMzUwMmE1OGU2M2Y1N2M2MTA5MGRkOWE1MzVlZjVhZTg2NWQ",
+    "commit": {
+      "author": {
+        "name": "Cursor Agent",
+        "email": "cursoragent@cursor.com",
+        "date": "2026-09-27T08:55:01Z"
+      },
+      "committer": {
+        "name": "Cursor Agent",
+        "email": "cursoragent@cursor.com",
+        "date": "2026-09-27T08:55:01Z"
+      },
+      "message": "fix: show live StoreKit prices and expiry on カロナビ+\n\nThe purchase screen reads the localized price from StoreKit, states the\nbilling period and how to cancel, and links to the in-app terms and\nprivacy pages. Plus access follows the subscription expiry. First-time\nfree-limit and paid-conversion counts store only a user id, event type,\nand a server timestamp.\n\nCo-authored-by: naruto-aii <naruto-aii@users.noreply.github.com>",
+      "tree": {
+        "sha": "821e8ad37dc999492713c5f961242660a73650d0",
+        "url": "https://api.github.com/repos/naruto-aii/AYG/git/trees/821e8ad37dc999492713c5f961242660a73650d0"
+      },
+      "url": "https://api.github.com/repos/naruto-aii/AYG/git/commits/244fe3502a58e63f57c61090dd9a535ef5ae865d",
+      "comment_count": 0,
+      "verification": {
+        "verified": true,
+        "reason": "valid",
+        "signature": "-----BEGIN SSH SIGNATURE-----\nU1NIU0lHAAAAAQAAADMAAAALc3NoLWVkMjU1MTkAAAAg+qImwGMCy/grKZ50VxRHz3VfWW\nAL3QNbzIy2Nwcn+nQAAAADZ2l0AAAAAAAAAAZzaGE1MTIAAABTAAAAC3NzaC1lZDI1NTE5\nAAAAQM0aXX1/j+ceeqbO1lIHnaI70pgWd36C8JPSkQKMrZqPzBCtvCy8odJg03NJEh9ubu\ne+5ayAqFVrQ47C8b+DIQ4=\n-----END SSH SIGNATURE-----",
+        "payload": "tree 821e8ad37dc999492713c5f961242660a73650d0\nparent 10abc3580b5c84ae7578215e8de84430c1f2a370\nauthor Cursor Agent <cursoragent@cursor.com> 1790499301 +0000\ncommitter Cursor Agent <cursoragent@cursor.com> 1790499301 +0000\n\nfix: show live StoreKit prices and expiry on カロナビ+\n\nThe purchase screen reads the localized price from StoreKit, states the\nbilling period and how to cancel, and links to the in-app terms and\nprivacy pages. Plus access follows the subscription expiry. First-time\nfree-limit and paid-conversion counts store only a user id, event type,\nand a server timestamp.\n\nCo-authored-by: naruto-aii <naruto-aii@users.noreply.github.com>\n",
+        "verified_at": "2026-09-27T08:55:06Z"
+      }
+    },
+    "url": "https://api.github.com/repos/naruto-aii/AYG/commits/244fe3502a58e63f57c61090dd9a535ef5ae865d",
+    "html_url": "https://github.com/naruto-aii/AYG/commit/244fe3502a58e63f57c61090dd9a535ef5ae865d",
+    "comments_url": "https://api.github.com/repos/naruto-aii/AYG/commits/244fe3502a58e63f57c61090dd9a535ef5ae865d/comments",
+    "author": {
+      "login": "cursoragent",
+      "id": 199161495,
+      "node_id": "U_kgDOC972lw",
+      "avatar_url": "https://avatars.githubusercontent.com/u/199161495?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/cursoragent",
+      "html_url": "https://github.com/cursoragent",
+      "followers_url": "https://api.github.com/users/cursoragent/followers",
+      "following_url": "https://api.github.com/users/cursoragent/following{/other_user}",
+      "gists_url": "https://api.github.com/users/cursoragent/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/cursoragent/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/cursoragent/subscriptions",
+      "organizations_url": "https://api.github.com/users/cursoragent/orgs",
+      "repos_url": "https://api.github.com/users/cursoragent/repos",
+      "events_url": "https://api.github.com/users/cursoragent/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/cursoragent/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "committer": {
+      "login": "cursoragent",
+      "id": 199161495,
+      "node_id": "U_kgDOC972lw",
+      "avatar_url": "https://avatars.githubusercontent.com/u/199161495?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/cursoragent",
+      "html_url": "https://github.com/cursoragent",
+      "followers_url": "https://api.github.com/users/cursoragent/followers",
+      "following_url": "https://api.github.com/users/cursoragent/following{/other_user}",
+      "gists_url": "https://api.github.com/users/cursoragent/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/cursoragent/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/cursoragent/subscriptions",
+      "organizations_url": "https://api.github.com/users/cursoragent/orgs",
+      "repos_url": "https://api.github.com/users/cursoragent/repos",
+      "events_url": "https://api.github.com/users/cursoragent/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/cursoragent/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "parents": [
+      {
+        "sha": "10abc3580b5c84ae7578215e8de84430c1f2a370",
+        "url": "https://api.github.com/repos/naruto-aii/AYG/commits/10abc3580b5c84ae7578215e8de84430c1f2a370",
+        "html_url": "https://github.com/naruto-aii/AYG/commit/10abc3580b5c84ae7578215e8de84430c1f2a370"
+      }
+    ]
+  }
+]

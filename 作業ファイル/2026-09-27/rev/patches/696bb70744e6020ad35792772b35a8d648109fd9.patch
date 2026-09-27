@@ -1,0 +1,49 @@
+From 696bb70744e6020ad35792772b35a8d648109fd9 Mon Sep 17 00:00:00 2001
+From: Cursor Agent <cursoragent@cursor.com>
+Date: Sun, 20 Sep 2026 16:53:04 +0000
+Subject: [PATCH] fix: use the live Supabase project URL in local dart defines
+
+The helper default host did not resolve, so Apple Sign-In failed after
+the native sheet with Failed host lookup.
+
+Co-authored-by: naruto.futuree <naruto.futuree@gmail.com>
+---
+ tool/repair_local_defines.py     | 4 +++-
+ tool/setup_local_defines.command | 2 +-
+ 2 files changed, 4 insertions(+), 2 deletions(-)
+
+diff --git a/tool/repair_local_defines.py b/tool/repair_local_defines.py
+index 8219c45..b560804 100755
+--- a/tool/repair_local_defines.py
++++ b/tool/repair_local_defines.py
+@@ -18,7 +18,7 @@
+ )
+ 
+ DEFAULTS = {
+-    "SUPABASE_URL": "https://vdzzuoqsymetlejcnkeb.supabase.co",
++    "SUPABASE_URL": "https://vdzzusqisymtejcjnikb.supabase.co",
+     "SUPABASE_ANON_KEY": "",
+     "GOOGLE_WEB_CLIENT_ID": "",
+     "GOOGLE_IOS_CLIENT_ID": "",
+@@ -60,6 +60,8 @@ def extract_values(text: str) -> dict[str, str]:
+         if value is None:
+             value = ""
+         data[key] = str(value).strip()
++    if "vdzzuoqsymetlejcnkeb" in data["SUPABASE_URL"]:
++        data["SUPABASE_URL"] = DEFAULTS["SUPABASE_URL"]
+     return data
+ 
+ 
+diff --git a/tool/setup_local_defines.command b/tool/setup_local_defines.command
+index 903b013..6358679 100755
+--- a/tool/setup_local_defines.command
++++ b/tool/setup_local_defines.command
+@@ -7,7 +7,7 @@ DEST="tool/dart_defines.local.json"
+ if [ ! -f "$DEST" ]; then
+   cat > "$DEST" <<'EOF'
+ {
+-  "SUPABASE_URL": "https://vdzzuoqsymetlejcnkeb.supabase.co",
++  "SUPABASE_URL": "https://vdzzusqisymtejcjnikb.supabase.co",
+   "SUPABASE_ANON_KEY": "PASTE_ANON_KEY_HERE",
+   "GOOGLE_WEB_CLIENT_ID": "PASTE_WEB_CLIENT_ID.apps.googleusercontent.com",
+   "GOOGLE_IOS_CLIENT_ID": "",

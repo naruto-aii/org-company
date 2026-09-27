@@ -1,0 +1,84 @@
+[
+  {
+    "sha": "10abc3580b5c84ae7578215e8de84430c1f2a370",
+    "node_id": "C_kwDOTeJwqdoAKDEwYWJjMzU4MGI1Yzg0YWU3NTc4MjE1ZThkZTg0NDMwYzFmMmEzNzA",
+    "commit": {
+      "author": {
+        "name": "Cursor Agent",
+        "email": "cursoragent@cursor.com",
+        "date": "2026-09-27T08:33:07Z"
+      },
+      "committer": {
+        "name": "Cursor Agent",
+        "email": "cursoragent@cursor.com",
+        "date": "2026-09-27T08:33:07Z"
+      },
+      "message": "feat: reject banned words in public food names\n\nCheck a fixed list when a food is published and when a public row's\nname changes. The same list is enforced by publish_saved_food and the\npublic-row update trigger. Existing rows are not rewritten.\n\nCo-authored-by: naruto-aii <naruto-aii@users.noreply.github.com>",
+      "tree": {
+        "sha": "0b8bc396e324c2264756e6f32bde8da91dfbe82b",
+        "url": "https://api.github.com/repos/naruto-aii/AYG/git/trees/0b8bc396e324c2264756e6f32bde8da91dfbe82b"
+      },
+      "url": "https://api.github.com/repos/naruto-aii/AYG/git/commits/10abc3580b5c84ae7578215e8de84430c1f2a370",
+      "comment_count": 0,
+      "verification": {
+        "verified": true,
+        "reason": "valid",
+        "signature": "-----BEGIN SSH SIGNATURE-----\nU1NIU0lHAAAAAQAAADMAAAALc3NoLWVkMjU1MTkAAAAg+qImwGMCy/grKZ50VxRHz3VfWW\nAL3QNbzIy2Nwcn+nQAAAADZ2l0AAAAAAAAAAZzaGE1MTIAAABTAAAAC3NzaC1lZDI1NTE5\nAAAAQGDoo87BQYdeg1oOf17eGtR1nrDwK47zYYQdXIe1AvxP7aY/vvns98HkEZC4bwbMfw\nFHiKMgG8bdWjp+GU7xXQk=\n-----END SSH SIGNATURE-----",
+        "payload": "tree 0b8bc396e324c2264756e6f32bde8da91dfbe82b\nparent 2b60aa7d473bd382efa022bbdf0edf690bb91198\nauthor Cursor Agent <cursoragent@cursor.com> 1790497987 +0000\ncommitter Cursor Agent <cursoragent@cursor.com> 1790497987 +0000\n\nfeat: reject banned words in public food names\n\nCheck a fixed list when a food is published and when a public row's\nname changes. The same list is enforced by publish_saved_food and the\npublic-row update trigger. Existing rows are not rewritten.\n\nCo-authored-by: naruto-aii <naruto-aii@users.noreply.github.com>\n",
+        "verified_at": "2026-09-27T08:33:09Z"
+      }
+    },
+    "url": "https://api.github.com/repos/naruto-aii/AYG/commits/10abc3580b5c84ae7578215e8de84430c1f2a370",
+    "html_url": "https://github.com/naruto-aii/AYG/commit/10abc3580b5c84ae7578215e8de84430c1f2a370",
+    "comments_url": "https://api.github.com/repos/naruto-aii/AYG/commits/10abc3580b5c84ae7578215e8de84430c1f2a370/comments",
+    "author": {
+      "login": "cursoragent",
+      "id": 199161495,
+      "node_id": "U_kgDOC972lw",
+      "avatar_url": "https://avatars.githubusercontent.com/u/199161495?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/cursoragent",
+      "html_url": "https://github.com/cursoragent",
+      "followers_url": "https://api.github.com/users/cursoragent/followers",
+      "following_url": "https://api.github.com/users/cursoragent/following{/other_user}",
+      "gists_url": "https://api.github.com/users/cursoragent/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/cursoragent/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/cursoragent/subscriptions",
+      "organizations_url": "https://api.github.com/users/cursoragent/orgs",
+      "repos_url": "https://api.github.com/users/cursoragent/repos",
+      "events_url": "https://api.github.com/users/cursoragent/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/cursoragent/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "committer": {
+      "login": "cursoragent",
+      "id": 199161495,
+      "node_id": "U_kgDOC972lw",
+      "avatar_url": "https://avatars.githubusercontent.com/u/199161495?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/cursoragent",
+      "html_url": "https://github.com/cursoragent",
+      "followers_url": "https://api.github.com/users/cursoragent/followers",
+      "following_url": "https://api.github.com/users/cursoragent/following{/other_user}",
+      "gists_url": "https://api.github.com/users/cursoragent/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/cursoragent/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/cursoragent/subscriptions",
+      "organizations_url": "https://api.github.com/users/cursoragent/orgs",
+      "repos_url": "https://api.github.com/users/cursoragent/repos",
+      "events_url": "https://api.github.com/users/cursoragent/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/cursoragent/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "parents": [
+      {
+        "sha": "2b60aa7d473bd382efa022bbdf0edf690bb91198",
+        "url": "https://api.github.com/repos/naruto-aii/AYG/commits/2b60aa7d473bd382efa022bbdf0edf690bb91198",
+        "html_url": "https://github.com/naruto-aii/AYG/commit/2b60aa7d473bd382efa022bbdf0edf690bb91198"
+      }
+    ]
+  }
+]
