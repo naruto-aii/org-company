@@ -1,0 +1,2902 @@
+From 9089ebcec0ae4a56bbe7d06550e32b6c1dac6d39 Mon Sep 17 00:00:00 2001
+From: Cursor Agent <cursoragent@cursor.com>
+Date: Sun, 20 Sep 2026 12:34:28 +0000
+Subject: [PATCH 1/3] feat(exercise): redesign workout input around search and
+ net kcal
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Make activity search and category FilterChips the first step, show
+追加消費 (net) on the main surface, add strength sets/reps/weight and
+notes, and display effectiveNetKcal in history, home, and day history.
+
+Co-authored-by: naruto-aii <naruto-aii@users.noreply.github.com>
+---
+ lib/data/met_activity_catalog.dart            |  23 +-
+ lib/data/met_intensity_presets.dart           |  26 +-
+ lib/models/exercise_entry.dart                |   5 +-
+ .../exercise/exercise_form_screen.dart        | 237 ++++------
+ lib/screens/history/day_history_screen.dart   |   2 +-
+ lib/screens/home/home_screen.dart             |   2 +-
+ .../exercise_met_calculation_section.dart     | 421 +++++++++++-------
+ lib/widgets/history/workout_history_list.dart |   2 +-
+ ...exercise_met_calculation_section_test.dart | 335 ++++++++++----
+ test/workout_history_list_test.dart           |  42 ++
+ 10 files changed, 710 insertions(+), 385 deletions(-)
+ create mode 100644 test/workout_history_list_test.dart
+
+diff --git a/lib/data/met_activity_catalog.dart b/lib/data/met_activity_catalog.dart
+index ee6c0d6..785fe09 100644
+--- a/lib/data/met_activity_catalog.dart
++++ b/lib/data/met_activity_catalog.dart
+@@ -270,8 +270,9 @@ class MetActivityCatalog {
+       displayName: 'その他（手入力）',
+       category: ExerciseCategory.other,
+       defaultMet: 3.0,
+-      defaultIntensityId: 'default',
+-      sourceKey: 'pacompendium_met_definition',
++      defaultIntensityId: 'light',
++      sourceKey: 'other_light_3_0',
++      intensityOptions: MetIntensityPresets.otherOptions,
+     ),
+   ];
+ 
+@@ -297,6 +298,24 @@ class MetActivityCatalog {
+     return activities.where((a) => a.category == category).toList();
+   }
+ 
++  static List<MetActivityDefinition> search({
++    String query = '',
++    ExerciseCategory? category,
++  }) {
++    final normalized = query.trim().toLowerCase();
++    return activities.where((activity) {
++      if (category != null && activity.category != category) {
++        return false;
++      }
++      if (normalized.isEmpty) {
++        return true;
++      }
++      final description = activity.description?.toLowerCase() ?? '';
++      return activity.displayName.toLowerCase().contains(normalized) ||
++          description.contains(normalized);
++    }).toList();
++  }
++
+   static List<ExerciseCategory> get selectableCategories => [
+     ExerciseCategory.aerobic,
+     ExerciseCategory.strength,
+diff --git a/lib/data/met_intensity_presets.dart b/lib/data/met_intensity_presets.dart
+index 47ca9a6..033b5f8 100644
+--- a/lib/data/met_intensity_presets.dart
++++ b/lib/data/met_intensity_presets.dart
+@@ -93,13 +93,37 @@ class MetIntensityPresets {
+     ),
+   ];
+ 
++  static const otherOptions = [
++    MetIntensityOption(
++      id: 'light',
++      label: '軽め',
++      description: '会話を楽に続けられる',
++      met: 3.0,
++      sourceKey: 'other_light_3_0',
++    ),
++    MetIntensityOption(
++      id: 'moderate',
++      label: 'ふつう',
++      description: '会話はできるが少し息が弾む',
++      met: 4.5,
++      sourceKey: 'other_moderate_4_5',
++    ),
++    MetIntensityOption(
++      id: 'hard',
++      label: 'きつい',
++      description: '短い言葉しか話せない',
++      met: 6.0,
++      sourceKey: 'other_hard_6_0',
++    ),
++  ];
++
+   static List<MetIntensityOption> forCategory(ExerciseCategory category) {
+     return switch (category) {
+       ExerciseCategory.strength => strengthOptions,
+       ExerciseCategory.aerobic => aerobicOptions,
+       ExerciseCategory.sport => sportOptions,
+       ExerciseCategory.dailyActivity => dailyActivityOptions,
+-      ExerciseCategory.other => const [],
++      ExerciseCategory.other => otherOptions,
+     };
+   }
+ }
+diff --git a/lib/models/exercise_entry.dart b/lib/models/exercise_entry.dart
+index 0fc2a82..6c50861 100644
+--- a/lib/models/exercise_entry.dart
++++ b/lib/models/exercise_entry.dart
+@@ -28,7 +28,7 @@ class ExerciseEntry {
+   final String name;
+   final int durationMin;
+ 
+-  /// 表示用の消費カロリー（gross または手入力値）。
++  /// 保存用の消費カロリー（gross または手入力値）。一覧表示は [effectiveNetKcal] を使う。
+   final double burnedKcal;
+   final DateTime loggedAt;
+ 
+@@ -47,7 +47,8 @@ class ExerciseEntry {
+   final String? sourceKey;
+   final String? notes;
+ 
+-  /// 残りカロリー計算に使う net。未設定の既存記録は burnedKcal を net 相当として扱う。
++  /// 残りカロリー計算および履歴・ホームの表示に使う net。
++  /// 未設定の既存記録は burnedKcal を net 相当として扱う。
+   double get effectiveNetKcal {
+     if (netKcal != null && netKcal!.isFinite && netKcal! >= 0) {
+       return netKcal!;
+diff --git a/lib/screens/exercise/exercise_form_screen.dart b/lib/screens/exercise/exercise_form_screen.dart
+index 6af4ae5..75b2b1b 100644
+--- a/lib/screens/exercise/exercise_form_screen.dart
++++ b/lib/screens/exercise/exercise_form_screen.dart
+@@ -1,5 +1,3 @@
+-import 'dart:async';
+-
+ import 'package:flutter/material.dart';
+ 
+ import '../../data/met_activity_catalog.dart';
+@@ -10,7 +8,6 @@ import '../../models/workout_template.dart';
+ import '../../services/exercise_calorie_calculator.dart';
+ import '../../state/app_controller.dart';
+ import '../../theme/app_spacing.dart';
+-import '../../widgets/common/app_card.dart';
+ import '../../widgets/common/app_text_field.dart';
+ import '../../widgets/common/delete_with_undo.dart';
+ import '../../widgets/common/primary_button.dart';
+@@ -44,10 +41,13 @@ class _ExerciseFormScreenState extends State<ExerciseFormScreen> {
+   late final TextEditingController _nameController;
+   late final TextEditingController _durationController;
+   late final TextEditingController _burnedKcalController;
++  late final TextEditingController _setsController;
++  late final TextEditingController _repsController;
++  late final TextEditingController _liftWeightController;
++  late final TextEditingController _notesController;
+   late DateTime _loggedAt;
+   bool _isSaving = false;
+   ExerciseMetFormState _metState = ExerciseMetFormState();
+-  List<String> _nameSuggestions = const [];
+ 
+   @override
+   void initState() {
+@@ -62,52 +62,46 @@ class _ExerciseFormScreenState extends State<ExerciseFormScreen> {
+     _burnedKcalController = TextEditingController(
+       text: entry != null ? entry.effectiveGrossKcal.toString() : '',
+     );
+-    _nameController.addListener(_onNameChanged);
+-    if (!widget.isEditing) {
+-      unawaited(_loadInitialSuggestions());
+-    }
++    _setsController = TextEditingController(
++      text: entry?.sets?.toString() ?? '',
++    );
++    _repsController = TextEditingController(
++      text: entry?.reps?.toString() ?? '',
++    );
++    _liftWeightController = TextEditingController(
++      text: entry?.liftWeightKg?.toString() ?? '',
++    );
++    _notesController = TextEditingController(text: entry?.notes ?? '');
+   }
+ 
+   @override
+   void dispose() {
+-    _nameController.removeListener(_onNameChanged);
+     _nameController.dispose();
+     _durationController.dispose();
+     _burnedKcalController.dispose();
++    _setsController.dispose();
++    _repsController.dispose();
++    _liftWeightController.dispose();
++    _notesController.dispose();
+     super.dispose();
+   }
+ 
+-  Future<void> _loadInitialSuggestions() async {
+-    if (widget.isEditing) {
+-      return;
+-    }
+-    final results = await widget.controller.getExerciseNameSuggestions();
+-    if (!mounted) {
+-      return;
++  bool get _isStrength => _metState.category == ExerciseCategory.strength;
++
++  int? _parseOptionalInt(TextEditingController controller) {
++    final raw = controller.text.trim();
++    if (raw.isEmpty) {
++      return null;
+     }
+-    setState(() => _nameSuggestions = results.take(20).toList());
++    return int.tryParse(raw);
+   }
+ 
+-  Future<void> _onNameChanged() async {
+-    if (widget.isEditing) {
+-      return;
+-    }
+-    final query = _nameController.text.trim();
+-    if (query.isEmpty) {
+-      await _loadInitialSuggestions();
+-      return;
+-    }
+-    final results = await widget.controller.getExerciseNameSuggestions();
+-    if (!mounted) {
+-      return;
++  double? _parseOptionalDouble(TextEditingController controller) {
++    final raw = controller.text.trim();
++    if (raw.isEmpty) {
++      return null;
+     }
+-    final normalizedQuery = query.toLowerCase();
+-    setState(() {
+-      _nameSuggestions = results
+-          .where((name) => name.toLowerCase().contains(normalizedQuery))
+-          .take(20)
+-          .toList();
+-    });
++    return double.tryParse(raw);
+   }
+ 
+   ExerciseEntry? _buildEntry() {
+@@ -117,10 +111,14 @@ class _ExerciseFormScreenState extends State<ExerciseFormScreen> {
+ 
+     final grossAndNet = _resolveGrossAndNetKcal();
+     if (grossAndNet == null) {
++      ScaffoldMessenger.of(context).showSnackBar(
++        const SnackBar(content: Text('消費カロリーを計算できないか、詳細設定で追加消費を入力してください')),
++      );
+       return null;
+     }
+     final gross = grossAndNet.$1;
+     final net = grossAndNet.$2;
++    final notes = _notesController.text.trim();
+ 
+     return ExerciseEntry(
+       id: widget.entry?.id ?? widget.controller.generateId(),
+@@ -131,6 +129,11 @@ class _ExerciseFormScreenState extends State<ExerciseFormScreen> {
+       category: _metState.category,
+       activityId: _metState.activityId,
+       intensity: _metState.intensity,
++      sets: _isStrength ? _parseOptionalInt(_setsController) : null,
++      reps: _isStrength ? _parseOptionalInt(_repsController) : null,
++      liftWeightKg: _isStrength
++          ? _parseOptionalDouble(_liftWeightController)
++          : null,
+       metValue: _metState.metValue,
+       grossKcal: gross,
+       netKcal: net,
+@@ -139,20 +142,22 @@ class _ExerciseFormScreenState extends State<ExerciseFormScreen> {
+       calculationVersion:
+           _metState.calculationVersion ?? MetActivityCatalog.calculationVersion,
+       sourceKey: _metState.sourceKey,
++      notes: notes.isEmpty ? null : notes,
+     );
+   }
+ 
+   /// 保存直前に MET 入力から gross/net を再計算（編集時の古い値混在を防ぐ）。
+   (double, double)? _resolveGrossAndNetKcal() {
+     final parsedGross = double.tryParse(_burnedKcalController.text.trim());
+-    if (parsedGross == null) {
+-      return null;
+-    }
+ 
+     if (_metState.manualOverride ||
+         _metState.calculationSource ==
+             ExerciseCalculationSource.manualOverride) {
+-      return (parsedGross, _metState.netKcal ?? parsedGross);
++      final net = _metState.netKcal ?? parsedGross;
++      if (net == null) {
++        return null;
++      }
++      return (parsedGross ?? _metState.grossKcal ?? net, net);
+     }
+ 
+     final duration = int.tryParse(_durationController.text.trim());
+@@ -177,7 +182,13 @@ class _ExerciseFormScreenState extends State<ExerciseFormScreen> {
+       }
+     }
+ 
+-    return (parsedGross, _metState.netKcal ?? parsedGross);
++    if (parsedGross != null) {
++      return (parsedGross, _metState.netKcal ?? parsedGross);
++    }
++    if (_metState.grossKcal != null && _metState.netKcal != null) {
++      return (_metState.grossKcal!, _metState.netKcal!);
++    }
++    return null;
+   }
+ 
+   Future<void> _save() async {
+@@ -220,6 +231,37 @@ class _ExerciseFormScreenState extends State<ExerciseFormScreen> {
+     Navigator.of(context).pop();
+   }
+ 
++  Widget _buildAdditionalFields() {
++    return Column(
++      crossAxisAlignment: CrossAxisAlignment.stretch,
++      children: [
++        if (_isStrength) ...[
++          AppTextField(
++            controller: _setsController,
++            label: 'セット',
++            keyboardType: TextInputType.number,
++          ),
++          AppTextField(
++            controller: _repsController,
++            label: '回数',
++            keyboardType: TextInputType.number,
++          ),
++          AppTextField(
++            controller: _liftWeightController,
++            label: '重量（kg）',
++            keyboardType: const TextInputType.numberWithOptions(decimal: true),
++          ),
++          const SizedBox(height: AppSpacing.sm),
++        ],
++        LoggedAtPickerField(
++          loggedAt: _loggedAt,
++          onChanged: (value) => setState(() => _loggedAt = value),
++        ),
++        AppTextField(controller: _notesController, label: 'メモ', maxLines: 3),
++      ],
++    );
++  }
++
+   @override
+   Widget build(BuildContext context) {
+     return Scaffold(
+@@ -236,108 +278,13 @@ class _ExerciseFormScreenState extends State<ExerciseFormScreen> {
+                 widget.isEditing ? 160 : 120,
+               ),
+               children: [
+-                if (!widget.isEditing) ...[
+-                  AppCard(
+-                    child: Column(
+-                      crossAxisAlignment: CrossAxisAlignment.stretch,
+-                      children: [
+-                        SecondaryButton(
+-                          onPressed: () => openWorkoutTemplatePicker(
+-                            context: context,
+-                            controller: widget.controller,
+-                          ),
+-                          label: 'テンプレートから追加',
+-                        ),
+-                        const SizedBox(height: AppSpacing.xs),
+-                        SecondaryButton(
+-                          onPressed: () => openWorkoutTemplateCreate(
+-                            context,
+-                            widget.controller,
+-                          ),
+-                          label: 'テンプレートを新規作成',
+-                        ),
+-                      ],
+-                    ),
+-                  ),
+-                  const SizedBox(height: AppSpacing.sm),
+-                ],
+-                AppCard(
+-                  child: Column(
+-                    crossAxisAlignment: CrossAxisAlignment.stretch,
+-                    children: [
+-                      AppTextField(
+-                        controller: _nameController,
+-                        label: '運動名',
+-                        validator: (value) {
+-                          if (value == null || value.trim().isEmpty) {
+-                            return '運動名を入力してください';
+-                          }
+-                          return null;
+-                        },
+-                      ),
+-                      if (!widget.isEditing && _nameSuggestions.isNotEmpty) ...[
+-                        const SizedBox(height: AppSpacing.sm),
+-                        Wrap(
+-                          spacing: AppSpacing.xs,
+-                          runSpacing: AppSpacing.xs,
+-                          children: [
+-                            for (final suggestion in _nameSuggestions)
+-                              ActionChip(
+-                                label: Text(suggestion),
+-                                onPressed: () {
+-                                  _nameController.text = suggestion;
+-                                },
+-                              ),
+-                          ],
+-                        ),
+-                      ],
+-                      const SizedBox(height: AppSpacing.sm),
+-                      AppTextField(
+-                        controller: _durationController,
+-                        label: '実施時間（分）',
+-                        keyboardType: TextInputType.number,
+-                        validator: (value) {
+-                          if (value == null || value.isEmpty) {
+-                            return '実施時間を入力してください';
+-                          }
+-                          final parsed = int.tryParse(value);
+-                          if (parsed == null || parsed <= 0) {
+-                            return '1以上の整数を入力してください';
+-                          }
+-                          return null;
+-                        },
+-                      ),
+-                      const SizedBox(height: AppSpacing.sm),
+-                      LoggedAtPickerField(
+-                        loggedAt: _loggedAt,
+-                        onChanged: (value) => setState(() => _loggedAt = value),
+-                      ),
+-                      AppTextField(
+-                        controller: _burnedKcalController,
+-                        label: '消費 kcal（gross）',
+-                        keyboardType: const TextInputType.numberWithOptions(
+-                          decimal: true,
+-                        ),
+-                        validator: (value) {
+-                          if (value == null || value.isEmpty) {
+-                            return '消費 kcal を入力してください';
+-                          }
+-                          final parsed = double.tryParse(value);
+-                          if (parsed == null || parsed < 0) {
+-                            return '0以上の数値を入力してください';
+-                          }
+-                          return null;
+-                        },
+-                      ),
+-                    ],
+-                  ),
+-                ),
+-                const SizedBox(height: AppSpacing.sm),
+                 ExerciseMetCalculationSection(
+                   controller: widget.controller,
+                   loggedAt: _loggedAt,
+                   durationController: _durationController,
+                   grossKcalController: _burnedKcalController,
++                  nameController: _nameController,
++                  additionalFields: _buildAdditionalFields(),
+                   isEditing: widget.isEditing,
+                   initialEntry: widget.entry,
+                   onEstimateChanged: (state) =>
+@@ -368,7 +315,7 @@ class _ExerciseFormScreenState extends State<ExerciseFormScreen> {
+                   final name = _nameController.text.trim();
+                   if (name.isEmpty || duration == null || duration <= 0) {
+                     ScaffoldMessenger.of(context).showSnackBar(
+-                      const SnackBar(content: Text('運動名と実施時間を入力してください')),
++                      const SnackBar(content: Text('表示名と実施時間を入力してください')),
+                     );
+                     return;
+                   }
+@@ -384,6 +331,18 @@ class _ExerciseFormScreenState extends State<ExerciseFormScreen> {
+                       intensity: _metState.intensity,
+                       metValue: _metState.metValue,
+                       sourceKey: _metState.sourceKey,
++                      sets: _isStrength
++                          ? _parseOptionalInt(_setsController)
++                          : null,
++                      reps: _isStrength
++                          ? _parseOptionalInt(_repsController)
++                          : null,
++                      liftWeightKg: _isStrength
++                          ? _parseOptionalDouble(_liftWeightController)
++                          : null,
++                      notes: _notesController.text.trim().isEmpty
++                          ? null
++                          : _notesController.text.trim(),
+                       sortOrder: 1,
+                     ),
+                   );
+diff --git a/lib/screens/history/day_history_screen.dart b/lib/screens/history/day_history_screen.dart
+index f13c1a1..3bb58e9 100644
+--- a/lib/screens/history/day_history_screen.dart
++++ b/lib/screens/history/day_history_screen.dart
+@@ -414,7 +414,7 @@ class DayHistoryScreen extends StatelessWidget {
+                                 mainAxisSize: MainAxisSize.min,
+                                 children: [
+                                   Text(
+-                                    '${exerciseItems[i].burnedKcal.toStringAsFixed(0)} kcal',
++                                    '${exerciseItems[i].effectiveNetKcal.toStringAsFixed(0)} kcal',
+                                     style: Theme.of(context)
+                                         .textTheme
+                                         .titleSmall
+diff --git a/lib/screens/home/home_screen.dart b/lib/screens/home/home_screen.dart
+index 62a7e23..e32c5b1 100644
+--- a/lib/screens/home/home_screen.dart
++++ b/lib/screens/home/home_screen.dart
+@@ -679,7 +679,7 @@ class _TodayExerciseTile extends StatelessWidget {
+         mainAxisSize: MainAxisSize.min,
+         children: [
+           Text(
+-            '${entry.burnedKcal.toStringAsFixed(0)} kcal',
++            '${entry.effectiveNetKcal.toStringAsFixed(0)} kcal',
+             style: Theme.of(context).textTheme.titleSmall?.copyWith(
+               color: AppColors.accentOrange,
+               fontWeight: FontWeight.w600,
+diff --git a/lib/widgets/exercise/exercise_met_calculation_section.dart b/lib/widgets/exercise/exercise_met_calculation_section.dart
+index e82a133..55615af 100644
+--- a/lib/widgets/exercise/exercise_met_calculation_section.dart
++++ b/lib/widgets/exercise/exercise_met_calculation_section.dart
+@@ -11,6 +11,8 @@ import '../../state/app_controller.dart';
+ import '../../theme/app_spacing.dart';
+ import '../../utils/nutrition_format.dart';
+ import '../../widgets/common/app_card.dart';
++import '../../widgets/common/app_chip.dart';
++import '../../widgets/common/app_text_field.dart';
+ import '../../screens/settings/calculation_references_screen.dart';
+ 
+ /// 運動フォーム内の MET 自動計算（日常語 UI / 詳細設定折りたたみ）。
+@@ -22,6 +24,8 @@ class ExerciseMetCalculationSection extends StatefulWidget {
+     required this.durationController,
+     required this.grossKcalController,
+     required this.isEditing,
++    this.nameController,
++    this.additionalFields,
+     this.initialEntry,
+     required this.onEstimateChanged,
+   });
+@@ -30,6 +34,8 @@ class ExerciseMetCalculationSection extends StatefulWidget {
+   final DateTime loggedAt;
+   final TextEditingController durationController;
+   final TextEditingController grossKcalController;
++  final TextEditingController? nameController;
++  final Widget? additionalFields;
+   final bool isEditing;
+   final ExerciseEntry? initialEntry;
+   final void Function(ExerciseMetFormState state) onEstimateChanged;
+@@ -74,7 +80,11 @@ class _ExerciseMetCalculationSectionState
+   static const _noWeightMessage =
+       '体重データがないため、消費カロリーを自動計算できません。'
+       '体重を記録するか、手動で入力してください。';
++  static const _dailyActivityPalWarning =
++      '通勤・家事などの日常活動は、設定の生活活動係数（PAL）にすでに含まれています。'
++      '特別に長く動いた分だけ記録してください。';
+ 
++  final _searchController = TextEditingController();
+   ExerciseCategory _category = ExerciseCategory.aerobic;
+   MetActivityDefinition? _activity;
+   String? _intensityId;
+@@ -113,6 +123,10 @@ class _ExerciseMetCalculationSectionState
+     widget.durationController.addListener(_onInputsChanged);
+     WidgetsBinding.instance.addPostFrameCallback((_) {
+       if (!widget.isEditing) {
++        if (widget.nameController != null &&
++            widget.nameController!.text.trim().isEmpty) {
++          _syncNameFromActivity();
++        }
+         _recalculate();
+       } else {
+         _notifyParent();
+@@ -123,6 +137,7 @@ class _ExerciseMetCalculationSectionState
+   @override
+   void dispose() {
+     widget.durationController.removeListener(_onInputsChanged);
++    _searchController.dispose();
+     super.dispose();
+   }
+ 
+@@ -147,6 +162,32 @@ class _ExerciseMetCalculationSectionState
+ 
+   double? get _resolvedMet => _manualOverride ? null : _selectedIntensity?.met;
+ 
++  void _applyActivity(
++    MetActivityDefinition? activity, {
++    required bool syncName,
++    ExerciseCategory? category,
++  }) {
++    _activity = activity;
++    if (category != null) {
++      _category = category;
++    } else if (activity != null) {
++      _category = activity.category;
++    }
++    _intensityId = activity?.defaultIntensityId;
++    if (syncName) {
++      _syncNameFromActivity();
++    }
++  }
++
++  void _syncNameFromActivity() {
++    final nameController = widget.nameController;
++    final activity = _activity;
++    if (nameController == null || activity == null) {
++      return;
++    }
++    nameController.text = activity.displayName;
++  }
++
+   void _recalculate() {
+     if (_manualOverride) {
+       _notifyParent();
+@@ -227,202 +268,256 @@ class _ExerciseMetCalculationSectionState
+     return _activity!.intensityOptions;
+   }
+ 
++  List<MetActivityDefinition> get _visibleActivities {
++    final query = _searchController.text.trim();
++    return MetActivityCatalog.search(
++      query: query,
++      category: query.isEmpty ? _category : null,
++    );
++  }
++
+   @override
+   Widget build(BuildContext context) {
+-    final activityOptions = MetActivityCatalog.byCategory(_category);
+     final intensities = _intensityOptions;
+     final hasWeight =
+         _weightReference != null ||
+         widget.initialEntry?.weightKgSnapshot != null;
++    final visibleActivities = _visibleActivities;
+ 
+     return AppCard(
+-      child: SingleChildScrollView(
+-        child: Column(
+-          crossAxisAlignment: CrossAxisAlignment.stretch,
+-          children: [
+-            Text('1. 運動の種類', style: Theme.of(context).textTheme.labelLarge),
+-            const SizedBox(height: AppSpacing.xs),
+-            DropdownButtonFormField<ExerciseCategory>(
+-              initialValue: _category,
+-              decoration: const InputDecoration(labelText: '運動の種類'),
+-              items: MetActivityCatalog.selectableCategories
+-                  .map(
+-                    (category) => DropdownMenuItem(
+-                      value: category,
+-                      child: Text(category.labelJa),
+-                    ),
+-                  )
+-                  .toList(),
+-              onChanged: (value) {
+-                if (value == null) {
+-                  return;
++      child: Column(
++        crossAxisAlignment: CrossAxisAlignment.stretch,
++        children: [
++          Text('種目', style: Theme.of(context).textTheme.labelLarge),
++          const SizedBox(height: AppSpacing.xs),
++          TextField(
++            controller: _searchController,
++            decoration: const InputDecoration(
++              labelText: '種目を検索',
++              prefixIcon: Icon(Icons.search),
++            ),
++            onChanged: (_) => setState(() {}),
++          ),
++          const SizedBox(height: AppSpacing.sm),
++          Wrap(
++            spacing: AppSpacing.xs,
++            runSpacing: AppSpacing.xs,
++            children: [
++              for (final category in MetActivityCatalog.selectableCategories)
++                AppChip(
++                  label: category.labelJa,
++                  selected: _category == category,
++                  onTap: () {
++                    if (_category == category) {
++                      return;
++                    }
++                    setState(() {
++                      final next = MetActivityCatalog.byCategory(category);
++                      _applyActivity(
++                        next.isNotEmpty ? next.first : null,
++                        syncName: true,
++                        category: category,
++                      );
++                    });
++                    _maybeRecalculate();
++                  },
++                ),
++            ],
++          ),
++          const SizedBox(height: AppSpacing.sm),
++          if (visibleActivities.isEmpty)
++            Text('一致する種目がありません', style: Theme.of(context).textTheme.bodySmall)
++          else
++            Wrap(
++              spacing: AppSpacing.xs,
++              runSpacing: AppSpacing.xs,
++              children: [
++                for (final activity in visibleActivities)
++                  ChoiceChip(
++                    label: Text(activity.displayName),
++                    selected: _activity?.id == activity.id,
++                    onSelected: (_) {
++                      setState(() {
++                        _applyActivity(activity, syncName: true);
++                      });
++                      _maybeRecalculate();
++                    },
++                  ),
++              ],
++            ),
++          if (widget.nameController != null) ...[
++            const SizedBox(height: AppSpacing.md),
++            AppTextField(
++              controller: widget.nameController,
++              label: '表示名',
++              validator: (value) {
++                if (value == null || value.trim().isEmpty) {
++                  return '表示名を入力してください';
+                 }
+-                setState(() {
+-                  _category = value;
+-                  final next = MetActivityCatalog.byCategory(value);
+-                  _activity = next.isNotEmpty ? next.first : null;
+-                  _intensityId = _activity?.defaultIntensityId;
+-                });
+-                _maybeRecalculate();
++                return null;
+               },
+             ),
++          ],
++          if (intensities.isNotEmpty) ...[
+             const SizedBox(height: AppSpacing.md),
+-            Text('2. 種目', style: Theme.of(context).textTheme.labelLarge),
++            Text('きつさ', style: Theme.of(context).textTheme.labelLarge),
+             const SizedBox(height: AppSpacing.xs),
+-            DropdownButtonFormField<MetActivityDefinition>(
+-              initialValue: _activity,
+-              decoration: const InputDecoration(labelText: '種目'),
+-              items: activityOptions
+-                  .map(
+-                    (activity) => DropdownMenuItem(
+-                      value: activity,
+-                      child: Text(activity.displayName),
+-                    ),
+-                  )
+-                  .toList(),
+-              onChanged: (value) {
+-                setState(() {
+-                  _activity = value;
+-                  _intensityId = value?.defaultIntensityId;
+-                });
+-                _maybeRecalculate();
+-              },
++            Wrap(
++              spacing: AppSpacing.xs,
++              runSpacing: AppSpacing.xs,
++              children: [
++                for (final option in intensities)
++                  ChoiceChip(
++                    label: Text(option.label),
++                    selected: _intensityId == option.id,
++                    onSelected: _manualOverride
++                        ? null
++                        : (_) {
++                            setState(() => _intensityId = option.id);
++                            _maybeRecalculate();
++                          },
++                  ),
++              ],
+             ),
+-            if (intensities.isNotEmpty) ...[
+-              const SizedBox(height: AppSpacing.md),
+-              Text(
+-                '3. きつさ・運動強度',
+-                style: Theme.of(context).textTheme.labelLarge,
+-              ),
+-              const SizedBox(height: AppSpacing.xs),
+-              ...intensities.map((option) {
+-                return RadioListTile<String>(
+-                  contentPadding: EdgeInsets.zero,
+-                  title: Text(option.label),
+-                  subtitle: Text(option.description),
+-                  value: option.id,
+-                  groupValue: _intensityId,
+-                  onChanged: _manualOverride
+-                      ? null
+-                      : (value) {
+-                          setState(() => _intensityId = value);
+-                          _maybeRecalculate();
+-                        },
+-                );
+-              }),
+-            ],
++          ],
++          if (_category == ExerciseCategory.dailyActivity) ...[
+             const SizedBox(height: AppSpacing.sm),
+             Text(
+-              '4. 運動時間は上のフォームで入力してください',
++              _dailyActivityPalWarning,
+               style: Theme.of(context).textTheme.bodySmall,
+             ),
++          ],
++          const SizedBox(height: AppSpacing.md),
++          AppTextField(
++            controller: widget.durationController,
++            label: '実施時間（分）',
++            keyboardType: TextInputType.number,
++            validator: (value) {
++              if (value == null || value.isEmpty) {
++                return '実施時間を入力してください';
++              }
++              final parsed = int.tryParse(value);
++              if (parsed == null || parsed <= 0) {
++                return '1以上の整数を入力してください';
++              }
++              return null;
++            },
++          ),
++          if (widget.additionalFields != null) ...[
++            const SizedBox(height: AppSpacing.sm),
++            widget.additionalFields!,
++          ],
++          if (!hasWeight && !_manualOverride) ...[
++            const SizedBox(height: AppSpacing.sm),
++            Text(
++              _noWeightMessage,
++              style: TextStyle(color: Theme.of(context).colorScheme.error),
++            ),
++          ],
++          if (_estimate != null || _displayNetKcal != null) ...[
+             const SizedBox(height: AppSpacing.md),
+-            if (!hasWeight && !_manualOverride)
+-              Text(
+-                _noWeightMessage,
+-                style: TextStyle(color: Theme.of(context).colorScheme.error),
+-              ),
+-            if (_estimate != null || _displayNetKcal != null) ...[
+-              const SizedBox(height: AppSpacing.md),
+-              Text(
+-                '5. 推定消費カロリー',
+-                style: Theme.of(context).textTheme.labelLarge,
+-              ),
+-              const SizedBox(height: AppSpacing.xs),
+-              Text(
+-                '推定総消費：${formatNullableNutrient(_estimate?.grossKcal ?? double.tryParse(widget.grossKcalController.text))} kcal\n'
+-                '（運動時間中の総エネルギー消費）',
++            Text('追加消費', style: Theme.of(context).textTheme.labelLarge),
++            const SizedBox(height: AppSpacing.xs),
++            Text(
++              '${formatNullableNutrient(_displayNetKcal)} kcal',
++              style: Theme.of(context).textTheme.titleMedium,
++            ),
++            Text(
++              '残りカロリーに加算される、運動による追加分',
++              style: Theme.of(context).textTheme.bodySmall,
++            ),
++          ],
++          ExpansionTile(
++            title: const Text('詳細設定'),
++            initiallyExpanded: _showAdvanced,
++            onExpansionChanged: (v) => setState(() => _showAdvanced = v),
++            children: [
++              if (_resolvedMet != null)
++                ListTile(
++                  dense: true,
++                  title: const Text('内部 MET'),
++                  trailing: Text(_resolvedMet!.toStringAsFixed(2)),
++                ),
++              if (_weightReference != null)
++                ListTile(
++                  dense: true,
++                  title: const Text('計算に使用した体重'),
++                  trailing: Text(
++                    '${_weightReference!.weightKg.toStringAsFixed(1)} kg',
++                  ),
++                ),
++              ListTile(
++                dense: true,
++                title: const Text('推定総消費（gross）'),
++                subtitle: const Text('運動時間中の総エネルギー消費'),
++                trailing: Text(
++                  '${formatNullableNutrient(_estimate?.grossKcal ?? double.tryParse(widget.grossKcalController.text))} kcal',
++                ),
+               ),
+-              Text(
+-                '追加消費：${formatNullableNutrient(_displayNetKcal)} kcal\n'
+-                '（安静時消費を除いた、運動による追加分）',
++              SwitchListTile(
++                contentPadding: EdgeInsets.zero,
++                title: const Text('手動消費カロリー補正'),
++                subtitle: const Text('追加消費（net）を手入力'),
++                value: _manualOverride,
++                onChanged: (value) {
++                  setState(() {
++                    _manualOverride = value;
++                    if (value) {
++                      _manualNetKcal =
++                          _displayNetKcal ??
++                          double.tryParse(
++                            widget.grossKcalController.text.trim(),
++                          );
++                    }
++                  });
++                  _recalculate();
++                },
+               ),
+-            ],
+-            ExpansionTile(
+-              title: const Text('詳細設定'),
+-              initiallyExpanded: _showAdvanced,
+-              onExpansionChanged: (v) => setState(() => _showAdvanced = v),
+-              children: [
+-                if (_resolvedMet != null)
+-                  ListTile(
+-                    dense: true,
+-                    title: const Text('内部 MET'),
+-                    trailing: Text(_resolvedMet!.toStringAsFixed(2)),
++              if (_manualOverride)
++                TextField(
++                  decoration: const InputDecoration(
++                    labelText: '手動 追加消費 kcal（net）',
+                   ),
+-                if (_weightReference != null)
+-                  ListTile(
+-                    dense: true,
+-                    title: const Text('計算に使用した体重'),
+-                    trailing: Text(
+-                      '${_weightReference!.weightKg.toStringAsFixed(1)} kg',
+-                    ),
++                  keyboardType: const TextInputType.numberWithOptions(
++                    decimal: true,
+                   ),
+-                SwitchListTile(
+-                  contentPadding: EdgeInsets.zero,
+-                  title: const Text('手動消費カロリー補正'),
+-                  subtitle: const Text('追加消費（net）を手入力'),
+-                  value: _manualOverride,
+                   onChanged: (value) {
+-                    setState(() {
+-                      _manualOverride = value;
+-                      if (value) {
+-                        _manualNetKcal =
+-                            _displayNetKcal ??
+-                            double.tryParse(
+-                              widget.grossKcalController.text.trim(),
+-                            );
+-                      }
+-                    });
+-                    _recalculate();
+-                  },
+-                ),
+-                if (_manualOverride)
+-                  TextField(
+-                    decoration: const InputDecoration(
+-                      labelText: '手動 追加消費 kcal（net）',
+-                    ),
+-                    keyboardType: const TextInputType.numberWithOptions(
+-                      decimal: true,
+-                    ),
+-                    onChanged: (value) {
+-                      _manualNetKcal = double.tryParse(value.trim());
+-                      _notifyParent();
+-                    },
+-                  ),
+-                ListTile(
+-                  dense: true,
+-                  title: const Text('計算バージョン'),
+-                  trailing: Text(MetActivityCatalog.calculationVersion),
+-                ),
+-                TextButton(
+-                  onPressed: () {
+-                    Navigator.of(context).push(
+-                      MaterialPageRoute<void>(
+-                        builder: (context) =>
+-                            const CalculationReferencesScreen(),
+-                      ),
+-                    );
++                    _manualNetKcal = double.tryParse(value.trim());
++                    _notifyParent();
+                   },
+-                  child: const Text('計算根拠・参考文献'),
+                 ),
+-              ],
+-            ),
+-            if (widget.isEditing && !_allowRecalculateOnEdit) ...[
+-              const SizedBox(height: AppSpacing.sm),
+-              Text(
+-                '保存済みの計算結果を、現在の入力内容と体重データで再計算します。',
+-                style: Theme.of(context).textTheme.bodySmall,
++              ListTile(
++                dense: true,
++                title: const Text('計算バージョン'),
++                trailing: Text(MetActivityCatalog.calculationVersion),
+               ),
+               TextButton(
+                 onPressed: () {
+-                  setState(() => _allowRecalculateOnEdit = true);
+-                  _recalculate();
++                  Navigator.of(context).push(
++                    MaterialPageRoute<void>(
++                      builder: (context) => const CalculationReferencesScreen(),
++                    ),
++                  );
+                 },
+-                child: const Text('再計算'),
++                child: const Text('計算根拠・参考文献'),
+               ),
+             ],
++          ),
++          if (widget.isEditing && !_allowRecalculateOnEdit) ...[
++            const SizedBox(height: AppSpacing.sm),
++            Text(
++              '保存済みの計算結果を、現在の入力内容と体重データで再計算します。',
++              style: Theme.of(context).textTheme.bodySmall,
++            ),
++            TextButton(
++              onPressed: () {
++                setState(() => _allowRecalculateOnEdit = true);
++                _recalculate();
++              },
++              child: const Text('再計算'),
++            ),
+           ],
+-        ),
++        ],
+       ),
+     );
+   }
+diff --git a/lib/widgets/history/workout_history_list.dart b/lib/widgets/history/workout_history_list.dart
+index 8f2c431..f1ea094 100644
+--- a/lib/widgets/history/workout_history_list.dart
++++ b/lib/widgets/history/workout_history_list.dart
+@@ -75,7 +75,7 @@ class WorkoutHistoryList extends StatelessWidget {
+                         mainAxisSize: MainAxisSize.min,
+                         children: [
+                           Text(
+-                            '${dateGroup.items[i].burnedKcal.toStringAsFixed(0)} kcal',
++                            '${dateGroup.items[i].effectiveNetKcal.toStringAsFixed(0)} kcal',
+                             style: Theme.of(context).textTheme.titleSmall
+                                 ?.copyWith(
+                                   color: AppColors.accentOrange,
+diff --git a/test/exercise_met_calculation_section_test.dart b/test/exercise_met_calculation_section_test.dart
+index 893b58a..92cd0fa 100644
+--- a/test/exercise_met_calculation_section_test.dart
++++ b/test/exercise_met_calculation_section_test.dart
+@@ -1,4 +1,5 @@
+ import 'package:ayg/data/met_activity_catalog.dart';
++import 'package:ayg/data/met_intensity_presets.dart';
+ import 'package:ayg/models/exercise_calculation_source.dart';
+ import 'package:ayg/models/exercise_category.dart';
+ import 'package:ayg/models/exercise_entry.dart';
+@@ -74,20 +75,24 @@ void main() {
+     required DateTime loggedAt,
+     required bool isEditing,
+     ExerciseEntry? initialEntry,
++    TextEditingController? nameController,
+   }) async {
+     ExerciseMetFormState? latestState;
+ 
+     await tester.pumpWidget(
+       MaterialApp(
+         home: Scaffold(
+-          body: ExerciseMetCalculationSection(
+-            controller: controller,
+-            loggedAt: loggedAt,
+-            durationController: durationController,
+-            grossKcalController: grossController,
+-            isEditing: isEditing,
+-            initialEntry: initialEntry,
+-            onEstimateChanged: (state) => latestState = state,
++          body: SingleChildScrollView(
++            child: ExerciseMetCalculationSection(
++              controller: controller,
++              loggedAt: loggedAt,
++              durationController: durationController,
++              grossKcalController: grossController,
++              nameController: nameController,
++              isEditing: isEditing,
++              initialEntry: initialEntry,
++              onEstimateChanged: (state) => latestState = state,
++            ),
+           ),
+         ),
+       ),
+@@ -96,6 +101,58 @@ void main() {
+     return latestState;
+   }
+ 
++  Future<void> pumpMetSectionWithState(
++    WidgetTester tester, {
++    required AppController controller,
++    required TextEditingController durationController,
++    required TextEditingController grossController,
++    required DateTime loggedAt,
++    required bool isEditing,
++    ExerciseEntry? initialEntry,
++    required void Function(ExerciseMetFormState state) onEstimateChanged,
++  }) async {
++    await tester.pumpWidget(
++      MaterialApp(
++        home: Scaffold(
++          body: SingleChildScrollView(
++            child: ExerciseMetCalculationSection(
++              controller: controller,
++              loggedAt: loggedAt,
++              durationController: durationController,
++              grossKcalController: grossController,
++              isEditing: isEditing,
++              initialEntry: initialEntry,
++              onEstimateChanged: onEstimateChanged,
++            ),
++          ),
++        ),
++      ),
++    );
++    await tester.pumpAndSettle();
++  }
++
++  Future<void> tapCategoryChip(WidgetTester tester, String label) async {
++    final chip = find.widgetWithText(FilterChip, label);
++    await tester.scrollUntilVisible(
++      chip,
++      120,
++      scrollable: find.byType(Scrollable).first,
++    );
++    await tester.tap(chip);
++    await tester.pumpAndSettle();
++  }
++
++  Future<void> tapActivityChip(WidgetTester tester, String label) async {
++    final chip = find.widgetWithText(ChoiceChip, label);
++    await tester.scrollUntilVisible(
++      chip,
++      120,
++      scrollable: find.byType(Scrollable).first,
++    );
++    await tester.tap(chip);
++    await tester.pumpAndSettle();
++  }
++
+   Future<void> expandAdvanced(WidgetTester tester) async {
+     await tester.scrollUntilVisible(
+       find.text('詳細設定'),
+@@ -161,10 +218,7 @@ void main() {
+         isEditing: false,
+       );
+ 
+-      await tester.tap(find.byType(DropdownButtonFormField<ExerciseCategory>));
+-      await tester.pumpAndSettle();
+-      await tester.tap(find.text('筋力トレーニング').last);
+-      await tester.pumpAndSettle();
++      await tapCategoryChip(tester, '筋力トレーニング');
+ 
+       expect(find.text('軽め'), findsOneWidget);
+       expect(find.text('ふつう'), findsOneWidget);
+@@ -246,12 +300,7 @@ void main() {
+         await tester.pumpAndSettle();
+         expect(grossController.text, '500');
+ 
+-        await tester.tap(
+-          find.byType(DropdownButtonFormField<MetActivityDefinition>),
+-        );
+-        await tester.pumpAndSettle();
+-        await tester.tap(find.text('ランニング・ジョギング').last);
+-        await tester.pumpAndSettle();
++        await tapActivityChip(tester, 'ランニング・ジョギング');
+         expect(grossController.text, '500');
+       },
+     );
+@@ -283,22 +332,16 @@ void main() {
+       addTearDown(grossController.dispose);
+ 
+       ExerciseMetFormState? latestState;
+-      await tester.pumpWidget(
+-        MaterialApp(
+-          home: Scaffold(
+-            body: ExerciseMetCalculationSection(
+-              controller: controller,
+-              loggedAt: loggedAt,
+-              durationController: durationController,
+-              grossKcalController: grossController,
+-              isEditing: true,
+-              initialEntry: entry,
+-              onEstimateChanged: (state) => latestState = state,
+-            ),
+-          ),
+-        ),
++      await pumpMetSectionWithState(
++        tester,
++        controller: controller,
++        durationController: durationController,
++        grossController: grossController,
++        loggedAt: loggedAt,
++        isEditing: true,
++        initialEntry: entry,
++        onEstimateChanged: (state) => latestState = state,
+       );
+-      await tester.pumpAndSettle();
+ 
+       await tapRecalculate(tester);
+ 
+@@ -331,21 +374,15 @@ void main() {
+       addTearDown(grossController.dispose);
+ 
+       ExerciseMetFormState? latestState;
+-      await tester.pumpWidget(
+-        MaterialApp(
+-          home: Scaffold(
+-            body: ExerciseMetCalculationSection(
+-              controller: controller,
+-              loggedAt: loggedAt,
+-              durationController: durationController,
+-              grossKcalController: grossController,
+-              isEditing: false,
+-              onEstimateChanged: (state) => latestState = state,
+-            ),
+-          ),
+-        ),
++      await pumpMetSectionWithState(
++        tester,
++        controller: controller,
++        durationController: durationController,
++        grossController: grossController,
++        loggedAt: loggedAt,
++        isEditing: false,
++        onEstimateChanged: (state) => latestState = state,
+       );
+-      await tester.pumpAndSettle();
+ 
+       await tapManualOverride(tester);
+       final netField = find.widgetWithText(TextField, '手動 追加消費 kcal（net）');
+@@ -377,21 +414,15 @@ void main() {
+       addTearDown(grossController.dispose);
+ 
+       ExerciseMetFormState? latestState;
+-      await tester.pumpWidget(
+-        MaterialApp(
+-          home: Scaffold(
+-            body: ExerciseMetCalculationSection(
+-              controller: controller,
+-              loggedAt: loggedAt,
+-              durationController: durationController,
+-              grossKcalController: grossController,
+-              isEditing: false,
+-              onEstimateChanged: (state) => latestState = state,
+-            ),
+-          ),
+-        ),
++      await pumpMetSectionWithState(
++        tester,
++        controller: controller,
++        durationController: durationController,
++        grossController: grossController,
++        loggedAt: loggedAt,
++        isEditing: false,
++        onEstimateChanged: (state) => latestState = state,
+       );
+-      await tester.pumpAndSettle();
+ 
+       await tapManualOverride(tester);
+       await tapManualOverride(tester, enable: false);
+@@ -452,25 +483,131 @@ void main() {
+       addTearDown(grossController.dispose);
+ 
+       ExerciseMetFormState? latestState;
+-      await tester.pumpWidget(
+-        MaterialApp(
+-          home: Scaffold(
+-            body: ExerciseMetCalculationSection(
+-              controller: controller,
+-              loggedAt: loggedAt,
+-              durationController: durationController,
+-              grossKcalController: grossController,
+-              isEditing: false,
+-              onEstimateChanged: (state) => latestState = state,
+-            ),
+-          ),
+-        ),
++      await pumpMetSectionWithState(
++        tester,
++        controller: controller,
++        durationController: durationController,
++        grossController: grossController,
++        loggedAt: loggedAt,
++        isEditing: false,
++        onEstimateChanged: (state) => latestState = state,
+       );
+-      await tester.pumpAndSettle();
+ 
+       expect(latestState?.weightKgSnapshot, 68);
+       expect(latestState?.weightKgSnapshot, isNot(60));
+     });
++
++    testWidgets('other category offers light moderate hard intensities', (
++      tester,
++    ) async {
++      final controller = AppController();
++      addTearDown(controller.dispose);
++      controller.profile = profile();
++
++      final durationController = TextEditingController(text: '30');
++      final grossController = TextEditingController(text: '');
++      addTearDown(durationController.dispose);
++      addTearDown(grossController.dispose);
++
++      await pumpMetSection(
++        tester,
++        controller: controller,
++        durationController: durationController,
++        grossController: grossController,
++        loggedAt: DateTime(2026, 8, 1, 12),
++        isEditing: false,
++      );
++
++      await tapCategoryChip(tester, 'その他');
++
++      expect(find.text('軽め'), findsOneWidget);
++      expect(find.text('ふつう'), findsOneWidget);
++      expect(find.text('きつい'), findsOneWidget);
++      expect(
++        MetActivityCatalog.findById('custom')?.intensityOptions,
++        MetIntensityPresets.otherOptions,
++      );
++    });
++
++    testWidgets('daily activity warns that PAL already includes housework', (
++      tester,
++    ) async {
++      final controller = AppController();
++      addTearDown(controller.dispose);
++      controller.profile = profile();
++
++      final durationController = TextEditingController(text: '30');
++      final grossController = TextEditingController(text: '');
++      addTearDown(durationController.dispose);
++      addTearDown(grossController.dispose);
++
++      await pumpMetSection(
++        tester,
++        controller: controller,
++        durationController: durationController,
++        grossController: grossController,
++        loggedAt: DateTime(2026, 8, 1, 12),
++        isEditing: false,
++      );
++
++      await tapCategoryChip(tester, '日常活動・軽い運動');
++
++      expect(find.textContaining('生活活動係数（PAL）にすでに含まれています'), findsOneWidget);
++    });
++
++    testWidgets('main surface shows net only without gross or MET', (
++      tester,
++    ) async {
++      final controller = AppController();
++      addTearDown(controller.dispose);
++      controller.profile = profile();
++
++      final durationController = TextEditingController(text: '30');
++      final grossController = TextEditingController(text: '');
++      addTearDown(durationController.dispose);
++      addTearDown(grossController.dispose);
++
++      await pumpMetSection(
++        tester,
++        controller: controller,
++        durationController: durationController,
++        grossController: grossController,
++        loggedAt: DateTime(2026, 8, 1, 12),
++        isEditing: false,
++      );
++
++      expect(find.text('追加消費'), findsWidgets);
++      expect(find.textContaining('残りカロリーに加算'), findsOneWidget);
++      expect(find.textContaining('推定総消費'), findsNothing);
++      expect(find.textContaining('MET'), findsNothing);
++      expect(find.text('消費 kcal（gross）'), findsNothing);
++    });
++
++    testWidgets('selecting an activity fills the display name', (tester) async {
++      final controller = AppController();
++      addTearDown(controller.dispose);
++      controller.profile = profile();
++
++      final durationController = TextEditingController(text: '30');
++      final grossController = TextEditingController(text: '');
++      final nameController = TextEditingController();
++      addTearDown(durationController.dispose);
++      addTearDown(grossController.dispose);
++      addTearDown(nameController.dispose);
++
++      await pumpMetSection(
++        tester,
++        controller: controller,
++        durationController: durationController,
++        grossController: grossController,
++        nameController: nameController,
++        loggedAt: DateTime(2026, 8, 1, 12),
++        isEditing: false,
++      );
++
++      await tapActivityChip(tester, 'ランニング・ジョギング');
++      expect(nameController.text, 'ランニング・ジョギング');
++    });
+   });
+ 
+   group('ExerciseFormScreen MET edit persistence', () {
+@@ -513,5 +650,53 @@ void main() {
+       expect(controller.exerciseEntries.single.netKcal, 400);
+       expect(controller.exerciseEntries.single.weightKgSnapshot, 65);
+     });
++
++    testWidgets('add form hides template shortcuts and required gross kcal', (
++      tester,
++    ) async {
++      final controller = AppController();
++      addTearDown(controller.dispose);
++      controller.profile = profile();
++
++      await tester.pumpWidget(
++        MaterialApp(home: ExerciseFormScreen(controller: controller)),
++      );
++      await tester.pumpAndSettle();
++
++      expect(find.text('テンプレートから追加'), findsNothing);
++      expect(find.text('テンプレートを新規作成'), findsNothing);
++      expect(find.text('入力内容をテンプレートとして保存'), findsOneWidget);
++      expect(find.text('消費 kcal（gross）'), findsNothing);
++      await tester.scrollUntilVisible(
++        find.text('メモ'),
++        200,
++        scrollable: find.byType(Scrollable).first,
++      );
++      expect(find.text('メモ'), findsOneWidget);
++    });
++
++    testWidgets('strength category shows sets reps and lift weight', (
++      tester,
++    ) async {
++      final controller = AppController();
++      addTearDown(controller.dispose);
++      controller.profile = profile();
++
++      await tester.pumpWidget(
++        MaterialApp(home: ExerciseFormScreen(controller: controller)),
++      );
++      await tester.pumpAndSettle();
++
++      await tapCategoryChip(tester, '筋力トレーニング');
++
++      await tester.scrollUntilVisible(
++        find.widgetWithText(TextFormField, 'セット'),
++        200,
++        scrollable: find.byType(Scrollable).first,
++      );
++      expect(find.widgetWithText(TextFormField, 'セット'), findsOneWidget);
++      expect(find.widgetWithText(TextFormField, '回数'), findsOneWidget);
++      expect(find.widgetWithText(TextFormField, '重量（kg）'), findsOneWidget);
++    });
+   });
+ }
+diff --git a/test/workout_history_list_test.dart b/test/workout_history_list_test.dart
+new file mode 100644
+index 0000000..fef8b3d
+--- /dev/null
++++ b/test/workout_history_list_test.dart
+@@ -0,0 +1,42 @@
++import 'package:ayg/models/exercise_entry.dart';
++import 'package:ayg/utils/history_grouping.dart';
++import 'package:ayg/widgets/history/workout_history_list.dart';
++import 'package:flutter/material.dart';
++import 'package:flutter_test/flutter_test.dart';
++
++void main() {
++  testWidgets('workout history list shows effective net kcal not gross', (
++    tester,
++  ) async {
++    final entry = ExerciseEntry(
++      id: 'walk',
++      name: 'ウォーキング',
++      durationMin: 30,
++      burnedKcal: 500,
++      grossKcal: 500,
++      netKcal: 250,
++      loggedAt: DateTime(2026, 8, 1, 9),
++    );
++
++    await tester.pumpWidget(
++      MaterialApp(
++        home: Scaffold(
++          body: WorkoutHistoryList(
++            dateGroups: [
++              HistoryDateGroup<ExerciseEntry>(
++                date: DateTime(2026, 8, 1),
++                label: '今日',
++                items: [entry],
++              ),
++            ],
++            onTapEntry: (_) {},
++            onDeleteEntry: (_) {},
++          ),
++        ),
++      ),
++    );
++
++    expect(find.text('250 kcal'), findsOneWidget);
++    expect(find.text('500 kcal'), findsNothing);
++  });
++}
+
+From c48aa00a57c665460531b9608e3cbdc72c967534 Mon Sep 17 00:00:00 2001
+From: Cursor Agent <cursoragent@cursor.com>
+Date: Sun, 20 Sep 2026 13:10:23 +0000
+Subject: [PATCH 2/3] feat(exercise): cut workout input down to one activity
+ choice
+
+Ask what, how long, and extra kcal only. Hide search, display name,
+category chips, and template save from the default form. Merge the two
+strength items, warn on housework only, and let walking choose commute
+versus extra exercise so PAL is not double-counted.
+---
+ lib/data/met_activity_catalog.dart            |  14 +-
+ lib/models/exercise_calculation_source.dart   |   9 +-
+ .../exercise/exercise_form_screen.dart        | 104 +++-----
+ .../exercise_met_calculation_section.dart     | 249 ++++++++++--------
+ ...exercise_met_calculation_section_test.dart | 104 ++++++--
+ 5 files changed, 279 insertions(+), 201 deletions(-)
+
+diff --git a/lib/data/met_activity_catalog.dart b/lib/data/met_activity_catalog.dart
+index 785fe09..105b264 100644
+--- a/lib/data/met_activity_catalog.dart
++++ b/lib/data/met_activity_catalog.dart
+@@ -221,7 +221,7 @@ class MetActivityCatalog {
+     ),
+     MetActivityDefinition(
+       id: 'strength_general',
+-      displayName: '筋力トレーニング（総合）',
++      displayName: '筋トレ',
+       category: ExerciseCategory.strength,
+       defaultMet: 5.0,
+       defaultIntensityId: 'moderate',
+@@ -229,15 +229,6 @@ class MetActivityCatalog {
+       description: 'セット間休憩を含む全体時間で記録',
+       intensityOptions: MetIntensityPresets.strengthOptions,
+     ),
+-    MetActivityDefinition(
+-      id: 'strength_machine',
+-      displayName: 'マシントレーニング',
+-      category: ExerciseCategory.strength,
+-      defaultMet: 5.0,
+-      defaultIntensityId: 'moderate',
+-      sourceKey: 'weight_training_moderate_5_0',
+-      intensityOptions: MetIntensityPresets.strengthOptions,
+-    ),
+     MetActivityDefinition(
+       id: 'basketball',
+       displayName: 'バスケットボール',
+@@ -284,7 +275,8 @@ class MetActivityCatalog {
+       if (activity.id == id) {
+         return activity;
+       }
+-      if (id == 'strength_vigorous' && activity.id == 'strength_general') {
++      if ((id == 'strength_vigorous' || id == 'strength_machine') &&
++          activity.id == 'strength_general') {
+         return activity;
+       }
+       if (id == 'run_moderate' && activity.id == 'run_jog') {
+diff --git a/lib/models/exercise_calculation_source.dart b/lib/models/exercise_calculation_source.dart
+index 5e17e71..b04e9b6 100644
+--- a/lib/models/exercise_calculation_source.dart
++++ b/lib/models/exercise_calculation_source.dart
+@@ -1,10 +1,16 @@
+-enum ExerciseCalculationSource { metEstimate, manualOverride, template }
++enum ExerciseCalculationSource {
++  metEstimate,
++  manualOverride,
++  template,
++  lifestyleIncluded,
++}
+ 
+ extension ExerciseCalculationSourceX on ExerciseCalculationSource {
+   String get storageValue => switch (this) {
+     ExerciseCalculationSource.metEstimate => 'met_estimate',
+     ExerciseCalculationSource.manualOverride => 'manual_override',
+     ExerciseCalculationSource.template => 'template',
++    ExerciseCalculationSource.lifestyleIncluded => 'lifestyle_included',
+   };
+ 
+   static ExerciseCalculationSource? tryParse(String? raw) {
+@@ -15,6 +21,7 @@ extension ExerciseCalculationSourceX on ExerciseCalculationSource {
+       'met_estimate' => ExerciseCalculationSource.metEstimate,
+       'manual_override' => ExerciseCalculationSource.manualOverride,
+       'template' => ExerciseCalculationSource.template,
++      'lifestyle_included' => ExerciseCalculationSource.lifestyleIncluded,
+       _ => null,
+     };
+   }
+diff --git a/lib/screens/exercise/exercise_form_screen.dart b/lib/screens/exercise/exercise_form_screen.dart
+index 75b2b1b..d49420d 100644
+--- a/lib/screens/exercise/exercise_form_screen.dart
++++ b/lib/screens/exercise/exercise_form_screen.dart
+@@ -4,7 +4,6 @@ import '../../data/met_activity_catalog.dart';
+ import '../../models/exercise_category.dart';
+ import '../../models/exercise_calculation_source.dart';
+ import '../../models/exercise_entry.dart';
+-import '../../models/workout_template.dart';
+ import '../../services/exercise_calorie_calculator.dart';
+ import '../../state/app_controller.dart';
+ import '../../theme/app_spacing.dart';
+@@ -16,7 +15,6 @@ import '../../widgets/common/logged_at_picker_field.dart';
+ import '../../widgets/exercise/exercise_met_calculation_section.dart';
+ import '../../widgets/layout/app_constrained_bottom_bar.dart';
+ import '../../widgets/layout/app_form_constraint.dart';
+-import 'exercise_form_template_actions.dart';
+ 
+ class ExerciseFormScreen extends StatefulWidget {
+   const ExerciseFormScreen({
+@@ -108,6 +106,12 @@ class _ExerciseFormScreenState extends State<ExerciseFormScreen> {
+     if (_formKey.currentState?.validate() != true) {
+       return null;
+     }
++    if (_metState.activityId == null || _nameController.text.trim().isEmpty) {
++      ScaffoldMessenger.of(
++        context,
++      ).showSnackBar(const SnackBar(content: Text('種目を選んでください')));
++      return null;
++    }
+ 
+     final grossAndNet = _resolveGrossAndNetKcal();
+     if (grossAndNet == null) {
+@@ -160,6 +164,12 @@ class _ExerciseFormScreenState extends State<ExerciseFormScreen> {
+       return (parsedGross ?? _metState.grossKcal ?? net, net);
+     }
+ 
++    if (!_metState.includeInRemaining ||
++        _metState.calculationSource ==
++            ExerciseCalculationSource.lifestyleIncluded) {
++      return (parsedGross ?? _metState.grossKcal ?? 0, 0);
++    }
++
+     final duration = int.tryParse(_durationController.text.trim());
+     final met = _metState.metValue;
+     final weight =
+@@ -235,29 +245,35 @@ class _ExerciseFormScreenState extends State<ExerciseFormScreen> {
+     return Column(
+       crossAxisAlignment: CrossAxisAlignment.stretch,
+       children: [
+-        if (_isStrength) ...[
+-          AppTextField(
+-            controller: _setsController,
+-            label: 'セット',
+-            keyboardType: TextInputType.number,
+-          ),
+-          AppTextField(
+-            controller: _repsController,
+-            label: '回数',
+-            keyboardType: TextInputType.number,
+-          ),
+-          AppTextField(
+-            controller: _liftWeightController,
+-            label: '重量（kg）',
+-            keyboardType: const TextInputType.numberWithOptions(decimal: true),
++        if (_isStrength)
++          ExpansionTile(
++            tilePadding: EdgeInsets.zero,
++            title: const Text('セット・回数・重量（任意）'),
++            subtitle: const Text('消費カロリーは実施時間から計算します'),
++            children: [
++              AppTextField(
++                controller: _setsController,
++                label: 'セット',
++                keyboardType: TextInputType.number,
++              ),
++              AppTextField(
++                controller: _repsController,
++                label: '回数',
++                keyboardType: TextInputType.number,
++              ),
++              AppTextField(
++                controller: _liftWeightController,
++                label: '重量（kg）',
++                keyboardType: const TextInputType.numberWithOptions(
++                  decimal: true,
++                ),
++              ),
++            ],
+           ),
+-          const SizedBox(height: AppSpacing.sm),
+-        ],
+         LoggedAtPickerField(
+           loggedAt: _loggedAt,
+           onChanged: (value) => setState(() => _loggedAt = value),
+         ),
+-        AppTextField(controller: _notesController, label: 'メモ', maxLines: 3),
+       ],
+     );
+   }
+@@ -275,7 +291,7 @@ class _ExerciseFormScreenState extends State<ExerciseFormScreen> {
+                 AppSpacing.md,
+                 AppSpacing.md,
+                 AppSpacing.md,
+-                widget.isEditing ? 160 : 120,
++                widget.isEditing ? 160 : 100,
+               ),
+               children: [
+                 ExerciseMetCalculationSection(
+@@ -284,6 +300,7 @@ class _ExerciseFormScreenState extends State<ExerciseFormScreen> {
+                   durationController: _durationController,
+                   grossKcalController: _burnedKcalController,
+                   nameController: _nameController,
++                  notesController: _notesController,
+                   additionalFields: _buildAdditionalFields(),
+                   isEditing: widget.isEditing,
+                   initialEntry: widget.entry,
+@@ -304,51 +321,6 @@ class _ExerciseFormScreenState extends State<ExerciseFormScreen> {
+               loading: _isSaving,
+               onPressed: _isSaving ? null : _save,
+             ),
+-            if (!widget.isEditing) ...[
+-              const SizedBox(height: AppSpacing.xs),
+-              SecondaryButton(
+-                label: '入力内容をテンプレートとして保存',
+-                onPressed: () {
+-                  final duration = int.tryParse(
+-                    _durationController.text.trim(),
+-                  );
+-                  final name = _nameController.text.trim();
+-                  if (name.isEmpty || duration == null || duration <= 0) {
+-                    ScaffoldMessenger.of(context).showSnackBar(
+-                      const SnackBar(content: Text('表示名と実施時間を入力してください')),
+-                    );
+-                    return;
+-                  }
+-                  saveCurrentExerciseAsTemplate(
+-                    context: context,
+-                    controller: widget.controller,
+-                    itemDraft: WorkoutTemplateItem(
+-                      itemId: widget.controller.generateId(),
+-                      name: name,
+-                      durationMin: duration,
+-                      categoryKey: _metState.category?.id,
+-                      activityId: _metState.activityId,
+-                      intensity: _metState.intensity,
+-                      metValue: _metState.metValue,
+-                      sourceKey: _metState.sourceKey,
+-                      sets: _isStrength
+-                          ? _parseOptionalInt(_setsController)
+-                          : null,
+-                      reps: _isStrength
+-                          ? _parseOptionalInt(_repsController)
+-                          : null,
+-                      liftWeightKg: _isStrength
+-                          ? _parseOptionalDouble(_liftWeightController)
+-                          : null,
+-                      notes: _notesController.text.trim().isEmpty
+-                          ? null
+-                          : _notesController.text.trim(),
+-                      sortOrder: 1,
+-                    ),
+-                  );
+-                },
+-              ),
+-            ],
+             if (widget.isEditing) ...[
+               const SizedBox(height: AppSpacing.xs),
+               SecondaryButton(label: '削除', onPressed: _confirmDelete),
+diff --git a/lib/widgets/exercise/exercise_met_calculation_section.dart b/lib/widgets/exercise/exercise_met_calculation_section.dart
+index 55615af..b0523a8 100644
+--- a/lib/widgets/exercise/exercise_met_calculation_section.dart
++++ b/lib/widgets/exercise/exercise_met_calculation_section.dart
+@@ -11,11 +11,10 @@ import '../../state/app_controller.dart';
+ import '../../theme/app_spacing.dart';
+ import '../../utils/nutrition_format.dart';
+ import '../../widgets/common/app_card.dart';
+-import '../../widgets/common/app_chip.dart';
+ import '../../widgets/common/app_text_field.dart';
+ import '../../screens/settings/calculation_references_screen.dart';
+ 
+-/// 運動フォーム内の MET 自動計算（日常語 UI / 詳細設定折りたたみ）。
++/// 運動フォーム内の MET 自動計算（種目1回 + 分量 + 追加消費）。
+ class ExerciseMetCalculationSection extends StatefulWidget {
+   const ExerciseMetCalculationSection({
+     super.key,
+@@ -25,6 +24,7 @@ class ExerciseMetCalculationSection extends StatefulWidget {
+     required this.grossKcalController,
+     required this.isEditing,
+     this.nameController,
++    this.notesController,
+     this.additionalFields,
+     this.initialEntry,
+     required this.onEstimateChanged,
+@@ -35,6 +35,7 @@ class ExerciseMetCalculationSection extends StatefulWidget {
+   final TextEditingController durationController;
+   final TextEditingController grossKcalController;
+   final TextEditingController? nameController;
++  final TextEditingController? notesController;
+   final Widget? additionalFields;
+   final bool isEditing;
+   final ExerciseEntry? initialEntry;
+@@ -58,6 +59,7 @@ class ExerciseMetFormState {
+     this.calculationVersion,
+     this.sourceKey,
+     this.manualOverride = false,
++    this.includeInRemaining = true,
+   });
+ 
+   final ExerciseCategory? category;
+@@ -71,26 +73,33 @@ class ExerciseMetFormState {
+   final String? calculationVersion;
+   final String? sourceKey;
+   final bool manualOverride;
++  final bool includeInRemaining;
+ }
+ 
+ class _ExerciseMetCalculationSectionState
+     extends State<ExerciseMetCalculationSection> {
+   static const _calculator = ExerciseCalorieCalculator();
+   static const _weightResolver = ExerciseWeightResolver();
++  static const _walkActivityId = 'walk_brisk';
++  static const _houseworkActivityId = 'housework';
++  static const _customActivityId = 'custom';
+   static const _noWeightMessage =
+       '体重データがないため、消費カロリーを自動計算できません。'
+       '体重を記録するか、手動で入力してください。';
+-  static const _dailyActivityPalWarning =
+-      '通勤・家事などの日常活動は、設定の生活活動係数（PAL）にすでに含まれています。'
++  static const _houseworkPalWarning =
++      'いつもの家事は、設定の生活活動係数にすでに含まれています。'
+       '特別に長く動いた分だけ記録してください。';
++  static const _lifestyleWalkMessage =
++      '通勤などのいつもの移動は生活活動係数に含まれているので、'
++      '追加消費には入れません。';
+ 
+-  final _searchController = TextEditingController();
+-  ExerciseCategory _category = ExerciseCategory.aerobic;
+   MetActivityDefinition? _activity;
+   String? _intensityId;
+   bool _manualOverride = false;
+   bool _allowRecalculateOnEdit = false;
+   bool _showAdvanced = false;
++  bool _showRename = false;
++  bool _walkIsExtraExercise = true;
+   WeightReference? _weightReference;
+   ExerciseCalorieEstimate? _estimate;
+   double? _displayNetKcal;
+@@ -101,11 +110,13 @@ class _ExerciseMetCalculationSectionState
+     super.initState();
+     final entry = widget.initialEntry;
+     if (entry != null) {
+-      _category = entry.category ?? ExerciseCategory.aerobic;
+       _activity = MetActivityCatalog.findById(entry.activityId);
+-      _intensityId = entry.intensity;
++      _intensityId = entry.intensity ?? _activity?.defaultIntensityId;
+       _manualOverride =
+           entry.calculationSource == ExerciseCalculationSource.manualOverride;
++      _walkIsExtraExercise =
++          entry.calculationSource !=
++          ExerciseCalculationSource.lifestyleIncluded;
+       _displayNetKcal = entry.netKcal ?? entry.effectiveNetKcal;
+       _weightReference = entry.weightKgSnapshot != null
+           ? WeightReference(
+@@ -113,21 +124,17 @@ class _ExerciseMetCalculationSectionState
+               source: WeightReferenceSource.weightEntry,
+             )
+           : null;
+-    } else {
+-      final list = MetActivityCatalog.byCategory(_category);
+-      _activity = list.isNotEmpty
+-          ? list.first
+-          : MetActivityCatalog.activities.first;
+-      _intensityId = _activity?.defaultIntensityId;
++      final catalogName = _activity?.displayName;
++      _showRename =
++          _isCustom ||
++          (catalogName != null &&
++              (entry.name).trim().isNotEmpty &&
++              entry.name.trim() != catalogName);
+     }
+     widget.durationController.addListener(_onInputsChanged);
+     WidgetsBinding.instance.addPostFrameCallback((_) {
+       if (!widget.isEditing) {
+-        if (widget.nameController != null &&
+-            widget.nameController!.text.trim().isEmpty) {
+-          _syncNameFromActivity();
+-        }
+-        _recalculate();
++        _notifyParent();
+       } else {
+         _notifyParent();
+       }
+@@ -137,10 +144,14 @@ class _ExerciseMetCalculationSectionState
+   @override
+   void dispose() {
+     widget.durationController.removeListener(_onInputsChanged);
+-    _searchController.dispose();
+     super.dispose();
+   }
+ 
++  bool get _isWalk => _activity?.id == _walkActivityId;
++  bool get _isHousework => _activity?.id == _houseworkActivityId;
++  bool get _isCustom => _activity?.id == _customActivityId;
++  bool get _includeInRemaining => !_isWalk || _walkIsExtraExercise;
++
+   void _onInputsChanged() {
+     _maybeRecalculate();
+   }
+@@ -162,19 +173,17 @@ class _ExerciseMetCalculationSectionState
+ 
+   double? get _resolvedMet => _manualOverride ? null : _selectedIntensity?.met;
+ 
+-  void _applyActivity(
+-    MetActivityDefinition? activity, {
+-    required bool syncName,
+-    ExerciseCategory? category,
+-  }) {
++  void _applyActivity(MetActivityDefinition activity) {
+     _activity = activity;
+-    if (category != null) {
+-      _category = category;
+-    } else if (activity != null) {
+-      _category = activity.category;
++    _intensityId = activity.defaultIntensityId;
++    if (activity.id != _walkActivityId) {
++      _walkIsExtraExercise = true;
+     }
+-    _intensityId = activity?.defaultIntensityId;
+-    if (syncName) {
++    if (activity.id != _customActivityId) {
++      _showRename = false;
++      _syncNameFromActivity();
++    } else {
++      _showRename = true;
+       _syncNameFromActivity();
+     }
+   }
+@@ -202,14 +211,15 @@ class _ExerciseMetCalculationSectionState
+ 
+     final duration = int.tryParse(widget.durationController.text.trim());
+     final met = _resolvedMet;
+-    if (_weightReference == null ||
++    if (_activity == null ||
++        _weightReference == null ||
+         duration == null ||
+         duration <= 0 ||
+         met == null) {
+       setState(() {
+         _estimate = null;
+         if (!widget.isEditing || _allowRecalculateOnEdit) {
+-          _displayNetKcal = null;
++          _displayNetKcal = _includeInRemaining ? null : 0;
+         }
+       });
+       _notifyParent();
+@@ -225,7 +235,7 @@ class _ExerciseMetCalculationSectionState
+ 
+     setState(() {
+       _estimate = estimate;
+-      _displayNetKcal = estimate?.netKcal;
++      _displayNetKcal = _includeInRemaining ? estimate?.netKcal : 0;
+       if (estimate != null) {
+         widget.grossKcalController.text = estimate.grossKcal.toStringAsFixed(1);
+       }
+@@ -235,45 +245,49 @@ class _ExerciseMetCalculationSectionState
+ 
+   void _notifyParent() {
+     final gross = double.tryParse(widget.grossKcalController.text.trim());
+-    final net = _manualOverride ? (_manualNetKcal ?? gross) : _displayNetKcal;
++    final net = _manualOverride
++        ? (_manualNetKcal ?? gross)
++        : (_includeInRemaining ? _displayNetKcal : 0.0);
+     widget.onEstimateChanged(
+       ExerciseMetFormState(
+-        category: _category,
++        category: _activity?.category,
+         activityId: _activity?.id,
+         intensity: _intensityId,
+         metValue: _manualOverride ? null : _resolvedMet,
+-        grossKcal: gross,
++        grossKcal: _includeInRemaining ? gross : (gross ?? 0.0),
+         netKcal: net,
+         weightKgSnapshot:
+             _weightReference?.weightKg ?? widget.initialEntry?.weightKgSnapshot,
+         calculationSource: _manualOverride
+             ? ExerciseCalculationSource.manualOverride
+-            : (_estimate != null
+-                  ? ExerciseCalculationSource.metEstimate
+-                  : widget.initialEntry?.calculationSource),
++            : (!_includeInRemaining
++                  ? ExerciseCalculationSource.lifestyleIncluded
++                  : (_estimate != null
++                        ? ExerciseCalculationSource.metEstimate
++                        : widget.initialEntry?.calculationSource)),
+         calculationVersion:
+             _estimate?.calculationVersion ??
+             widget.initialEntry?.calculationVersion ??
+             MetActivityCatalog.calculationVersion,
+         sourceKey: _selectedIntensity?.sourceKey ?? _activity?.sourceKey,
+         manualOverride: _manualOverride,
++        includeInRemaining: _includeInRemaining,
+       ),
+     );
+   }
+ 
+   List<MetIntensityOption> get _intensityOptions {
+-    if (_activity == null || _activity!.intensityOptions.isEmpty) {
+-      return MetIntensityPresets.forCategory(_category);
++    if (_activity == null) {
++      return const [];
++    }
++    if (_activity!.intensityOptions.isEmpty) {
++      return MetIntensityPresets.forCategory(_activity!.category);
+     }
+     return _activity!.intensityOptions;
+   }
+ 
+   List<MetActivityDefinition> get _visibleActivities {
+-    final query = _searchController.text.trim();
+-    return MetActivityCatalog.search(
+-      query: query,
+-      category: query.isEmpty ? _category : null,
+-    );
++    return MetActivityCatalog.activities;
+   }
+ 
+   @override
+@@ -283,6 +297,10 @@ class _ExerciseMetCalculationSectionState
+         _weightReference != null ||
+         widget.initialEntry?.weightKgSnapshot != null;
+     final visibleActivities = _visibleActivities;
++    final showNameField = widget.nameController != null && _showRename;
++    final canShowNet =
++        _activity != null &&
++        (_estimate != null || _displayNetKcal != null || !_includeInRemaining);
+ 
+     return AppCard(
+       child: Column(
+@@ -290,63 +308,43 @@ class _ExerciseMetCalculationSectionState
+         children: [
+           Text('種目', style: Theme.of(context).textTheme.labelLarge),
+           const SizedBox(height: AppSpacing.xs),
+-          TextField(
+-            controller: _searchController,
+-            decoration: const InputDecoration(
+-              labelText: '種目を検索',
+-              prefixIcon: Icon(Icons.search),
+-            ),
+-            onChanged: (_) => setState(() {}),
+-          ),
+-          const SizedBox(height: AppSpacing.sm),
+           Wrap(
+             spacing: AppSpacing.xs,
+             runSpacing: AppSpacing.xs,
+             children: [
+-              for (final category in MetActivityCatalog.selectableCategories)
+-                AppChip(
+-                  label: category.labelJa,
+-                  selected: _category == category,
+-                  onTap: () {
+-                    if (_category == category) {
+-                      return;
+-                    }
++              for (final activity in visibleActivities)
++                ChoiceChip(
++                  label: Text(activity.displayName),
++                  selected: _activity?.id == activity.id,
++                  onSelected: (_) {
+                     setState(() {
+-                      final next = MetActivityCatalog.byCategory(category);
+-                      _applyActivity(
+-                        next.isNotEmpty ? next.first : null,
+-                        syncName: true,
+-                        category: category,
+-                      );
++                      _applyActivity(activity);
+                     });
+                     _maybeRecalculate();
+                   },
+                 ),
+             ],
+           ),
+-          const SizedBox(height: AppSpacing.sm),
+-          if (visibleActivities.isEmpty)
+-            Text('一致する種目がありません', style: Theme.of(context).textTheme.bodySmall)
+-          else
+-            Wrap(
+-              spacing: AppSpacing.xs,
+-              runSpacing: AppSpacing.xs,
+-              children: [
+-                for (final activity in visibleActivities)
+-                  ChoiceChip(
+-                    label: Text(activity.displayName),
+-                    selected: _activity?.id == activity.id,
+-                    onSelected: (_) {
+-                      setState(() {
+-                        _applyActivity(activity, syncName: true);
+-                      });
+-                      _maybeRecalculate();
+-                    },
+-                  ),
+-              ],
++          if (_activity == null) ...[
++            const SizedBox(height: AppSpacing.sm),
++            Text(
++              '種目を1つ選んでください',
++              style: Theme.of(context).textTheme.bodySmall,
+             ),
+-          if (widget.nameController != null) ...[
+-            const SizedBox(height: AppSpacing.md),
++          ],
++          if (_activity != null &&
++              widget.nameController != null &&
++              !_isCustom &&
++              !_showRename)
++            Align(
++              alignment: Alignment.centerLeft,
++              child: TextButton(
++                onPressed: () => setState(() => _showRename = true),
++                child: const Text('名前を変える'),
++              ),
++            ),
++          if (showNameField) ...[
++            const SizedBox(height: AppSpacing.sm),
+             AppTextField(
+               controller: widget.nameController,
+               label: '表示名',
+@@ -358,6 +356,47 @@ class _ExerciseMetCalculationSectionState
+               },
+             ),
+           ],
++          if (_isWalk) ...[
++            const SizedBox(height: AppSpacing.md),
++            Text('これは？', style: Theme.of(context).textTheme.labelLarge),
++            const SizedBox(height: AppSpacing.xs),
++            Wrap(
++              spacing: AppSpacing.xs,
++              runSpacing: AppSpacing.xs,
++              children: [
++                ChoiceChip(
++                  label: const Text('追加の運動'),
++                  selected: _walkIsExtraExercise,
++                  onSelected: (_) {
++                    setState(() => _walkIsExtraExercise = true);
++                    _maybeRecalculate();
++                  },
++                ),
++                ChoiceChip(
++                  label: const Text('いつもの移動'),
++                  selected: !_walkIsExtraExercise,
++                  onSelected: (_) {
++                    setState(() => _walkIsExtraExercise = false);
++                    _maybeRecalculate();
++                  },
++                ),
++              ],
++            ),
++            if (!_walkIsExtraExercise) ...[
++              const SizedBox(height: AppSpacing.xs),
++              Text(
++                _lifestyleWalkMessage,
++                style: Theme.of(context).textTheme.bodySmall,
++              ),
++            ],
++          ],
++          if (_isHousework) ...[
++            const SizedBox(height: AppSpacing.sm),
++            Text(
++              _houseworkPalWarning,
++              style: Theme.of(context).textTheme.bodySmall,
++            ),
++          ],
+           if (intensities.isNotEmpty) ...[
+             const SizedBox(height: AppSpacing.md),
+             Text('きつさ', style: Theme.of(context).textTheme.labelLarge),
+@@ -380,13 +419,6 @@ class _ExerciseMetCalculationSectionState
+               ],
+             ),
+           ],
+-          if (_category == ExerciseCategory.dailyActivity) ...[
+-            const SizedBox(height: AppSpacing.sm),
+-            Text(
+-              _dailyActivityPalWarning,
+-              style: Theme.of(context).textTheme.bodySmall,
+-            ),
+-          ],
+           const SizedBox(height: AppSpacing.md),
+           AppTextField(
+             controller: widget.durationController,
+@@ -407,23 +439,28 @@ class _ExerciseMetCalculationSectionState
+             const SizedBox(height: AppSpacing.sm),
+             widget.additionalFields!,
+           ],
+-          if (!hasWeight && !_manualOverride) ...[
++          if (_activity != null &&
++              _includeInRemaining &&
++              !hasWeight &&
++              !_manualOverride) ...[
+             const SizedBox(height: AppSpacing.sm),
+             Text(
+               _noWeightMessage,
+               style: TextStyle(color: Theme.of(context).colorScheme.error),
+             ),
+           ],
+-          if (_estimate != null || _displayNetKcal != null) ...[
++          if (canShowNet) ...[
+             const SizedBox(height: AppSpacing.md),
+             Text('追加消費', style: Theme.of(context).textTheme.labelLarge),
+             const SizedBox(height: AppSpacing.xs),
+             Text(
+-              '${formatNullableNutrient(_displayNetKcal)} kcal',
++              '${formatNullableNutrient(_includeInRemaining ? _displayNetKcal : 0)} kcal',
+               style: Theme.of(context).textTheme.titleMedium,
+             ),
+             Text(
+-              '残りカロリーに加算される、運動による追加分',
++              _includeInRemaining
++                  ? '残りカロリーに加算される、運動による追加分'
++                  : _lifestyleWalkMessage,
+               style: Theme.of(context).textTheme.bodySmall,
+             ),
+           ],
+@@ -432,6 +469,12 @@ class _ExerciseMetCalculationSectionState
+             initiallyExpanded: _showAdvanced,
+             onExpansionChanged: (v) => setState(() => _showAdvanced = v),
+             children: [
++              if (widget.notesController != null)
++                AppTextField(
++                  controller: widget.notesController,
++                  label: 'メモ',
++                  maxLines: 3,
++                ),
+               if (_resolvedMet != null)
+                 ListTile(
+                   dense: true,
+diff --git a/test/exercise_met_calculation_section_test.dart b/test/exercise_met_calculation_section_test.dart
+index 92cd0fa..120bace 100644
+--- a/test/exercise_met_calculation_section_test.dart
++++ b/test/exercise_met_calculation_section_test.dart
+@@ -131,17 +131,6 @@ void main() {
+     await tester.pumpAndSettle();
+   }
+ 
+-  Future<void> tapCategoryChip(WidgetTester tester, String label) async {
+-    final chip = find.widgetWithText(FilterChip, label);
+-    await tester.scrollUntilVisible(
+-      chip,
+-      120,
+-      scrollable: find.byType(Scrollable).first,
+-    );
+-    await tester.tap(chip);
+-    await tester.pumpAndSettle();
+-  }
+-
+   Future<void> tapActivityChip(WidgetTester tester, String label) async {
+     final chip = find.widgetWithText(ChoiceChip, label);
+     await tester.scrollUntilVisible(
+@@ -218,11 +207,12 @@ void main() {
+         isEditing: false,
+       );
+ 
+-      await tapCategoryChip(tester, '筋力トレーニング');
++      await tapActivityChip(tester, '筋トレ');
+ 
+       expect(find.text('軽め'), findsOneWidget);
+       expect(find.text('ふつう'), findsOneWidget);
+       expect(find.text('きつい'), findsOneWidget);
++      expect(find.text('マシントレーニング'), findsNothing);
+       expect(find.textContaining('MET'), findsNothing);
+     });
+ 
+@@ -424,11 +414,12 @@ void main() {
+         onEstimateChanged: (state) => latestState = state,
+       );
+ 
++      await tapActivityChip(tester, 'ウォーキング');
+       await tapManualOverride(tester);
+       await tapManualOverride(tester, enable: false);
+ 
+       final expected = calculator.estimate(
+-        met: MetActivityCatalog.activities.first.defaultMet,
++        met: 3.5,
+         weightKg: 70,
+         durationMinutes: 30,
+       );
+@@ -460,6 +451,8 @@ void main() {
+         isEditing: false,
+       );
+ 
++      await tapActivityChip(tester, 'ランニング・ジョギング');
++
+       expect(
+         find.textContaining('体重データがないため、消費カロリーを自動計算できません'),
+         findsOneWidget,
+@@ -493,6 +486,8 @@ void main() {
+         onEstimateChanged: (state) => latestState = state,
+       );
+ 
++      await tapActivityChip(tester, 'ウォーキング');
++
+       expect(latestState?.weightKgSnapshot, 68);
+       expect(latestState?.weightKgSnapshot, isNot(60));
+     });
+@@ -518,7 +513,7 @@ void main() {
+         isEditing: false,
+       );
+ 
+-      await tapCategoryChip(tester, 'その他');
++      await tapActivityChip(tester, 'その他（手入力）');
+ 
+       expect(find.text('軽め'), findsOneWidget);
+       expect(find.text('ふつう'), findsOneWidget);
+@@ -550,9 +545,70 @@ void main() {
+         isEditing: false,
+       );
+ 
+-      await tapCategoryChip(tester, '日常活動・軽い運動');
++      await tapActivityChip(tester, '家事・掃除');
++
++      expect(find.textContaining('生活活動係数にすでに含まれています'), findsOneWidget);
++      expect(find.textContaining('特別に長く動いた分だけ'), findsOneWidget);
++    });
++
++    testWidgets('yoga does not show housework PAL warning', (tester) async {
++      final controller = AppController();
++      addTearDown(controller.dispose);
++      controller.profile = profile();
++
++      final durationController = TextEditingController(text: '30');
++      final grossController = TextEditingController(text: '');
++      addTearDown(durationController.dispose);
++      addTearDown(grossController.dispose);
++
++      await pumpMetSection(
++        tester,
++        controller: controller,
++        durationController: durationController,
++        grossController: grossController,
++        loggedAt: DateTime(2026, 8, 1, 12),
++        isEditing: false,
++      );
++
++      await tapActivityChip(tester, 'ヨガ・ストレッチ');
++
++      expect(find.textContaining('いつもの家事'), findsNothing);
++      expect(find.text('これは？'), findsNothing);
++    });
++
++    testWidgets('walk commute choice zeros extra calories', (tester) async {
++      final controller = AppController();
++      addTearDown(controller.dispose);
++      controller.profile = profile();
++
++      final durationController = TextEditingController(text: '30');
++      final grossController = TextEditingController(text: '');
++      addTearDown(durationController.dispose);
++      addTearDown(grossController.dispose);
++
++      ExerciseMetFormState? latestState;
++      await pumpMetSectionWithState(
++        tester,
++        controller: controller,
++        durationController: durationController,
++        grossController: grossController,
++        loggedAt: DateTime(2026, 8, 1, 12),
++        isEditing: false,
++        onEstimateChanged: (state) => latestState = state,
++      );
++
++      await tapActivityChip(tester, 'ウォーキング');
++      expect(find.text('これは？'), findsOneWidget);
++      expect(find.text('追加の運動'), findsOneWidget);
+ 
+-      expect(find.textContaining('生活活動係数（PAL）にすでに含まれています'), findsOneWidget);
++      await tapActivityChip(tester, 'いつもの移動');
++      expect(latestState?.includeInRemaining, isFalse);
++      expect(latestState?.netKcal, 0);
++      expect(
++        latestState?.calculationSource,
++        ExerciseCalculationSource.lifestyleIncluded,
++      );
++      expect(find.textContaining('追加消費には入れません'), findsWidgets);
+     });
+ 
+     testWidgets('main surface shows net only without gross or MET', (
+@@ -576,6 +632,8 @@ void main() {
+         isEditing: false,
+       );
+ 
++      await tapActivityChip(tester, 'ランニング・ジョギング');
++
+       expect(find.text('追加消費'), findsWidgets);
+       expect(find.textContaining('残りカロリーに加算'), findsOneWidget);
+       expect(find.textContaining('推定総消費'), findsNothing);
+@@ -665,13 +723,17 @@ void main() {
+ 
+       expect(find.text('テンプレートから追加'), findsNothing);
+       expect(find.text('テンプレートを新規作成'), findsNothing);
+-      expect(find.text('入力内容をテンプレートとして保存'), findsOneWidget);
++      expect(find.text('入力内容をテンプレートとして保存'), findsNothing);
++      expect(find.text('種目を検索'), findsNothing);
++      expect(find.text('表示名'), findsNothing);
+       expect(find.text('消費 kcal（gross）'), findsNothing);
+       await tester.scrollUntilVisible(
+-        find.text('メモ'),
++        find.text('詳細設定'),
+         200,
+         scrollable: find.byType(Scrollable).first,
+       );
++      await tester.tap(find.text('詳細設定'));
++      await tester.pumpAndSettle();
+       expect(find.text('メモ'), findsOneWidget);
+     });
+ 
+@@ -687,13 +749,15 @@ void main() {
+       );
+       await tester.pumpAndSettle();
+ 
+-      await tapCategoryChip(tester, '筋力トレーニング');
++      await tapActivityChip(tester, '筋トレ');
+ 
+       await tester.scrollUntilVisible(
+-        find.widgetWithText(TextFormField, 'セット'),
++        find.text('セット・回数・重量（任意）'),
+         200,
+         scrollable: find.byType(Scrollable).first,
+       );
++      await tester.tap(find.text('セット・回数・重量（任意）'));
++      await tester.pumpAndSettle();
+       expect(find.widgetWithText(TextFormField, 'セット'), findsOneWidget);
+       expect(find.widgetWithText(TextFormField, '回数'), findsOneWidget);
+       expect(find.widgetWithText(TextFormField, '重量（kg）'), findsOneWidget);
+
+From 53b9974837b8525149c2a34b59b0450493fca4f4 Mon Sep 17 00:00:00 2001
+From: Cursor Agent <cursoragent@cursor.com>
+Date: Sun, 20 Sep 2026 13:29:33 +0000
+Subject: [PATCH 3/3] docs(design): add Claude-ready workout input brief
+
+Give designers a self-contained spec for the updated exercise form so they can work from GitHub without Slack context.
+
+Co-authored-by: naruto-aii <naruto-aii@users.noreply.github.com>
+---
+ README.md                       |  15 ++
+ docs/design/03_WORKOUT_INPUT.md | 392 ++++++++++++++++++++++++++++++++
+ docs/design/README.md           |  22 ++
+ 3 files changed, 429 insertions(+)
+ create mode 100644 docs/design/03_WORKOUT_INPUT.md
+ create mode 100644 docs/design/README.md
+
+diff --git a/README.md b/README.md
+index 48fb633..0e017d0 100644
+--- a/README.md
++++ b/README.md
+@@ -1,3 +1,18 @@
++# カロナビ（AYG）
++
++エネルギー管理アプリ。公開 Preview は https://naruto-aii.github.io/AYG/ です。
++
++## デザイナー向け
++
++運動入力画面を更新しました。見た目の対応は次を正としてください。
++
++- [docs/design/README.md](./docs/design/README.md)
++- [docs/design/03_WORKOUT_INPUT.md](./docs/design/03_WORKOUT_INPUT.md)（このファイルだけで完了できます）
++
++機能は凍結済みです。項目追加や計算の変更はしないでください。
++
++---
++
+ # ayg
+ 
+ A new Flutter project.
+diff --git a/docs/design/03_WORKOUT_INPUT.md b/docs/design/03_WORKOUT_INPUT.md
+new file mode 100644
+index 0000000..4944154
+--- /dev/null
++++ b/docs/design/03_WORKOUT_INPUT.md
+@@ -0,0 +1,392 @@
++# 運動入力画面 — デザイナー向け仕様（現行）
++
++このファイルだけで、運動入力のデザイン対応を完了できます。  
++Slack や口頭の補足は不要です。ここに無い項目は足さないでください。
++
++| 項目 | 内容 |
++| --- | --- |
++| プロダクト | カロナビ（リポジトリ名 AYG は出さない） |
++| 対象画面 | 運動を追加 / 運動を編集。関連：運動タブ、ホーム「今日の運動」 |
++| 公開 Preview | https://naruto-aii.github.io/AYG/ |
++| 実装の正 | `web-preview`（このブランチ） |
++| 作業範囲 | **見た目と画面表現だけ**。項目追加・計算変更・新機能は禁止 |
++| UI 言語 | 日本語のみ |
++| 優先デバイス | iPhone（論理幅 390pt 前後）。Web は Preview のみ |
++
++---
++
++## 0. Claude / デザイナーへの依頼
++
++運動入力の機能を更新した。現行の仮 UI を、下の仕様を崩さずに整えてほしい。
++
++やってほしいこと
++
++1. Preview で運動追加を一通り触る（歩き・筋トレ・家事・その他・編集・削除）
++2. このファイルの項目・出し分け・コピーを正として、iPhone 向けフレームを描く
++3. 空 / エラー / 種目別の出し分け / 詳細設定 / 削除確認を全部描く
++4. ホーム「今日の運動」と運動タブの行も、追加消費（net）表示に合わせて整える
++
++やらないこと
++
++- 種目を増やす、検索を戻す、種類チップを戻す
++- 通常面に消費kcal（gross）や MET を出す
++- 通常面にテンプレート作成・保存を戻す
++- 距離フィールドを足す
++- 医療アプリに見せる、AYG と書く、英語 UI にする
++
++完了条件は [9. 納品チェック](#9-納品チェック) です。
++
++---
++
++## 1. なぜこうなっているか
++
++ユーザーに聞くのは 3 つだけにする。
++
++1. **何をしたか**（種目を 1 回）
++2. **どれだけか**（時間。筋トレだけ任意でセット / 回数 / 重量）
++3. **いくらか**（追加消費 net の 1 数字）
++
++以前は「運動名」「種類」「種目」「表示名」「消費kcal」が同じことを何度も聞いていた。  
++種類は裏の分類、表示名は例外だけ、kcal 手入力は詳細設定へ移した。
++
++---
++
++## 2. 画面の役割
++
++### 2.1 運動を追加 / 編集
++
++フルスクリーン。AppBar タイトルは追加なら「運動を追加」、編集なら「運動を編集」。  
++保存は画面下の主ボタン。編集時だけ副ボタン「削除」。
++
++テンプレートの作成・保存・適用は、この画面には出さない。  
++テンプレート一覧は運動タブの AppBar アイコンからのみ。
++
++### 2.2 運動タブ
++
++日送りの一覧。行は **表示名 / 時刻・分数 / 追加消費（net）kcal**。  
++空：「この日の運動記録はありません」＋ 今日以前なら「運動を追加」。  
++未来日は閲覧可、新規追加不可。
++
++AppBar
++
++- 履歴カレンダー
++- 運動テンプレート（一覧へ。入力画面には出さない）
++- 運動追加
++
++### 2.3 ホーム「今日の運動」
++
++行は **表示名 / 時刻 / 追加消費（net）kcal**。  
++空：「登録された運動はありません」。  
++タップで編集。削除は確認＋「元に戻す」。
++
++ホームの「消費 kcal」集計も net の合計です。gross は出さない。
++
++---
++
++## 3. 運動追加の構成（上からこの順）
++
++通常面に出すものだけを先に描く。詳細設定は折りたたみ。
++
++```text
++AppBar: 運動を追加 | 運動を編集
++
++種目（必須。チップで 1 つ）
++  ├ 歩き のときだけ → 「これは？」追加の運動 / いつもの移動
++  ├ 家事・掃除 のときだけ → 生活活動の注意文
++  └ その他（手入力）または「名前を変える」→ 表示名
++
++きつさ（種目に応じた 2〜3 択。MET は出さない）
++
++実施時間（分）（必須）
++
++筋トレ のときだけ → セット・回数・重量（任意、折りたたみ可）
++
++記録日時
++
++追加消費（結果。編集しない。kcal の主役）
++
++詳細設定（折りたたみ）
++  メモ / 内部 MET / 計算に使用した体重 / 推定総消費（gross）
++  / 手動消費カロリー補正 / 計算バージョン / 計算根拠・参考文献
++  編集時だけ「再計算」
++
++[保存]
++編集時だけ [削除]
++```
++
++初期状態（新規）：種目未選択。時間・日時以外は種目を選んでから出す想定でよい。  
++実装は種目未選択でも時間欄は出るが、デザインでは「種目 → 分量 → 結果」の順が分かればよい。
++
++---
++
++## 4. 種目カタログ（増やさない）
++
++表示名はこの表が正。チップの並びもこの順。
++
++| id | 表示名 | 裏の種類 | きつさ | 追加の出し分け |
++| --- | --- | --- | --- | --- |
++| `walk_brisk` | ウォーキング | 有酸素 | ゆっくり / ほどよい / きつい | 「これは？」必須 |
++| `run_jog` | ランニング・ジョギング | 有酸素 | 同上 | なし |
++| `cycle_road` | 自転車 | 有酸素 | 同上 | なし |
++| `swim_lap` | 水泳 | 有酸素 | 同上 | なし |
++| `strength_general` | 筋トレ | 筋力 | 軽め / ふつう / きつい | セット / 回数 / 重量（任意） |
++| `basketball` | バスケットボール | スポーツ | 軽め / ふつう / きつい | なし |
++| `yoga` | ヨガ・ストレッチ | 日常 | 軽め / ふつう | なし。生活活動の警告は出さない |
++| `housework` | 家事・掃除 | 日常 | 軽め / ふつう | 注意文のみ |
++| `custom` | その他（手入力） | その他 | 軽め / ふつう / きつい | 表示名を必須で出す |
++
++種類チップ・検索ボックスは出さない。種目が増えるまで検索は不要。
++
++### 4.1 表示名
++
++- カタログ種目：選んだ表示名が記録名になる。通常面には出さない
++- 「名前を変える」を押したときだけ、表示名フィールド
++- 「その他（手入力）」は最初から表示名必須
++
++---
++
++## 5. 項目の意味と出し分け
++
++### 5.1 歩き「これは？」
++
++| 選択肢 | 意味 | 追加消費 |
++| --- | --- | --- |
++| 追加の運動 | 意図した運動。残りカロリーに入れる | 自動計算の net |
++| いつもの移動 | 通勤など。生活活動係数に含まれる | **0** |
++
++補助文（いつもの移動を選んだとき）
++
++> 通勤などのいつもの移動は生活活動係数に含まれているので、追加消費には入れません。
++
++初期値は「追加の運動」。
++
++### 5.2 家事・掃除の注意（警告ではない）
++
++> いつもの家事は、設定の生活活動係数にすでに含まれています。特別に長く動いた分だけ記録してください。
++
++ヨガ・ストレッチには出さない。
++
++### 5.3 きつさ
++
++主観の 2〜3 択。内部 MET は通常面に出さない。  
++手動補正 ON のときは選択不可（見た目で無効と分かるように）。
++
++有酸素（歩き・走り・自転車・水泳）の説明（チップに出さなくても、デザイン注記で残す）
++
++| ラベル | 説明 |
++| --- | --- |
++| ゆっくり | 会話を楽に続けられる |
++| ほどよい | 会話はできるが少し息が弾む |
++| きつい | 短い言葉しか話せない |
++
++筋トレ
++
++| ラベル | 説明 |
++| --- | --- |
++| 軽め | フォーム練習、軽い重量、余裕を持って続けられる |
++| ふつう | 適度にきついが、まだ数回は続けられる |
++| きつい | 高重量や短い休憩で、かなりきつい |
++
++### 5.4 実施時間（分）
++
++必須。1 以上の整数。  
++消費カロリーは時間から計算する。筋トレのセット数では計算しない。
++
++筋トレの折りたたみタイトル「セット・回数・重量（任意）」  
++サブ「消費カロリーは実施時間から計算します」
++
++| 項目 | 必須 | 型 |
++| --- | --- | --- |
++| セット | 任意 | 整数 |
++| 回数 | 任意 | 整数 |
++| 重量（kg） | 任意 | 小数可 |
++
++### 5.5 追加消費（通常面の結果）
++
++見せる数字は **net だけ**。残りカロリーに加算される分。
++
++補助文
++
++> 残りカロリーに加算される、運動による追加分
++
++歩きで「いつもの移動」のときは 0 と、5.1 の補助文。
++
++体重が無く自動計算できないとき（エラー色でよい）
++
++> 体重データがないため、消費カロリーを自動計算できません。体重を記録するか、手動で入力してください。
++
++### 5.6 詳細設定（折りたたみ。通常面に出さない）
++
++| 項目 | 扱い |
++| --- | --- |
++| メモ | 任意。複数行 |
++| 内部 MET | 参照のみ |
++| 計算に使用した体重 | 参照のみ |
++| 推定総消費（gross） | 参照のみ。「運動時間中の総エネルギー消費」 |
++| 手動消費カロリー補正 | スイッチ。ON で「手動 追加消費 kcal（net）」を手入力 |
++| 計算バージョン | 参照のみ |
++| 計算根拠・参考文献 | 既存の根拠画面へ |
++| 再計算 | **編集時だけ**。保存済みの数字を、今の入力と体重でやり直す |
++
++手動補正は net の上書き 1 つだけ。gross の手入力欄は作らない。
++
++編集時の注記
++
++> 保存済みの計算結果を、現在の入力内容と体重データで再計算します。
++
++---
++
++## 6. コピー（意味を変えない）
++
++言い回しの改善は可。項目の意味と必須/任意は変えない。
++
++| 場所 | 文言 |
++| --- | --- |
++| 追加タイトル | 運動を追加 |
++| 編集タイトル | 運動を編集 |
++| 種目ラベル | 種目 |
++| 未選択 | 種目を1つ選んでください |
++| リネーム | 名前を変える |
++| 表示名 | 表示名 |
++| 表示名エラー | 表示名を入力してください |
++| 種目エラー（保存時） | 種目を選んでください |
++| 歩き質問 | これは？ |
++| 歩き選択肢 | 追加の運動 / いつもの移動 |
++| きつさ | きつさ |
++| 時間 | 実施時間（分） |
++| 時間空 | 実施時間を入力してください |
++| 時間不正 | 1以上の整数を入力してください |
++| 結果 | 追加消費 |
++| 保存 | 保存 |
++| 削除 | 削除 |
++| 削除確認タイトル | 削除確認 |
++| 削除確認本文 | 「{名前}」を削除しますか？ |
++| タブ空 | この日の運動記録はありません |
++| タブ空アクション | 運動を追加 |
++| ホーム空 | 登録された運動はありません |
++| 未来日 | 未来の日付には記録を追加できません |
++| 計算不可（保存時） | 消費カロリーを計算できないか、詳細設定で追加消費を入力してください |
++
++禁止コピー
++
++- 治療 / 診断 / 処方 / 治る / 医師推奨
++- AYG
++- 「消費kcal」を通常面の主役にすること（gross と紛らわしい）
++
++---
++
++## 7. 必須状態（全部描く）
++
++| # | 状態 | 内容 |
++| --- | --- | --- |
++| A | 新規・未選択 | 種目未選択。保存できないことが分かる |
++| B | 歩き・追加の運動 | きつさ＋時間＋追加消費が出る |
++| C | 歩き・いつもの移動 | 追加消費 0。通勤の説明文 |
++| D | 筋トレ | セット折りたたみあり。kcal は時間から |
++| E | 家事・掃除 | 注意文あり。ヨガには出さない |
++| F | その他 | 表示名必須。きつさ 3 択 |
++| G | 体重なし | 自動計算できない旨。詳細の手動補正へ誘導してよい |
++| H | 詳細設定オープン | MET / 体重 / gross / 手動補正。jargon はここだけ |
++| I | 編集 | タイトル「運動を編集」。再計算。削除ボタン |
++| J | 入力エラー | 種目なし、時間なし、表示名なし |
++| K | 保存中 | 保存ボタン loading。二重送信しない |
++| L | 削除確認 → Undo | 食事と同じフロー |
++| M | 運動タブ空 | 追加を促す |
++| N | 運動タブあり | 行は net kcal |
++| O | ホーム空 / あり | 行は net kcal |
++
++---
++
++## 8. 見た目で解いてほしいこと
++
++機能は足りている。仮 UI の使い勝手を整える。
++
++1. **3 問に見えること**  
++   種目 → 分量 → 追加消費。詳細は一段下げて目立たせない。
++2. **種目 9 個の選択**  
++   今は ChoiceChip の Wrap。押しやすく、選中が分かること。検索は足さない。
++3. **追加消費を結果として見せる**  
++   入力欄に見えないこと。編集できない数字。ホームの「今日あと何kcal」と意味がつながること。
++4. **歩きの 1 問**  
++   「追加の運動 / いつもの移動」が、きつさや種目と別質問だと分かること。
++5. **筋トレの任意項目**  
++   セット類は日誌。kcal の主役にしない。
++6. **詳細設定**  
++   開けば分かるが、通常面を長くしない。MET をヒーローにしない。
++7. **一覧行**  
++   名前と追加消費（net）。gross や MET を行に出さない。
++
++デザイン原則（カロナビ共通）
++
++- 外はシンプル。内部計算は見せない
++- 入力は最小。忙しい会社員が毎日続けられること
++- 医療アプリに見せない。責めない
++- 日本語の日常語。MET / gross / net は詳細とこの資料の中だけ
++
++---
++
++## 9. 納品チェック
++
++- [ ] iPhone 390pt で、運動追加の通常面が 1 スクロールで把握できる
++- [ ] 状態 A〜O がある
++- [ ] 種目は 9 個だけ。検索・種類チップが無い
++- [ ] 通常面の数字は追加消費（net）だけ
++- [ ] 歩きの「いつもの移動」で 0 になることが分かる
++- [ ] 家事に注意文、ヨガに注意文が無い
++- [ ] 筋トレに任意のセット / 回数 / 重量がある
++- [ ] テンプレート保存が運動追加の通常面に無い
++- [ ] ホーム・運動タブの kcal が net
++- [ ] 削除確認＋元に戻すがある
++- [ ] AYG・医療表現が無い
++- [ ] コンポーネント名と余白が実装者に読める
++
++納品物
++
++- Figma（閲覧または開発モードの共有リンク）
++- フレーム名は日本語で、このファイルの状態 A〜O と対応させる
++- 実装リポジトリへの直接コミットは不要
++
++---
++
++## 10. 実装の参照（デザイン対象のファイル）
++
++見た目を変えるときの入口。ロジックファイルは触らなくてよい。
++
++| 画面 | ファイル |
++| --- | --- |
++| 運動追加 / 編集 | `lib/screens/exercise/exercise_form_screen.dart` |
++| 種目・きつさ・追加消費 | `lib/widgets/exercise/exercise_met_calculation_section.dart` |
++| 運動タブ | `lib/screens/workout/workout_tab_screen.dart` |
++| 履歴行 | `lib/widgets/history/workout_history_list.dart` |
++| ホーム「今日の運動」 | `lib/screens/home/home_screen.dart`（`_TodayExerciseTile`） |
++| 種目定義 | `lib/data/met_activity_catalog.dart` |
++| きつさ定義 | `lib/data/met_intensity_presets.dart` |
++
++テンプレート UI は `lib/screens/workout_template/`。今回の通常面からは外した。見た目を揃えるなら一覧側だけ。
++
++---
++
++## 11. 古い資料との差分
++
++全体のデザイナー向け IA（[PR #1](https://github.com/naruto-aii/AYG/pull/1) の `docs/design/01_INFORMATION_ARCHITECTURE.md` 7 章）は、この更新より前の記述が残っています。**運動入力は本ファイルを正**にしてください。
++
++| 古い IA | 現行 |
++| --- | --- |
++| MET ルートと手入力kcal の 2 通り | 種目 1 回＋自動計算。手入力は詳細の net 上書きだけ |
++| 種類 → 種目 → 強度 | 種目チップだけ |
++| 通常面にテンプレート保存 | 運動タブのテンプレート一覧のみ |
++| 筋トレ総合 / マシン | 「筋トレ」1 つ |
++| 一覧が gross でもよい | 一覧・ホームは net |
++
++---
++
++## 12. Preview での確認手順
++
++1. https://naruto-aii.github.io/AYG/ を開く（古い画面ならハードリロード）
++2. ログイン済みなら下タブ「運動」→ 追加
++3. ウォーキング → 「追加の運動」と「いつもの移動」を切り替えて追加消費を見る
++4. 筋トレ → セット折りたたみと、kcal が時間ベースなことを確認
++5. 家事・掃除 → 注意文。ヨガ・ストレッチ → 注意文が無いこと
++6. その他（手入力）→ 表示名
++7. 保存後、運動タブとホームの数字が追加消費と一致すること
++8. 編集 → 詳細設定 → 再計算 / 削除 → 元に戻す
+diff --git a/docs/design/README.md b/docs/design/README.md
+new file mode 100644
+index 0000000..84c0564
+--- /dev/null
++++ b/docs/design/README.md
+@@ -0,0 +1,22 @@
++# カロナビ デザイン資料
++
++デザイナー向けの入口です。**機能は凍結済み**です。見た目と導線の表現だけを外注します。
++
++## いま対応してほしいこと
++
++**運動入力画面を更新したので、デザインを合わせてください。**
++
++詳細はこれだけ読めば足ります。
++
++- [03_WORKOUT_INPUT.md](./03_WORKOUT_INPUT.md) — 運動入力の現行仕様・状態・コピー・納品物
++
++Claude / Cursor に渡すときは、そのファイルを開いて「この仕様どおり運動入力の見た目を対応して」と指示してください。
++
++## 参照
++
++- 公開 Preview: https://naruto-aii.github.io/AYG/
++- 実装の正: [web-preview](https://github.com/naruto-aii/AYG/tree/web-preview)
++- 関連 PR: [PR #13](https://github.com/naruto-aii/AYG/pull/13)（種目1回選択への削り込み）、[PR #12](https://github.com/naruto-aii/AYG/pull/12)（追加消費 net への組み替え）
++
++見た目は仮です。色・余白・コンポーネントの見た目を踏襲する必要はありません。  
++項目・出し分け・計算の意味は変えないでください。

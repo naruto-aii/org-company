@@ -1,0 +1,638 @@
+### FILE docs/legal/README.md (modified)
+@@ -66,11 +66,15 @@ App Store Connect の商品は作成済み。初回提出はアプリのバー
+ 
+ 見た目の納品を待たなくてよい。括弧は主担当。次は 1。
+ 
+-1. **実機の機能確認**（Owner、不具合はエージェント）
+-   - 今の仮デザインのままでよい。見た目の直しはデザイン後
+-   - Google / Apple ログイン、アカウント削除、公開食品の「削除済みユーザー」、検索5回とテンプレ3件の上限、Health
++1. **Google ログインと Health を実機で通す**（Owner のコンソール作業 + 実機。手順は `docs/setup/ios_google_health.md`）
++   - Google Cloud で iOS OAuth クライアント（Bundle ID `com.narutoaii.ayg`）を作り、`GOOGLE_IOS_CLIENT_ID` に入れる
++   - Supabase Redirect URLs に `com.narutoaii.ayg://login-callback` を足す
++   - Xcode の Signing & Capabilities に HealthKit があることを確認し、USB で入れ直す
++2. **残りの実機確認**（Owner、不具合はエージェント）
++   - Apple ログイン、キーボード、筋トレ複数種目、バーコードカメラ
++   - アカウント削除、公開食品の「削除済みユーザー」、検索5回とテンプレ3件の上限
+    - カロナビ+ の購入と復元（Sandbox。Add for Review はまだ押さない）
+-2. **掲載のテキストだけ先に入れる**（Owner）
++3. **掲載のテキストだけ先に入れる**（Owner）
+    - プライバシー / 利用規約 / アカウント削除 URL
+    - Privacy Nutrition Labels（Health は目標計算のみ。広告・マーケティングに使わない）
+    - 年齢、審査メモ（公開食品が残ること、削除手順、Health の用途）
+### FILE docs/setup/ios_google_health.md (added)
+@@ -0,0 +1,71 @@
++# iOS の Google ログインと Health 連携
++
++実機でこの2つを通すための手順です。アプリ側の配線は入っています。残るのはコンソール作業です。
++
++Bundle ID は `com.narutoaii.ayg` です。
++
++## 1. Google ログイン
++
++### 1-1. Google Cloud で iOS クライアントを作る
++
++1. [Google Cloud Console](https://console.cloud.google.com/apis/credentials) を開く
++2. Supabase の Google ログインで使っているのと同じプロジェクトを選ぶ
++3. 認証情報 → 認証情報を作成 → OAuth クライアント ID
++4. アプリケーションの種類: **iOS**
++5. Bundle ID: `com.narutoaii.ayg`
++6. 作成したクライアント ID（`xxxx.apps.googleusercontent.com`）をコピーする
++
++Web クライアント（Supabase Auth の Google プロバイダに入っているもの）は消さない。
++
++### 1-2. 手元の dart_defines に入れる
++
++`tool/dart_defines.local.json`
++
++```json
++"GOOGLE_WEB_CLIENT_ID": "（Supabase に入っている Web クライアント）",
++"GOOGLE_IOS_CLIENT_ID": "（今作った iOS クライアント）"
++```
++
++空の `GOOGLE_IOS_CLIENT_ID` のままにしない。空だと端末の Google は Safari 経由になる。
++
++### 1-3. Supabase の戻り先
++
++Authentication → URL Configuration → Redirect URLs に追加する。
++
++```
++com.narutoaii.ayg://login-callback
++```
++
++すでに入っている GitHub Pages の Web 用 URL は残す。
++
++### 1-4. 確認
++
++1. `./tool/run_ios.sh`
++2. Googleでログイン
++3. アカウント選択のあと、カロナビに戻ること
++
++iOS クライアントを入れたあとは、Google のシートがアプリ内で出る。
++
++## 2. Health 連携
++
++アプリは読み取りだけを要求する（生年月日、性別、身長、体重、アクティブエネルギー、ワークアウト）。
++
++### 2-1. Xcode
++
++1. `ios/Runner.xcworkspace` を開く
++2. Runner → Signing & Capabilities
++3. **HealthKit** があること。無ければ + Capability → HealthKit
++4. Team はこれまで通り（Naruto Kikuchi）
++5. USB で実機に入れ直す。Capabilities を足したあとは Wi-Fi 実行だけだと古い権限のままになることがある
++
++### 2-2. iPhone
++
++1. オンボーディングまたは設定 → Health / 活動量 で「利用する」
++2. ヘルスケアの許可シートで、上の項目をオン
++3. シートが出ない / 失敗するときは、設定 → プライバシーとセキュリティ → ヘルスケア → カロナビ
++
++ヘルスケアアプリに体重や身長が入っていないと、許可は通っても値は空です。その場合は手入力でよい。
++
++### 2-3. 失敗メッセージ
++
++失敗時は「取得できませんでした」だけではなく、権限・ビルド・ヘルスケア側のどれかを日本語で出す。
+### FILE ios/Runner/Info.plist (modified)
+@@ -26,6 +26,16 @@
+ 	<string>$(FLUTTER_BUILD_NUMBER)</string>
+ 	<key>CFBundleURLTypes</key>
+ 	<array>
++		<dict>
++			<key>CFBundleTypeRole</key>
++			<string>Editor</string>
++			<key>CFBundleURLName</key>
++			<string>com.narutoaii.ayg</string>
++			<key>CFBundleURLSchemes</key>
++			<array>
++				<string>com.narutoaii.ayg</string>
++			</array>
++		</dict>
+ 		<dict>
+ 			<key>CFBundleTypeRole</key>
+ 			<string>Editor</string>
+@@ -61,7 +71,7 @@
+   <key>NSCameraUsageDescription</key>
+   <string>商品バーコードを読み取り、食事登録を簡単にするためにカメラを使用します。</string>
+   <key>NSHealthShareUsageDescription</key>
+-  <string>歩数、体重、アクティブエネルギー、ワークアウトを取得し、カロリー目標の計算にだけ使います。広告やマーケティングには使いません。</string>
++  <string>生年月日、性別、身長、体重、アクティブエネルギー、ワークアウトを取得し、カロリー目標の計算にだけ使います。広告やマーケティングには使いません。</string>
+   <key>NSHealthUpdateUsageDescription</key>
+   <string>許諾いただいた範囲で、カロナビの記録を Health に書き戻すために使います。広告やマーケティングには使いません。</string>
+   <key>UIApplicationSupportsIndirectInputEvents</key>
+### FILE ios/Runner/Runner.entitlements (modified)
+@@ -8,5 +8,7 @@
+ 	</array>
+ 	<key>com.apple.developer.healthkit</key>
+ 	<true/>
++	<key>com.apple.developer.healthkit.access</key>
++	<array/>
+ </dict>
+ </plist>
+### FILE lib/config/supabase_config.dart (modified)
+@@ -42,4 +42,12 @@ class SupabaseConfig {
+   static bool get isConfigured => url.isNotEmpty && anonKey.isNotEmpty;
+ 
+   static bool get isGoogleConfigured => googleWebClientId.isNotEmpty;
++
++  static bool get isGoogleNativeConfigured =>
++      googleWebClientId.isNotEmpty && googleIosClientId.isNotEmpty;
++
++  /// Native Google OAuth / Supabase の戻り先。
++  /// Supabase Auth の Redirect URLs に同じ値を入れる。
++  static const String nativeAuthRedirectUrl =
++      'com.narutoaii.ayg://login-callback';
+ }
+### FILE lib/models/health_profile_data.dart (modified)
+@@ -20,6 +20,14 @@ class HealthProfileData {
+ 
+   static const empty = HealthProfileData();
+ 
++  bool get hasAnyValue =>
++      birthDate != null ||
++      gender != null ||
++      heightCm != null ||
++      weightKg != null ||
++      activeEnergyBurnedKcal != null ||
++      workouts.isNotEmpty;
++
+   HealthProfileData copyWith({
+     DateTime? birthDate,
+     Gender? gender,
+### FILE lib/platform/web/repositories/web_supabase_authentication_repository.dart (modified)
+@@ -34,7 +34,9 @@ class WebSupabaseAuthenticationRepository extends AuthenticationRepository {
+   @override
+   Future<void> loginWithGoogle() async {
+     if (!SupabaseConfig.isGoogleConfigured) {
+-      throw GoogleSignInFailedException('Google Sign-In is not configured.');
++      throw GoogleSignInFailedException(
++        'Googleログインの設定がありません。GOOGLE_WEB_CLIENT_ID を入れてください。',
++      );
+     }
+ 
+     try {
+### FILE lib/platform/web/web_unsupported_health_repository.dart (modified)
+@@ -17,6 +17,9 @@ class UnsupportedHealthRepository implements HealthRepository {
+   @override
+   bool get isAvailable => false;
+ 
++  @override
++  String? get lastFailureMessage => 'この端末では Health 連携に対応していません。';
++
+   @override
+   Future<HealthProfileData> fetchProfileData() async {
+     return HealthProfileData.empty;
+### FILE lib/repositories/health_repository.dart (modified)
+@@ -6,6 +6,9 @@ import '../models/health_profile_data.dart';
+ abstract class HealthRepository {
+   bool get isAvailable;
+ 
++  /// Last request/fetch failure, in Japanese when set by the platform impl.
++  String? get lastFailureMessage;
++
+   Future<bool> requestPermissions();
+ 
+   Future<HealthProfileData> fetchProfileData();
+### FILE lib/repositories/isar/unsupported_health_repository.dart (modified)
+@@ -19,6 +19,9 @@ class UnsupportedHealthRepository implements HealthRepository {
+   @override
+   bool get isAvailable => false;
+ 
++  @override
++  String? get lastFailureMessage => 'この端末では Health 連携に対応していません。';
++
+   @override
+   Future<HealthProfileData> fetchProfileData() async {
+     return HealthProfileData.empty;
+### FILE lib/repositories/platform_health_repository.dart (modified)
+@@ -23,6 +23,7 @@ class PlatformHealthRepository implements HealthRepository {
+   final Health _health;
+   final WeightRepository _weightRepository;
+   final HealthWorkoutLocalStore _workoutStore;
++  bool _configured = false;
+ 
+   static const _readTypes = [
+     HealthDataType.BIRTH_DATE,
+@@ -36,50 +37,86 @@ class PlatformHealthRepository implements HealthRepository {
+   @override
+   bool get isAvailable => !kIsWeb;
+ 
++  @override
++  String? lastFailureMessage;
++
+   @override
+   Future<bool> requestPermissions() async {
++    lastFailureMessage = null;
+     if (!isAvailable) {
++      lastFailureMessage = 'この端末では Health 連携に対応していません。';
+       return false;
+     }
+ 
+     try {
+-      return await _health.requestAuthorization(_readTypes);
+-    } catch (_) {
++      await _ensureConfigured();
++      final granted = await _health.requestAuthorization(
++        _readTypes,
++        permissions: List<HealthDataAccess>.filled(
++          _readTypes.length,
++          HealthDataAccess.READ,
++        ),
++      );
++      if (!granted) {
++        lastFailureMessage =
++            'Health の許可が得られませんでした。iPhoneの設定 → プライバシーとセキュリティ → ヘルスケア → カロナビ で読み取りをオンにしてください。';
++      }
++      return granted;
++    } catch (error) {
++      lastFailureMessage = _messageForError(error);
+       return false;
+     }
+   }
+ 
+   @override
+   Future<HealthProfileData> fetchProfileData() async {
+     if (!isAvailable) {
++      lastFailureMessage ??= 'この端末では Health 連携に対応していません。';
++      return HealthProfileData.empty;
++    }
++
++    try {
++      await _ensureConfigured();
++    } catch (error) {
++      lastFailureMessage = _messageForError(error);
+       return HealthProfileData.empty;
+     }
+ 
+     final now = DateTime.now();
+     final startOfDay = DateTime(now.year, now.month, now.day);
+ 
+-    try {
+-      final birthDate = await _fetchBirthDate();
+-      final gender = await _fetchGender();
+-      final heightCm = await _fetchHeightCm();
+-      final weightKg = await _fetchLatestWeightKg(startOfDay, now);
+-      final activeEnergyBurnedKcal = await _fetchActiveEnergyBurnedKcal(
+-        startOfDay,
+-        now,
+-      );
+-      final workouts = await _fetchWorkouts(startOfDay, now);
+-
+-      return HealthProfileData(
+-        birthDate: birthDate,
+-        gender: gender,
+-        heightCm: heightCm,
+-        weightKg: weightKg,
+-        activeEnergyBurnedKcal: activeEnergyBurnedKcal,
+-        workouts: workouts,
+-      );
+-    } catch (_) {
+-      return HealthProfileData.empty;
++    final birthDate = await _safeFetch('生年月日', _fetchBirthDate);
++    final gender = await _safeFetch('性別', _fetchGender);
++    final heightCm = await _safeFetch('身長', _fetchHeightCm);
++    final weightKg = await _safeFetch(
++      '体重',
++      () => _fetchLatestWeightKg(startOfDay, now),
++    );
++    final activeEnergyBurnedKcal = await _safeFetch(
++      'アクティブエネルギー',
++      () => _fetchActiveEnergyBurnedKcal(startOfDay, now),
++    );
++    final workouts =
++        await _safeFetch('ワークアウト', () => _fetchWorkouts(startOfDay, now)) ??
++        const <HealthWorkoutRecord>[];
++
++    final data = HealthProfileData(
++      birthDate: birthDate,
++      gender: gender,
++      heightCm: heightCm,
++      weightKg: weightKg,
++      activeEnergyBurnedKcal: activeEnergyBurnedKcal,
++      workouts: workouts,
++    );
++
++    if (!data.hasAnyValue && lastFailureMessage == null) {
++      lastFailureMessage =
++          'Health から値を読めませんでした。ヘルスケアに体重・身長が入っているか、カロナビの読み取り許可を確認してください。';
++    } else if (data.hasAnyValue) {
++      lastFailureMessage = null;
+     }
++
++    return data;
+   }
+ 
+   @override
+@@ -102,6 +139,33 @@ class PlatformHealthRepository implements HealthRepository {
+     return _workoutStore.saveWorkoutRecords(records);
+   }
+ 
++  Future<void> _ensureConfigured() async {
++    if (_configured) {
++      return;
++    }
++    await _health.configure();
++    _configured = true;
++  }
++
++  Future<T?> _safeFetch<T>(String label, Future<T?> Function() run) async {
++    try {
++      return await run();
++    } catch (error) {
++      lastFailureMessage = '$labelを取得できませんでした。${_messageForError(error)}';
++      return null;
++    }
++  }
++
++  String _messageForError(Object error) {
++    final text = error.toString();
++    if (text.contains('entitlement') ||
++        text.contains('Authorization not determined') ||
++        text.contains('Missing')) {
++      return 'HealthKit の権限がビルドに入っていません。Xcode の Signing & Capabilities に HealthKit があるか確認し、USB で入れ直してください。';
++    }
++    return text;
++  }
++
+   Future<DateTime?> _fetchBirthDate() async {
+     final points = await _health.getHealthDataFromTypes(
+       types: [HealthDataType.BIRTH_DATE],
+@@ -176,7 +240,7 @@ class PlatformHealthRepository implements HealthRepository {
+     return value.numericValue.toDouble();
+   }
+ 
+-  Future<double> _fetchActiveEnergyBurnedKcal(
++  Future<double?> _fetchActiveEnergyBurnedKcal(
+     DateTime start,
+     DateTime end,
+   ) async {
+@@ -187,14 +251,16 @@ class PlatformHealthRepository implements HealthRepository {
+     );
+ 
+     var total = 0.0;
++    var sawValue = false;
+     for (final point in points) {
+       final value = point.value;
+       if (value is NumericHealthValue) {
+         total += value.numericValue.toDouble();
++        sawValue = true;
+       }
+     }
+ 
+-    return total;
++    return sawValue ? total : null;
+   }
+ 
+   Future<List<HealthWorkoutRecord>> _fetchWorkouts(
+### FILE lib/repositories/supabase_authentication_repository.dart (modified)
+@@ -1,3 +1,5 @@
++import 'dart:async';
++
+ import 'package:flutter/foundation.dart';
+ import 'package:google_sign_in/google_sign_in.dart';
+ import 'package:supabase_flutter/supabase_flutter.dart' hide AuthUser;
+@@ -58,7 +60,9 @@ class SupabaseAuthenticationRepository extends AuthenticationRepository {
+   @override
+   Future<void> loginWithGoogle() async {
+     if (!SupabaseConfig.isGoogleConfigured) {
+-      throw GoogleSignInFailedException('Google Sign-In is not configured.');
++      throw GoogleSignInFailedException(
++        'Googleログインの設定がありません。tool/dart_defines.local.json の GOOGLE_WEB_CLIENT_ID を入れてください。',
++      );
+     }
+ 
+     if (kIsWeb) {
+@@ -68,18 +72,21 @@ class SupabaseAuthenticationRepository extends AuthenticationRepository {
+         authScreenLaunchMode: LaunchMode.externalApplication,
+       );
+       if (!launched) {
+-        throw GoogleSignInFailedException(
+-          'Could not launch Google sign-in browser.',
+-        );
++        throw GoogleSignInFailedException('Googleログイン画面を開けませんでした。');
+       }
+       return;
+     }
+ 
+     final googleSignIn = _googleSignIn;
+-    if (googleSignIn == null) {
+-      throw GoogleSignInFailedException('Google Sign-In is not available.');
++    if (googleSignIn != null) {
++      await _loginWithNativeGoogle(googleSignIn);
++      return;
+     }
+ 
++    await _loginWithGoogleOAuth();
++  }
++
++  Future<void> _loginWithNativeGoogle(GoogleSignIn googleSignIn) async {
+     final googleUser = await googleSignIn.signIn();
+     if (googleUser == null) {
+       throw GoogleSignInCancelledException();
+@@ -88,7 +95,9 @@ class SupabaseAuthenticationRepository extends AuthenticationRepository {
+     final googleAuth = await googleUser.authentication;
+     final idToken = googleAuth.idToken;
+     if (idToken == null) {
+-      throw GoogleSignInFailedException('Google ID token is missing.');
++      throw GoogleSignInFailedException(
++        'Google の ID トークンを取得できませんでした。GOOGLE_IOS_CLIENT_ID と GOOGLE_WEB_CLIENT_ID を確認してください。',
++      );
+     }
+ 
+     try {
+@@ -102,6 +111,43 @@ class SupabaseAuthenticationRepository extends AuthenticationRepository {
+     }
+   }
+ 
++  /// iOS クライアントがまだ無いときでも、既存の Web クライアントでログインできる。
++  Future<void> _loginWithGoogleOAuth() async {
++    if (_client.auth.currentSession != null) {
++      return;
++    }
++
++    final sessionReady = Completer<void>();
++    final subscription = _client.auth.onAuthStateChange.listen((event) {
++      if (event.session != null && !sessionReady.isCompleted) {
++        sessionReady.complete();
++      }
++    });
++
++    try {
++      final launched = await _client.auth.signInWithOAuth(
++        OAuthProvider.google,
++        redirectTo: SupabaseConfig.nativeAuthRedirectUrl,
++        authScreenLaunchMode: LaunchMode.externalApplication,
++      );
++      if (!launched) {
++        throw GoogleSignInFailedException('Googleログイン画面を開けませんでした。');
++      }
++      await sessionReady.future.timeout(
++        const Duration(minutes: 2),
++        onTimeout: () {
++          throw GoogleSignInFailedException(
++            'Googleログインが完了しませんでした。Safari からカロナビに戻ったあと、もう一度試してください。Supabase の Redirect URLs に ${SupabaseConfig.nativeAuthRedirectUrl} があるかも確認してください。',
++          );
++        },
++      );
++    } on AuthException catch (error) {
++      throw GoogleSignInFailedException(error.message);
++    } finally {
++      await subscription.cancel();
++    }
++  }
++
+   @override
+   Future<void> loginWithApple() async {
+     if (kIsWeb) {
+### FILE lib/screens/auth/login_screen.dart (modified)
+@@ -46,6 +46,13 @@ class _LoginScreenState extends State<LoginScreen> {
+       await widget.controller.handleAuthenticatedSession();
+     } on GoogleSignInCancelledException {
+       return;
++    } on GoogleSignInFailedException catch (error) {
++      if (!mounted) {
++        return;
++      }
++      ScaffoldMessenger.of(
++        context,
++      ).showSnackBar(SnackBar(content: Text(error.message)));
+     } catch (error) {
+       if (!mounted) {
+         return;
+### FILE lib/screens/onboarding/health_setup_screen.dart (modified)
+@@ -53,10 +53,13 @@ class _HealthSetupScreenState extends State<HealthSetupScreen> {
+ 
+     setState(() => _isLoading = false);
+ 
+-    if (!granted) {
++    if (!granted || !profileData.hasAnyValue) {
+       ScaffoldMessenger.of(context).showSnackBar(
+-        const SnackBar(
+-          content: Text('Healthデータを取得できませんでした。取得できない項目は手入力してください。'),
++        SnackBar(
++          content: Text(
++            widget.healthRepository.lastFailureMessage ??
++                'Healthデータを取得できませんでした。取得できない項目は手入力してください。',
++          ),
+         ),
+       );
+     }
+### FILE lib/screens/settings/settings_health_activity_screen.dart (modified)
+@@ -58,8 +58,11 @@ class _SettingsHealthActivityScreenState
+       }
+       if (!granted) {
+         ScaffoldMessenger.of(context).showSnackBar(
+-          const SnackBar(
+-            content: Text('Healthデータを取得できませんでした。取得できない項目は手入力してください。'),
++          SnackBar(
++            content: Text(
++              widget.healthRepository.lastFailureMessage ??
++                  'Healthデータを取得できませんでした。取得できない項目は手入力してください。',
++            ),
+           ),
+         );
+       }
+@@ -91,7 +94,12 @@ class _SettingsHealthActivityScreenState
+     setState(() => _isBusy = false);
+     ScaffoldMessenger.of(context).showSnackBar(
+       SnackBar(
+-        content: Text(success ? 'Healthデータを再取得しました' : 'Healthデータを取得できませんでした'),
++        content: Text(
++          success
++              ? 'Healthデータを再取得しました'
++              : (widget.healthRepository.lastFailureMessage ??
++                    'Healthデータを取得できませんでした'),
++        ),
+       ),
+     );
+   }
+### FILE lib/state/app_controller.dart (modified)
+@@ -694,8 +694,7 @@ class AppController extends ChangeNotifier {
+ 
+     final profileData = await healthRepository.fetchProfileData();
+     await applyHealthProfileData(profileData);
+-    return profileData.weightKg != null ||
+-        profileData.activeEnergyBurnedKcal != null;
++    return profileData.hasAnyValue;
+   }
+ 
+   void setGoal(Goal value) {
+### FILE macos/Runner/Info.plist (modified)
+@@ -30,6 +30,16 @@
+ 	<string>NSApplication</string>
+ 	<key>CFBundleURLTypes</key>
+ 	<array>
++		<dict>
++			<key>CFBundleTypeRole</key>
++			<string>Editor</string>
++			<key>CFBundleURLName</key>
++			<string>com.narutoaii.ayg</string>
++			<key>CFBundleURLSchemes</key>
++			<array>
++				<string>com.narutoaii.ayg</string>
++			</array>
++		</dict>
+ 		<dict>
+ 			<key>CFBundleTypeRole</key>
+ 			<string>Editor</string>
+### FILE test/health_profile_data_test.dart (added)
+@@ -0,0 +1,12 @@
++import 'package:ayg/models/health_profile_data.dart';
++import 'package:flutter_test/flutter_test.dart';
++
++void main() {
++  test('empty profile has no values', () {
++    expect(HealthProfileData.empty.hasAnyValue, isFalse);
++  });
++
++  test('weight only counts as a value', () {
++    expect(const HealthProfileData(weightKg: 60).hasAnyValue, isTrue);
++  });
++}
+### FILE test/mocks/mock_health_repository.dart (modified)
+@@ -12,6 +12,9 @@ class MockHealthRepository implements HealthRepository {
+   @override
+   final bool isAvailable;
+ 
++  @override
++  String? lastFailureMessage;
++
+   bool permissionsGranted;
+   HealthProfileData profileData;
+ 
+### FILE test/widget_test.dart (modified)
+@@ -271,7 +271,7 @@ void main() {
+     await tester.tap(find.text('Googleでログイン'));
+     await tester.pumpAndSettle();
+ 
+-    expect(find.textContaining('Googleログインに失敗しました'), findsOneWidget);
++    expect(find.textContaining('Google sign-in failed.'), findsOneWidget);
+ 
+     await authRepository.dispose();
+   });
+### FILE tool/configure_google_signin_ios.sh (modified)
+@@ -68,7 +68,7 @@ GID_CLIENT_ID=
+ GID_SERVER_CLIENT_ID=
+ GOOGLE_REVERSED_CLIENT_ID=
+ EOF
+-    echo "Wrote ${output_file} (empty — set GOOGLE_IOS_CLIENT_ID to enable Google Sign-In)."
++    echo "Wrote ${output_file} (empty — set GOOGLE_IOS_CLIENT_ID to enable native Google Sign-In)."
+     return 0
+   fi
+ 
+@@ -84,6 +84,7 @@ EOF
+ if [ -z "$CLIENT_ID" ]; then
+   write_config "$IOS_OUTPUT_FILE"
+   write_config "$MACOS_OUTPUT_FILE"
++  echo "GOOGLE_IOS_CLIENT_ID が空です。Google Cloud で iOS クライアント（Bundle ID com.narutoaii.ayg）を作り、tool/dart_defines.local.json に入れてください。" >&2
+   exit 0
+ fi
+ 
+### FILE tool/setup_local_defines.command (modified)
+@@ -18,5 +18,5 @@ EOF
+ fi
+ 
+ open -e "$DEST"
+-echo "Opened $DEST in TextEdit. Fill SUPABASE_ANON_KEY and GOOGLE_WEB_CLIENT_ID, save, then close."
+-echo "Leave GOOGLE_IOS_CLIENT_ID as empty quotes. Test Apple Sign-In first."
++echo "Opened $DEST in TextEdit. Fill SUPABASE_ANON_KEY, GOOGLE_WEB_CLIENT_ID, and GOOGLE_IOS_CLIENT_ID, save, then close."
++echo "GOOGLE_IOS_CLIENT_ID は Google Cloud の iOS OAuth クライアントです。空のままだと端末の Google ログインは Safari 経由になります。"

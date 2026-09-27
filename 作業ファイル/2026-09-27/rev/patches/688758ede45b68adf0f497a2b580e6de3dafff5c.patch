@@ -1,0 +1,152 @@
+From 688758ede45b68adf0f497a2b580e6de3dafff5c Mon Sep 17 00:00:00 2001
+From: Cursor Agent <cursoragent@cursor.com>
+Date: Sun, 20 Sep 2026 16:42:55 +0000
+Subject: [PATCH] fix: skip native Google Sign-In when iOS client ID is empty
+
+Empty GIDClientID crashed device launch with GIDConfiguration.
+Apple Sign-In can start without a Google iOS OAuth client.
+
+Co-authored-by: naruto.futuree <naruto.futuree@gmail.com>
+---
+ ios/Runner/Info.plist                         |  4 ----
+ lib/repositories/google_sign_in_factory.dart  | 17 +++++++++++++
+ .../supabase_authentication_repository.dart   | 17 +++++--------
+ macos/Runner/Info.plist                       |  4 ----
+ test/google_sign_in_factory_test.dart         | 24 +++++++++++++++++++
+ tool/configure_google_signin_ios.sh           |  4 +++-
+ 6 files changed, 50 insertions(+), 20 deletions(-)
+ create mode 100644 lib/repositories/google_sign_in_factory.dart
+ create mode 100644 test/google_sign_in_factory_test.dart
+
+diff --git a/ios/Runner/Info.plist b/ios/Runner/Info.plist
+index bb611e0..48eb5bb 100644
+--- a/ios/Runner/Info.plist
++++ b/ios/Runner/Info.plist
+@@ -35,10 +35,6 @@
+ 			</array>
+ 		</dict>
+ 	</array>
+-	<key>GIDClientID</key>
+-	<string>$(GID_CLIENT_ID)</string>
+-	<key>GIDServerClientID</key>
+-	<string>$(GID_SERVER_CLIENT_ID)</string>
+ 	<key>LSRequiresIPhoneOS</key>
+ 	<true/>
+ 	<key>UIApplicationSceneManifest</key>
+diff --git a/lib/repositories/google_sign_in_factory.dart b/lib/repositories/google_sign_in_factory.dart
+new file mode 100644
+index 0000000..b4f8621
+--- /dev/null
++++ b/lib/repositories/google_sign_in_factory.dart
+@@ -0,0 +1,17 @@
++import 'package:flutter/foundation.dart';
++import 'package:google_sign_in/google_sign_in.dart';
++
++/// Native Google Sign-In. Empty iOS client ID must not construct the SDK.
++/// The iOS plugin crashes with: You must specify |clientID| in |GIDConfiguration|.
++GoogleSignIn? createGoogleSignIn({
++  required String iosClientId,
++  required String webClientId,
++}) {
++  if (kIsWeb || iosClientId.isEmpty) {
++    return null;
++  }
++  return GoogleSignIn(
++    clientId: iosClientId,
++    serverClientId: webClientId.isEmpty ? null : webClientId,
++  );
++}
+diff --git a/lib/repositories/supabase_authentication_repository.dart b/lib/repositories/supabase_authentication_repository.dart
+index ab40bd9..89fe67e 100644
+--- a/lib/repositories/supabase_authentication_repository.dart
++++ b/lib/repositories/supabase_authentication_repository.dart
+@@ -9,6 +9,7 @@ import 'account_deletion_rpc.dart';
+ import 'apple_sign_in_client.dart';
+ import 'auth_exceptions.dart';
+ import 'authentication_repository.dart';
++import 'google_sign_in_factory.dart';
+ 
+ /// Supabase Auth + Google / Apple Sign-In 実装。
+ class SupabaseAuthenticationRepository extends AuthenticationRepository {
+@@ -17,17 +18,11 @@ class SupabaseAuthenticationRepository extends AuthenticationRepository {
+     GoogleSignIn? googleSignIn,
+     AppleSignInClient? appleSignInClient,
+   }) : _client = client ?? Supabase.instance.client,
+-       _googleSignIn = kIsWeb
+-           ? null
+-           : googleSignIn ??
+-                 GoogleSignIn(
+-                   clientId: SupabaseConfig.googleIosClientId.isEmpty
+-                       ? null
+-                       : SupabaseConfig.googleIosClientId,
+-                   serverClientId: SupabaseConfig.googleWebClientId.isEmpty
+-                       ? null
+-                       : SupabaseConfig.googleWebClientId,
+-                 ),
++       _googleSignIn = googleSignIn ??
++           createGoogleSignIn(
++             iosClientId: SupabaseConfig.googleIosClientId,
++             webClientId: SupabaseConfig.googleWebClientId,
++           ),
+        _appleSignInClient = appleSignInClient ?? const AppleSignInClient();
+ 
+   final SupabaseClient _client;
+diff --git a/macos/Runner/Info.plist b/macos/Runner/Info.plist
+index 8e340ae..d083426 100644
+--- a/macos/Runner/Info.plist
++++ b/macos/Runner/Info.plist
+@@ -39,9 +39,5 @@
+ 			</array>
+ 		</dict>
+ 	</array>
+-	<key>GIDClientID</key>
+-	<string>$(GID_CLIENT_ID)</string>
+-	<key>GIDServerClientID</key>
+-	<string>$(GID_SERVER_CLIENT_ID)</string>
+ </dict>
+ </plist>
+diff --git a/test/google_sign_in_factory_test.dart b/test/google_sign_in_factory_test.dart
+new file mode 100644
+index 0000000..d79f51d
+--- /dev/null
++++ b/test/google_sign_in_factory_test.dart
+@@ -0,0 +1,24 @@
++import 'package:ayg/repositories/google_sign_in_factory.dart';
++import 'package:flutter_test/flutter_test.dart';
++
++void main() {
++  test('does not construct GoogleSignIn when the iOS client ID is empty', () {
++    expect(
++      createGoogleSignIn(
++        iosClientId: '',
++        webClientId: '123.apps.googleusercontent.com',
++      ),
++      isNull,
++    );
++  });
++
++  test('constructs GoogleSignIn when the iOS client ID is present', () {
++    expect(
++      createGoogleSignIn(
++        iosClientId: 'ios.apps.googleusercontent.com',
++        webClientId: 'web.apps.googleusercontent.com',
++      ),
++      isNotNull,
++    );
++  });
++}
+diff --git a/tool/configure_google_signin_ios.sh b/tool/configure_google_signin_ios.sh
+index 681b1bb..a6da7d4 100755
+--- a/tool/configure_google_signin_ios.sh
++++ b/tool/configure_google_signin_ios.sh
+@@ -61,7 +61,9 @@ write_config() {
+   output_file="$1"
+   if [ -z "$CLIENT_ID" ]; then
+     cat > "$output_file" <<'EOF'
+-// GOOGLE_IOS_CLIENT_ID is not set. Google Sign-In URL scheme is not configured.
++// GOOGLE_IOS_CLIENT_ID is not set. Do not write empty GID_CLIENT_ID values.
++// An empty GIDClientID in Info.plist crashes iOS:
++// You must specify |clientID| in |GIDConfiguration|.
+ GID_CLIENT_ID=
+ GID_SERVER_CLIENT_ID=
+ GOOGLE_REVERSED_CLIENT_ID=

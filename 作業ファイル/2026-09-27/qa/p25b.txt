@@ -1,0 +1,828 @@
+=== lib/bootstrap/native_bootstrap.dart
+@@ -1,4 +1,5 @@
+ import 'package:flutter/material.dart';
++import 'package:shared_preferences/shared_preferences.dart';
+ import 'package:supabase_flutter/supabase_flutter.dart';
+ 
+ import '../app.dart';
+@@ -25,8 +26,10 @@ import '../repositories/supabase/supabase_saved_food_repository.dart';
+ import '../repositories/supabase/supabase_workout_template_repository.dart';
+ import '../repositories/user_repository.dart';
+ import '../repositories/supabase/supabase_blocked_food_creator_repository.dart';
++import '../repositories/storekit_subscription_repository.dart';
+ import '../repositories/supabase_authentication_repository.dart';
+ import '../repositories/weight_repository.dart';
++import '../repositories/local_subscription_usage_store.dart';
+ import '../services/local_user_data_clearer.dart';
+ import '../services/open_food_facts_service.dart';
+ import '../state/app_controller.dart';
+@@ -111,6 +114,12 @@ Future<void> bootstrapApp() async {
+     workoutTemplateRepository: workoutTemplateRepository,
+   );
+ 
++  final preferences = await SharedPreferences.getInstance();
++  final subscriptionRepository = StoreKitSubscriptionRepository(
++    preferences: preferences,
++  );
++  await subscriptionRepository.initialize();
++
+   final controller = AppController(
+     healthRepository: healthRepository,
+     authenticationRepository: authenticationRepository,
+@@ -129,6 +138,10 @@ Future<void> bootstrapApp() async {
+     blockedCreatorRepository: foodMasterRepositories.blockedCreators,
+     mealTemplateRepository: mealTemplateRepository,
+     workoutTemplateRepository: workoutTemplateRepository,
++    subscriptionRepository: subscriptionRepository,
++    subscriptionUsageStore: LocalSubscriptionUsageStore(
++      preferences: preferences,
++    ),
+   );
+   await controller.initialize();
+ 
+=== lib/repositories/local_subscription_usage_store.dart
+@@ -0,0 +1,49 @@
++import 'package:shared_preferences/shared_preferences.dart';
++
++import '../utils/local_date.dart';
++
++/// 公開食品検索の1日あたり回数。加入状態は [SubscriptionRepository] が持つ。
++class LocalSubscriptionUsageStore {
++  LocalSubscriptionUsageStore({SharedPreferences? preferences})
++    : _preferences = preferences,
++      _memory = preferences == null ? <String, int>{} : null;
++
++  final SharedPreferences? _preferences;
++  final Map<String, int>? _memory;
++
++  String _searchKey(String userId, DateTime day) {
++    final date = localDayStart(day);
++    final stamp =
++        '${date.year.toString().padLeft(4, '0')}-'
++        '${date.month.toString().padLeft(2, '0')}-'
++        '${date.day.toString().padLeft(2, '0')}';
++    return 'public_food_search_count:$userId:$stamp';
++  }
++
++  Future<int> publicSearchCount({
++    required String userId,
++    required DateTime day,
++  }) async {
++    final key = _searchKey(userId, day);
++    final prefs = _preferences;
++    if (prefs != null) {
++      return prefs.getInt(key) ?? 0;
++    }
++    return _memory![key] ?? 0;
++  }
++
++  Future<int> incrementPublicSearch({
++    required String userId,
++    required DateTime day,
++  }) async {
++    final next = await publicSearchCount(userId: userId, day: day) + 1;
++    final key = _searchKey(userId, day);
++    final prefs = _preferences;
++    if (prefs != null) {
++      await prefs.setInt(key, next);
++    } else {
++      _memory![key] = next;
++    }
++    return next;
++  }
++}
+=== lib/repositories/platform_health_repository.dart
+@@ -23,6 +23,7 @@ class PlatformHealthRepository implements HealthRepository {
+   final Health _health;
+   final WeightRepository _weightRepository;
+   final HealthWorkoutLocalStore _workoutStore;
++  bool _configured = false;
+ 
+   static const _readTypes = [
+     HealthDataType.BIRTH_DATE,
+@@ -36,50 +37,86 @@ class PlatformHealthRepository implements HealthRepository {
+   @override
+   bool get isAvailable => !kIsWeb;
+ 
++  @override
++  String? lastFailureMessage;
++
+   @override
+   Future<bool> requestPermissions() async {
++    lastFailureMessage = null;
+     if (!isAvailable) {
++      lastFailureMessage = 'この端末では Health 連携に対応していません。';
+       return false;
+     }
+ 
+     try {
+-      return await _health.requestAuthorization(_readTypes);
+-    } catch (_) {
++      await _ensureConfigured();
++      final granted = await _health.requestAuthorization(
++        _readTypes,
++        permissions: List<HealthDataAccess>.filled(
++          _readTypes.length,
++          HealthDataAccess.READ,
++        ),
++      );
++      if (!granted) {
++        lastFailureMessage =
++            'Health の許可が得られませんでした。iPhoneの設定 → プライバシーとセキュリティ → ヘルスケア → カロナビ で読み取りをオンにしてください。';
++      }
++      return granted;
++    } catch (error) {
++      lastFailureMessage = _messageForError(error);
+       return false;
+     }
+   }
+ 
+   @override
+   Future<HealthProfileData> fetchProfileData() async {
+     if (!isAvailable) {
++      lastFailureMessage ??= 'この端末では Health 連携に対応していません。';
++      return HealthProfileData.empty;
++    }
++
++    try {
++      await _ensureConfigured();
++    } catch (error) {
++      lastFailureMessage = _messageForError(error);
+       return HealthProfileData.empty;
+     }
+ 
+     final now = DateTime.now();
+     final startOfDay = DateTime(now.year, now.month, now.day);
+ 
+-    try {
+-      final birthDate = await _fetchBirthDate();
+-      final gender = await _fetchGender();
+-      final heightCm = await _fetchHeightCm();
+-      final weightKg = await _fetchLatestWeightKg(startOfDay, now);
+-      final activeEnergyBurnedKcal = await _fetchActiveEnergyBurnedKcal(
+-        startOfDay,
+-        now,
+-      );
+-      final workouts = await _fetchWorkouts(startOfDay, now);
+-
+-      return HealthProfileData(
+-        birthDate: birthDate,
+-        gender: gender,
+-        heightCm: heightCm,
+-        weightKg: weightKg,
+-        activeEnergyBurnedKcal: activeEnergyBurnedKcal,
+-        workouts: workouts,
+-      );
+-    } catch (_) {
+-      return HealthProfileData.empty;
++    final birthDate = await _safeFetch('生年月日', _fetchBirthDate);
++    final gender = await _safeFetch('性別', _fetchGender);
++    final heightCm = await _safeFetch('身長', _fetchHeightCm);
++    final weightKg = await _safeFetch(
++      '体重',
++      () => _fetchLatestWeightKg(startOfDay, now),
++    );
++    final activeEnergyBurnedKcal = await _safeFetch(
++      'アクティブエネルギー',
++      () => _fetchActiveEnergyBurnedKcal(startOfDay, now),
++    );
++    final workouts =
++        await _safeFetch('ワークアウト', () => _fetchWorkouts(startOfDay, now)) ??
++        const <HealthWorkoutRecord>[];
++
++    final data = HealthProfileData(
++      birthDate: birthDate,
++      gender: gender,
++      heightCm: heightCm,
++      weightKg: weightKg,
++      activeEnergyBurnedKcal: activeEnergyBurnedKcal,
++      workouts: workouts,
++    );
++
++    if (!data.hasAnyValue && lastFailureMessage == null) {
++      lastFailureMessage =
++          'Health から値を読めませんでした。ヘルスケアに体重・身長が入っているか、カロナビの読み取り許可を確認してください。';
++    } else if (data.hasAnyValue) {
++      lastFailureMessage = null;
+     }
++
++    return data;
+   }
+ 
+   @override
+@@ -102,6 +139,33 @@ class PlatformHealthRepository implements HealthRepository {
+     return _workoutStore.saveWorkoutRecords(records);
+   }
+ 
++  Future<void> _ensureConfigured() async {
++    if (_configured) {
++      return;
++    }
++    await _health.configure();
++    _configured = true;
++  }
++
++  Future<T?> _safeFetch<T>(String label, Future<T?> Function() run) async {
++    try {
++      return await run();
++    } catch (error) {
++      lastFailureMessage = '$labelを取得できませんでした。${_messageForError(error)}';
++      return null;
++    }
++  }
++
++  String _messageForError(Object error) {
++    final text = error.toString();
++    if (text.contains('entitlement') ||
++        text.contains('Authorization not determined') ||
++        text.contains('Missing')) {
++      return 'HealthKit の権限がビルドに入っていません。Xcode の Signing & Capabilities に HealthKit があるか確認し、USB で入れ直してください。';
++    }
++    return text;
++  }
++
+   Future<DateTime?> _fetchBirthDate() async {
+     final points = await _health.getHealthDataFromTypes(
+       types: [HealthDataType.BIRTH_DATE],
+@@ -176,7 +240,7 @@ class PlatformHealthRepository implements HealthRepository {
+     return value.numericValue.toDouble();
+   }
+ 
+-  Future<double> _fetchActiveEnergyBurnedKcal(
++  Future<double?> _fetchActiveEnergyBurnedKcal(
+     DateTime start,
+     DateTime end,
+   ) async {
+@@ -187,14 +251,16 @@ class PlatformHealthRepository implements HealthRepository {
+     );
+ 
+     var total = 0.0;
++    var sawValue = false;
+     for (final point in points) {
+       final value = point.value;
+       if (value is NumericHealthValue) {
+         total += value.numericValue.toDouble();
++        sawValue = true;
+       }
+     }
+ 
+-    return total;
++    return sawValue ? total : null;
+   }
+ 
+   Future<List<HealthWorkoutRecord>> _fetchWorkouts(
+=== lib/repositories/storekit_subscription_repository.dart
+@@ -0,0 +1,121 @@
++import 'dart:async';
++
++import 'package:in_app_purchase/in_app_purchase.dart';
++import 'package:shared_preferences/shared_preferences.dart';
++
++import '../config/subscription_catalog.dart';
++import 'subscription_exceptions.dart';
++import 'subscription_repository.dart';
++
++/// App Store の自動更新サブスクリプション。
++class StoreKitSubscriptionRepository extends SubscriptionRepository {
++  StoreKitSubscriptionRepository({
++    InAppPurchase? store,
++    SharedPreferences? preferences,
++  }) : _store = store ?? InAppPurchase.instance,
++       _preferences = preferences;
++
++  static const _plusKey = 'calonavi_plus_active';
++
++  final InAppPurchase _store;
++  final SharedPreferences? _preferences;
++  final StreamController<bool> _plusController =
++      StreamController<bool>.broadcast();
++  StreamSubscription<List<PurchaseDetails>>? _purchaseSubscription;
++  bool _plus = false;
++
++  @override
++  bool get isPlusActive => _plus;
++
++  @override
++  Stream<bool> get plusChanges => _plusController.stream;
++
++  Future<void> initialize() async {
++    final prefs = _preferences ?? await SharedPreferences.getInstance();
++    _plus = prefs.getBool(_plusKey) ?? false;
++    _purchaseSubscription ??= _store.purchaseStream.listen(_onPurchases);
++    try {
++      await restore();
++    } catch (_) {}
++  }
++
++  @override
++  Future<void> restore() async {
++    await _store.restorePurchases();
++  }
++
++  @override
++  Future<void> purchaseMonthly() {
++    return _buy(SubscriptionCatalog.monthlyProductId);
++  }
++
++  @override
++  Future<void> purchaseYearly() {
++    return _buy(SubscriptionCatalog.yearlyProductId);
++  }
++
++  Future<void> _buy(String productId) async {
++    final available = await _store.isAvailable();
++    if (!available) {
++      throw SubscriptionPurchaseUnavailableException();
++    }
++    final response = await _store.queryProductDetails({
++      SubscriptionCatalog.monthlyProductId,
++      SubscriptionCatalog.yearlyProductId,
++    });
++    if (response.error != null) {
++      throw SubscriptionPurchaseFailedException(response.error!.message);
++    }
++    ProductDetails? product;
++    for (final item in response.productDetails) {
++      if (item.id == productId) {
++        product = item;
++        break;
++      }
++    }
++    if (product == null) {
++      throw SubscriptionPurchaseFailedException(
++        '購入商品が見つかりません。App Store Connect で商品を作成してください。',
++      );
++    }
++    final launched = await _store.buyNonConsumable(
++      purchaseParam: PurchaseParam(productDetails: product),
++    );
++    if (!launched) {
++      throw SubscriptionPurchaseFailedException('購入画面を開けませんでした。');
++    }
++  }
++
++  Future<void> _onPurchases(List<PurchaseDetails> purchases) async {
++    for (final purchase in purchases) {
++      final isPlusProduct =
++          purchase.productID == SubscriptionCatalog.monthlyProductId ||
++          purchase.productID == SubscriptionCatalog.yearlyProductId;
++      if (isPlusProduct &&
++          (purchase.status == PurchaseStatus.purchased ||
++              purchase.status == PurchaseStatus.restored)) {
++        await _setPlus(true);
++      }
++      if (purchase.pendingCompletePurchase) {
++        await _store.completePurchase(purchase);
++      }
++      if (purchase.status == PurchaseStatus.error &&
++          purchase.error != null &&
++          purchase.error!.message.isNotEmpty) {
++        // 購入失敗は画面側のタイムアウトやキャンセルと別に、ストアが通知する。
++      }
++    }
++  }
++
++  Future<void> _setPlus(bool value) async {
++    _plus = value;
++    final prefs = _preferences ?? await SharedPreferences.getInstance();
++    await prefs.setBool(_plusKey, value);
++    _plusController.add(value);
++  }
++
++  Future<void> dispose() async {
++    await _purchaseSubscription?.cancel();
++    await _plusController.close();
++  }
++}
+=== lib/screens/subscription/calonavi_plus_screen.dart
+@@ -0,0 +1,154 @@
++import 'package:flutter/material.dart';
++
++import '../../config/subscription_catalog.dart';
++import '../../constants/app_strings.dart';
++import '../../repositories/subscription_exceptions.dart';
++import '../../repositories/subscription_repository.dart';
++import '../../state/app_controller.dart';
++import '../../theme/app_colors.dart';
++import '../../theme/app_spacing.dart';
++import '../../widgets/common/app_card.dart';
++import '../../widgets/common/primary_button.dart';
++import '../../widgets/common/secondary_button.dart';
++import '../../widgets/layout/app_content_constraint.dart';
++
++Future<bool> guardPlusFeature({
++  required BuildContext context,
++  required AppController controller,
++  required Future<void> Function() ensure,
++}) async {
++  try {
++    await ensure();
++    return true;
++  } on SubscriptionLimitExceededException {
++    if (context.mounted) {
++      await showCalonaviPlus(context, controller.subscriptionRepository);
++    }
++    return false;
++  }
++}
++
++Future<void> showCalonaviPlus(
++  BuildContext context,
++  SubscriptionRepository repository,
++) {
++  return Navigator.of(context).push<void>(
++    MaterialPageRoute<void>(
++      fullscreenDialog: true,
++      builder: (context) => CalonaviPlusScreen(repository: repository),
++    ),
++  );
++}
++
++class CalonaviPlusScreen extends StatefulWidget {
++  const CalonaviPlusScreen({super.key, required this.repository});
++
++  final SubscriptionRepository repository;
++
++  @override
++  State<CalonaviPlusScreen> createState() => _CalonaviPlusScreenState();
++}
++
++class _CalonaviPlusScreenState extends State<CalonaviPlusScreen> {
++  bool _busy = false;
++
++  Future<void> _run(Future<void> Function() action) async {
++    setState(() => _busy = true);
++    try {
++      await action();
++      if (!mounted) {
++        return;
++      }
++      if (widget.repository.isPlusActive && Navigator.of(context).canPop()) {
++        Navigator.of(context).pop();
++      }
++    } on SubscriptionPurchaseUnavailableException {
++      if (!mounted) {
++        return;
++      }
++      ScaffoldMessenger.of(context).showSnackBar(
++        const SnackBar(content: Text(AppStrings.plusPurchaseUnavailable)),
++      );
++    } catch (error) {
++      if (!mounted) {
++        return;
++      }
++      ScaffoldMessenger.of(
++        context,
++      ).showSnackBar(SnackBar(content: Text('$error')));
++    } finally {
++      if (mounted) {
++        setState(() => _busy = false);
++      }
++    }
++  }
++
++  @override
++  Widget build(BuildContext context) {
++    final body = Theme.of(context).textTheme.bodyMedium;
++
++    return Scaffold(
++      appBar: AppBar(
++        title: const Text(AppStrings.plusTitle),
++        leading: IconButton(
++          tooltip: '閉じる',
++          onPressed: () => Navigator.of(context).pop(),
++          icon: const Icon(Icons.close),
++        ),
++      ),
++      body: SafeArea(
++        child: AppContentConstraint(
++          child: ListView(
++            padding: const EdgeInsets.all(AppSpacing.md),
++            children: [
++              Text(AppStrings.plusLead, style: body),
++              const SizedBox(height: AppSpacing.md),
++              const AppCard(
++                child: Column(
++                  crossAxisAlignment: CrossAxisAlignment.start,
++                  children: [
++                    Text('・公開食品検索が無制限'),
++                    Text('・食事テンプレートが無制限'),
++                    Text('・運動テンプレートが無制限'),
++                  ],
++                ),
++              ),
++              const SizedBox(height: AppSpacing.md),
++              Text(
++                AppStrings.plusFreeQuota,
++                style: body?.copyWith(color: AppColors.secondaryText),
++              ),
++              const SizedBox(height: AppSpacing.lg),
++              PrimaryButton(
++                label: '${SubscriptionCatalog.monthlyLabel}で続ける',
++                loading: _busy,
++                onPressed: _busy
++                    ? null
++                    : () => _run(widget.repository.purchaseMonthly),
++              ),
++              SecondaryButton(
++                label:
++                    '${SubscriptionCatalog.yearlyLabel}（${SubscriptionCatalog.yearlySavingLabel}）',
++                onPressed: _busy
++                    ? null
++                    : () => _run(widget.repository.purchaseYearly),
++              ),
++              const SizedBox(height: AppSpacing.sm),
++              TextButton(
++                onPressed: _busy
++                    ? null
++                    : () => _run(widget.repository.restore),
++                child: const Text(AppStrings.plusRestore),
++              ),
++              const SizedBox(height: AppSpacing.md),
++              Text(
++                AppStrings.plusLegalNote,
++                style: Theme.of(context).textTheme.bodySmall,
++              ),
++            ],
++          ),
++        ),
++      ),
++    );
++  }
++}
+=== lib/services/subscription_policy.dart
+@@ -0,0 +1,41 @@
++import '../config/subscription_catalog.dart';
++
++/// 無料枠の判定だけを持つ。UI や StoreKit には依存しない。
++class SubscriptionPolicy {
++  const SubscriptionPolicy();
++
++  bool canUse({
++    required bool isPlus,
++    required int used,
++    required int limit,
++  }) {
++    return isPlus || used < limit;
++  }
++
++  bool canSearchPublicFood({required bool isPlus, required int usedToday}) {
++    return canUse(
++      isPlus: isPlus,
++      used: usedToday,
++      limit: SubscriptionCatalog.publicFoodSearchesPerDay,
++    );
++  }
++
++  bool canCreateMealTemplate({required bool isPlus, required int currentCount}) {
++    return canUse(
++      isPlus: isPlus,
++      used: currentCount,
++      limit: SubscriptionCatalog.mealTemplateLimit,
++    );
++  }
++
++  bool canCreateWorkoutTemplate({
++    required bool isPlus,
++    required int currentCount,
++  }) {
++    return canUse(
++      isPlus: isPlus,
++      used: currentCount,
++      limit: SubscriptionCatalog.workoutTemplateLimit,
++    );
++  }
++}
+=== lib/state/app_controller.dart
+@@ -40,6 +40,11 @@ import '../models/user_profile.dart';
+ import '../models/weight_entry.dart';
+ import '../models/workout_template.dart';
+ import '../repositories/authentication_repository.dart';
++import '../repositories/local_subscription_usage_store.dart';
++import '../repositories/subscription_exceptions.dart';
++import '../repositories/subscription_repository.dart';
++import '../repositories/unavailable_subscription_repository.dart';
++import '../services/subscription_policy.dart';
+ import '../repositories/exceptions/food_master_exceptions.dart';
+ import '../repositories/contracts/blocked_food_creator_repository_base.dart';
+ import '../repositories/contracts/food_rating_repository_base.dart';
+@@ -72,7 +77,6 @@ import '../services/saved_food_publish_validator.dart';
+ import '../services/saved_food_search_service.dart';
+ import '../services/saved_food_version_policy.dart';
+ import '../services/search_suggestion_service.dart';
+-import '../models/food_visibility.dart';
+ import '../services/source_food_edit_policy.dart';
+ import '../utils/food_name_normalizer.dart';
+ import '../utils/id_generator.dart';
+@@ -97,6 +101,8 @@ class AppController extends ChangeNotifier {
+     BlockedFoodCreatorRepositoryBase? blockedCreatorRepository,
+     MealTemplateRepositoryBase? mealTemplateRepository,
+     WorkoutTemplateRepositoryBase? workoutTemplateRepository,
++    SubscriptionRepository? subscriptionRepository,
++    LocalSubscriptionUsageStore? subscriptionUsageStore,
+   }) : _nutritionEngine = nutritionEngine ?? NutritionEngine(),
+        _healthRepository = healthRepository,
+        _authenticationRepository = authenticationRepository,
+@@ -115,6 +121,10 @@ class AppController extends ChangeNotifier {
+        _blockedCreatorRepository = blockedCreatorRepository,
+        _mealTemplateRepository = mealTemplateRepository,
+        _workoutTemplateRepository = workoutTemplateRepository,
++       _subscriptionRepository =
++           subscriptionRepository ?? UnavailableSubscriptionRepository(),
++       _subscriptionUsageStore =
++           subscriptionUsageStore ?? LocalSubscriptionUsageStore(),
+        _savedFoodSearchService = const SavedFoodSearchService(),
+        _savedFoodDuplicateService = const SavedFoodDuplicateService(),
+        _savedFoodEntryBuilder = const SavedFoodEntryBuilder(),
+@@ -124,7 +134,8 @@ class AppController extends ChangeNotifier {
+        _mealTemplateTotalsService = const MealTemplateTotalsService(),
+        _mealTemplateDependencyService = const MealTemplateDependencyService(),
+        _mealTemplateApplyService = const MealTemplateApplyService(),
+-       _searchSuggestionService = const SearchSuggestionService();
++       _searchSuggestionService = const SearchSuggestionService(),
++       _subscriptionPolicy = const SubscriptionPolicy();
+ 
+   final NutritionEngine _nutritionEngine;
+   final HealthRepository? _healthRepository;
+@@ -144,6 +155,9 @@ class AppController extends ChangeNotifier {
+   final BlockedFoodCreatorRepositoryBase? _blockedCreatorRepository;
+   final MealTemplateRepositoryBase? _mealTemplateRepository;
+   final WorkoutTemplateRepositoryBase? _workoutTemplateRepository;
++  final SubscriptionRepository _subscriptionRepository;
++  final LocalSubscriptionUsageStore _subscriptionUsageStore;
++  final SubscriptionPolicy _subscriptionPolicy;
+   final SavedFoodSearchService _savedFoodSearchService;
+   final SavedFoodDuplicateService _savedFoodDuplicateService;
+   final SavedFoodEntryBuilder _savedFoodEntryBuilder;
+@@ -201,6 +215,10 @@ class AppController extends ChangeNotifier {
+   bool get isAuthenticated =>
+       _authenticationRepository?.isAuthenticated ?? false;
+ 
++  SubscriptionRepository get subscriptionRepository => _subscriptionRepository;
++
++  bool get isCalonaviPlusActive => _subscriptionRepository.isPlusActive;
++
+   String get currentOwnerUserId =>
+       _authenticationRepository?.currentUser?.id ?? localOwnerUserId;
+ 
+@@ -259,6 +277,13 @@ class AppController extends ChangeNotifier {
+       _clearInMemoryState();
+     }
+ 
++    try {
++      await _subscriptionRepository.restore();
++    } catch (_) {}
++    _subscriptionRepository.plusChanges.listen((_) {
++      notifyListeners();
++    });
++
+     _isInitializing = false;
+     notifyListeners();
+   }
+@@ -355,8 +380,8 @@ class AppController extends ChangeNotifier {
+     }
+   }
+ 
+-  Future<void> logout() async {
+-    if (_isSyncInProgress) {
++  Future<void> logout({bool force = false}) async {
++    if (_isSyncInProgress && !force) {
+       return;
+     }
+     _resetSyncState();
+@@ -668,8 +693,7 @@ class AppController extends ChangeNotifier {
+ 
+     final profileData = await healthRepository.fetchProfileData();
+     await applyHealthProfileData(profileData);
+-    return profileData.weightKg != null ||
+-        profileData.activeEnergyBurnedKcal != null;
++    return profileData.hasAnyValue;
+   }
+ 
+   void setGoal(Goal value) {
+@@ -1484,6 +1508,52 @@ class AppController extends ChangeNotifier {
+     return keys.map((key) => displayNames[key] ?? key).toList();
+   }
+ 
++  Future<void> ensureCanCreateMealTemplate() async {
++    if (_subscriptionPolicy.canCreateMealTemplate(
++      isPlus: isCalonaviPlusActive,
++      currentCount: (await searchMealTemplates('')).length,
++    )) {
++      return;
++    }
++    throw SubscriptionLimitExceededException(
++      SubscriptionLimitKind.mealTemplate,
++    );
++  }
++
++  Future<void> ensureCanCreateWorkoutTemplate() async {
++    if (_subscriptionPolicy.canCreateWorkoutTemplate(
++      isPlus: isCalonaviPlusActive,
++      currentCount: (await searchWorkoutTemplates('')).length,
++    )) {
++      return;
++    }
++    throw SubscriptionLimitExceededException(
++      SubscriptionLimitKind.workoutTemplate,
++    );
++  }
++
++  Future<void> _consumePublicFoodSearchSlot() async {
++    if (isCalonaviPlusActive) {
++      return;
++    }
++    final used = await _subscriptionUsageStore.publicSearchCount(
++      userId: currentOwnerUserId,
++      day: DateTime.now(),
++    );
++    if (!_subscriptionPolicy.canSearchPublicFood(
++      isPlus: false,
++      usedToday: used,
++    )) {
++      throw SubscriptionLimitExceededException(
++        SubscriptionLimitKind.publicFoodSearch,
++      );
++    }
++    await _subscriptionUsageStore.incrementPublicSearch(
++      userId: currentOwnerUserId,
++      day: DateTime.now(),
++    );
++  }
++
+   Future<List<PublicFoodSearchMatch>> searchPublicSavedFoods(
+     String query,
+   ) async {
+@@ -1493,6 +1563,7 @@ class AppController extends ChangeNotifier {
+     }
+ 
+     try {
++      await _consumePublicFoodSearchSlot();
+       final candidates = await repository.searchPublic(query: query);
+       final ratingsByKey = <String, ({int goodCount, int badCount})>{};
+       for (final food in candidates) {
+@@ -1511,6 +1582,8 @@ class AppController extends ChangeNotifier {
+         query: query,
+         ratingsByKey: ratingsByKey,
+       );
++    } on SubscriptionLimitExceededException {
++      rethrow;
+     } catch (_) {
+       return const [];
+     }
+@@ -1921,6 +1994,9 @@ class AppController extends ChangeNotifier {
+     if (draft.items.isEmpty) {
+       throw ArgumentError('Template must include at least one item');
+     }
++    if (templateId == null) {
++      await ensureCanCreateWorkoutTemplate();
++    }
+ 
+     final now = DateTime.now();
+     final id = templateId ?? generateId();
+@@ -2030,6 +2106,9 @@ class AppController extends ChangeNotifier {
+     if (draft.items.isEmpty) {
+       throw ArgumentError('Template must include at least one item');
+     }
++    if (templateId == null) {
++      await ensureCanCreateMealTemplate();
++    }
+ 
+     final now = DateTime.now();
+     final id = templateId ?? generateId();
+=== test/calonavi_plus_screen_test.dart
+@@ -0,0 +1,34 @@
++import 'package:ayg/config/subscription_catalog.dart';
++import 'package:ayg/constants/app_strings.dart';
++import 'package:ayg/screens/subscription/calonavi_plus_screen.dart';
++import 'package:ayg/theme/app_theme.dart';
++import 'package:flutter/material.dart';
++import 'package:flutter_test/flutter_test.dart';
++
++import 'mocks/mock_subscription_repository.dart';
++
++void main() {
++  TestWidgetsFlutterBinding.ensureInitialized();
++
++  testWidgets('plus screen offers monthly and yearly prices', (tester) async {
++    final repository = MockSubscriptionRepository();
++    await tester.pumpWidget(
++      MaterialApp(
++        theme: AppTheme.light,
++        home: CalonaviPlusScreen(repository: repository),
++      ),
++    );
++
++    expect(find.text(AppStrings.plusTitle), findsOneWidget);
++    expect(find.textContaining(SubscriptionCatalog.monthlyLabel), findsOneWidget);
++    expect(find.textContaining(SubscriptionCatalog.yearlyLabel), findsOneWidget);
++
++    await tester.tap(find.textContaining(SubscriptionCatalog.monthlyLabel));
++    await tester.pumpAndSettle();
++
++    expect(repository.monthlyCalled, isTrue);
++    expect(repository.plus, isTrue);
++
++    await repository.dispose();
++  });
++}

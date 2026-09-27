@@ -1,0 +1,4894 @@
+
+##### android/app/src/main/AndroidManifest.xml
+@@ -1,4 +1,5 @@
+ <manifest xmlns:android="http://schemas.android.com/apk/res/android">
++    <uses-permission android:name="android.permission.CAMERA"/>
+     <uses-permission android:name="android.permission.ACTIVITY_RECOGNITION"/>
+     <uses-permission android:name="android.permission.health.READ_ACTIVE_CALORIES_BURNED"/>
+     <uses-permission android:name="android.permission.health.READ_HEIGHT"/>
+
+##### docs/01_Project.md
+@@ -174,12 +174,9 @@ Vision / Mission / 最上位目的は、今後 Owner が確定する。
+ 
+ - カロナビの **正式プロダクトはモバイルアプリ** である
+ - **iOS / Android の両方** を本線プラットフォームとして設計する
+-- **初回の正式公開は Apple App Store を優先** する
+-- Android も同時公開を意味する表現は用いない
+-
+-#### 【Open Question】
+-
+-- Google Play 公開時期
++- **初回の正式公開は Apple App Store のみ** とする
++- Android / Google Play は初回に出さない。時期は未定
++- 運営名義は法人化まで **個人・麹池成**
+ 
+ ### Web Preview
+ 
+@@ -236,7 +233,7 @@ github.io の `/AYG/` が必要なのは、Web プレビュー自身の Google 
+ |------|-------------------|---------------------------|
+ | ログイン方式 | Google **または** Apple ID | — |
+ | Google ログイン | Version 1.1 正式スコープに含む | **実装済み** |
+-| Apple ログイン | Version 1.1 正式スコープに含む | **未実装** |
++| Apple ログイン | Version 1.1 正式スコープに含む | **実装済み** |
+ 
+ 未実装であることは、正式スコープから外れる理由ではない。
+ 
+@@ -400,11 +397,13 @@ Core Value は、プロダクト一言定義 **「エネルギー管理におけ
+ 以下は **【Owner Decision】** として Version 1.1 正式スコープに含まれるが、**現時点で未完成** の項目である。  
+ 「将来機能」ではなく、Version 1.1 リリース前に完了すべきタスクとして扱う。
+ 
+-| # | タスク | 【Current Implementation】 |
+-|---|--------|---------------------------|
+-| 1 | **Apple ログイン** | 未実装（Google ログインは実装済み） |
+-| 2 | **App Store 公開に必要な法務・Privacy・審査対応** | 未完了 |
+-| 3 | **TestFlight 配布準備** | 未完了 |
++| # | レーン | タスク | 【Current Implementation】 |
++|---|--------|--------|---------------------------|
++| 1 | 今できる | **実機の機能確認** | 未完。仮デザインのまま。購入含む |
++| 2 | 今できる | **掲載テキスト** | URL / 年齢 / Privacy Labels / 審査メモ |
++| 3 | デザイン後 | **見た目・アイコン・スクショ・TestFlight** | デザイナー待ち |
++
++推奨着手順の本文は `docs/legal/README.md`。基本タスク完了のたびに「今できる / デザイン後」を出し直す。
+ 
+ ---
+ 
+@@ -415,13 +414,10 @@ Core Value は、プロダクト一言定義 **「エネルギー管理におけ
+ ### 【Owner Decision】
+ 
+ - カロナビは **Apple App Store での公開を予定** する
++- 初回は App Store のみ。Google Play は出さない
+ - App Store 公開前に、法務、Privacy、Apple Sign-In、審査要件、セキュリティ、TestFlight 等を完了する
+ - 詳細は後続の Release / Legal 文書で定義する
+ 
+-### 【Open Question】
+-
+-- Google Play 公開時期
+-
+ ---
+ 
+ ## Open Questions（一覧）
+@@ -432,7 +428,7 @@ Core Value は、プロダクト一言定義 **「エネルギー管理におけ
+ | Q2 | Core Value の具体的な問い・例 |
+ | Q3 | 体重専用タブの本格 UI（履歴・グラフ等）を Version 1.1 に含めるか |
+ | Q4 | Health から取得した Workout を運動履歴・消費カロリー計算へどう反映するか |
+-| Q5 | Google Play 公開時期 |
++| Q5 | Google Play を後から出す時期（初回は出さない） |
+ 
+ ---
+ 
+
+##### docs/design/03_WORKOUT_INPUT.md
+@@ -43,7 +43,7 @@ Slack や口頭の補足は不要です。ここに無い項目は足さない
+ ユーザーに聞くのは 3 つだけにする。
+ 
+ 1. **何をしたか**（種目を 1 回）
+-2. **どれだけか**（時間。筋トレだけ任意でセット / 回数 / 重量）
++2. **どれだけか**（時間。筋トレだけ任意で種目ごとのセット / 回数 / 重量）
+ 3. **いくらか**（追加消費 net の 1 数字）
+ 
+ 以前は「運動名」「種類」「種目」「表示名」「消費kcal」が同じことを何度も聞いていた。  
+@@ -99,7 +99,7 @@ AppBar: 運動を追加 | 運動を編集
+ 
+ 実施時間（分）（必須）
+ 
+-筋トレ のときだけ → セット・回数・重量（任意、折りたたみ可）
++筋トレ のときだけ → 種目ごとのセット記録（任意。種目を複数、各種目に複数セット）
+ 
+ 記録日時
+ 
+@@ -129,7 +129,7 @@ AppBar: 運動を追加 | 運動を編集
+ | `run_jog` | ランニング・ジョギング | 有酸素 | 同上 | なし |
+ | `cycle_road` | 自転車 | 有酸素 | 同上 | なし |
+ | `swim_lap` | 水泳 | 有酸素 | 同上 | なし |
+-| `strength_general` | 筋トレ | 筋力 | 軽め / ふつう / きつい | セット / 回数 / 重量（任意） |
++| `strength_general` | 筋トレ | 筋力 | 軽め / ふつう / きつい | 種目ごとのセット / 回数 / 重量（任意） |
+ | `basketball` | バスケットボール | スポーツ | 軽め / ふつう / きつい | なし |
+ | `yoga` | ヨガ・ストレッチ | 日常 | 軽め / ふつう | なし。生活活動の警告は出さない |
+ | `housework` | 家事・掃除 | 日常 | 軽め / ふつう | 注意文のみ |
+@@ -192,14 +192,19 @@ AppBar: 運動を追加 | 運動を編集
+ 必須。1 以上の整数。  
+ 消費カロリーは時間から計算する。筋トレのセット数では計算しない。
+ 
+-筋トレの折りたたみタイトル「セット・回数・重量（任意）」  
+-サブ「消費カロリーは実施時間から計算します」
++筋トレの記録タイトル「種目の記録」  
++サブ「ジムと同じく、種目ごとにセット・重量・回数を残せます。消費カロリーは上の実施時間から計算します。」
++
++1 回の筋トレ記録の中に、種目を何個でも足せる。各種目の中にセットを何行でも足せる。
+ 
+ | 項目 | 必須 | 型 |
+ | --- | --- | --- |
+-| セット | 任意 | 整数 |
+-| 回数 | 任意 | 整数 |
+-| 重量（kg） | 任意 | 小数可 |
++| 種目名 | 任意 | テキスト。チップからも追加可 |
++| セット行 | 任意 | 各種目 1 行以上。追加で増やす |
++| 重量（kg） | 任意 | 小数可。セットごとに別値 |
++| 回数 | 任意 | 整数。セットごとに別値 |
++
++セット追加は直前セットの重量・回数を引き継ぐ。kcal はセット数では計算しない。
+ 
+ ### 5.5 追加消費（通常面の結果）
+ 
+@@ -282,7 +287,7 @@ AppBar: 運動を追加 | 運動を編集
+ | A | 新規・未選択 | 種目未選択。保存できないことが分かる |
+ | B | 歩き・追加の運動 | きつさ＋時間＋追加消費が出る |
+ | C | 歩き・いつもの移動 | 追加消費 0。通勤の説明文 |
+-| D | 筋トレ | セット折りたたみあり。kcal は時間から |
++| D | 筋トレ | 種目カード＋セット行。kcal は時間から |
+ | E | 家事・掃除 | 注意文あり。ヨガには出さない |
+ | F | その他 | 表示名必須。きつさ 3 択 |
+ | G | 体重なし | 自動計算できない旨。詳細の手動補正へ誘導してよい |
+@@ -333,7 +338,7 @@ AppBar: 運動を追加 | 運動を編集
+ - [ ] 通常面の数字は追加消費（net）だけ
+ - [ ] 歩きの「いつもの移動」で 0 になることが分かる
+ - [ ] 家事に注意文、ヨガに注意文が無い
+-- [ ] 筋トレに任意のセット / 回数 / 重量がある
++- [ ] 筋トレに任意の複数種目 / 複数セット / 回数 / 重量がある
+ - [ ] テンプレート保存が運動追加の通常面に無い
+ - [ ] ホーム・運動タブの kcal が net
+ - [ ] 削除確認＋元に戻すがある
+@@ -385,7 +390,7 @@ AppBar: 運動を追加 | 運動を編集
+ 1. https://naruto-aii.github.io/AYG/ を開く（古い画面ならハードリロード）
+ 2. ログイン済みなら下タブ「運動」→ 追加
+ 3. ウォーキング → 「追加の運動」と「いつもの移動」を切り替えて追加消費を見る
+-4. 筋トレ → セット折りたたみと、kcal が時間ベースなことを確認
++4. 筋トレ → 種目を複数足してセットを分けて残せる。kcal は時間ベース
+ 5. 家事・掃除 → 注意文。ヨガ・ストレッチ → 注意文が無いこと
+ 6. その他（手入力）→ 表示名
+ 7. 保存後、運動タブとホームの数字が追加消費と一致すること
+
+##### docs/legal/README.md
+@@ -24,6 +24,75 @@
+ 
+ 特商法11条: 氏名、住所、電話（請求開示）、メール、価格、数量、送料、通信料、支払方法・時期、提供時期、申込期限、返品、定期購入の解約、動作環境。
+ 
+-## アカウント削除 RPC（本番未適用）
++## アカウント削除 RPC（本番適用済み）
+ 
+ `supabase/migrations/20260920120000_delete_own_account_keep_public_foods.sql`
++
++本番に `public.delete_own_account()` があり、`authenticated` から execute できる。
++設定 → アカウント削除で個人データが消え、公開食品は残る。
++作成者欄は「削除済みユーザー」になる（`saved_foods.owner_deleted`）。
++
++## 決まったこと（2026-09-20）
++
++- 初回公開は App Store のみ。Google Play は出さない
++- 運営名義は法人化まで個人・麹池成
++- アカウント削除後の公開食品は残し、作成者欄は「削除済みユーザー」
++- 法務文面は、弁護士未確認のまま出す（残余リスクは薄いと判断した場合）
++
++## 課金（2026-09-20 決定）
++
++商品名: カロナビ+
++- 月額 380円 / 年額 4,180円（月額×11、1ヶ月分お得）
++- Product ID: `calonavi_plus_monthly` / `calonavi_plus_yearly`
++- 無料枠: 公開食品検索 5回/日、食事テンプレート 3件、運動テンプレート 3件
++- 加入中は3つとも無制限
++- 記録・Health・バーコード・公開投稿は無料のまま
++
++App Store Connect の商品は作成済み。初回提出はアプリのバージョンと一緒。ストアのアプリ名は `カロナビ - 食事と運動`（`カロナビ` 単体は使用済み）。ホーム画面とアプリ内はカロナビのまま。
++
++## 済んでいるもの
++
++- 法務 HTML とアプリ内全画面表示
++- Sign in with Apple（Developer Key、Supabase Apple Enabled、アプリ配線）。Web プレビューでは使えない
++- アカウント削除 UI と本番 RPC（`delete_own_account`、authenticated から実行可）
++- カロナビ+ のアプリ側と App Store Connect 商品（`calonavi_plus_monthly` 380円 / `calonavi_plus_yearly` 4,180円、同じ Level 1）
++- ストアのアプリ枠（名前は `カロナビ - 食事と運動`）
++- 公開食品の作成者欄「削除済みユーザー」
++- 通報・作成者ブロック
++
++基本タスクが終わるごとに、下の「今できる」「デザイン後」と推奨順を出し直す。デザイナーへ見た目を依頼中。機能は凍結済み。
++
++## 今できる残タスク（推奨着手順）
++
++見た目の納品を待たなくてよい。括弧は主担当。次は 1。
++
++1. **Google ログインと Health を実機で通す**（Owner のコンソール作業 + 実機。手順は `docs/setup/ios_google_health.md`）
++   - Google Cloud で iOS OAuth クライアント（Bundle ID `com.narutoaii.ayg`）を作り、`GOOGLE_IOS_CLIENT_ID` に入れる
++   - Supabase Redirect URLs に `com.narutoaii.ayg://login-callback` を足す
++   - Xcode の Signing & Capabilities に HealthKit があることを確認し、USB で入れ直す
++2. **残りの実機確認**（Owner、不具合はエージェント）
++   - Apple ログイン、キーボード、筋トレ複数種目、バーコードカメラ
++   - アカウント削除、公開食品の「削除済みユーザー」、検索5回とテンプレ3件の上限
++   - カロナビ+ の購入と復元（Sandbox。Add for Review はまだ押さない）
++3. **掲載のテキストだけ先に入れる**（Owner）
++   - プライバシー / 利用規約 / アカウント削除 URL
++   - Privacy Nutrition Labels（Health は目標計算のみ。広告・マーケティングに使わない）
++   - 年齢、審査メモ（公開食品が残ること、削除手順、Health の用途）
++   - スクリーンショットとアイコンは空のまま。ストア名は `カロナビ - 食事と運動`
++
++公開窓口は `calonavi.ayg.support@gmail.com`。新しい仕組みは作らない。その Gmail を見られればよい。
++
++## デザインが戻ってから着手
++
++Figma / アイコン / スプラッシュ / 店頭スクショが揃ってから。
++
++1. **見た目の実装**（エージェント）
++   - ログイン、初回設定、ホーム、食事、運動、体重、設定、空 / 読込 / エラー
++   - カロナビ+ 画面はブリーフ後に足したので、納品に無ければ現行のまま出すか追加依頼
++2. **アプリアイコンとスプラッシュ**（エージェント）
++3. **App Store スクリーンショット**（Owner、素材はデザイナー）
++4. **見た目込みの実機確認**（Owner、不具合はエージェント）
++5. **TestFlight → 審査提出**（Owner）
++   - アイコンとスクショが揃ってから出す
++
++初回にやらなくてよい: Google Play、法人名義、体重タブの機能追加、Health Workout の運動反映、写真解析、Apple token 失効、レシートのサーバ検証。
+
+##### docs/setup/ios_google_health.md
+@@ -0,0 +1,71 @@
++# iOS の Google ログインと Health 連携
++
++実機でこの2つを通すための手順です。アプリ側の配線は入っています。残るのはコンソール作業です。
++
++Bundle ID は `com.narutoaii.ayg` です。
++
++## 1. Google ログイン
++
++### 1-1. Google Cloud で iOS クライアントを作る
++
++1. [Google Cloud Console](https://console.cloud.google.com/apis/credentials) を開く
++2. Supabase の Google ログインで使っているのと同じプロジェクトを選ぶ
++3. 認証情報 → 認証情報を作成 → OAuth クライアント ID
++4. アプリケーションの種類: **iOS**
++5. Bundle ID: `com.narutoaii.ayg`
++6. 作成したクライアント ID（`xxxx.apps.googleusercontent.com`）をコピーする
++
++Web クライアント（Supabase Auth の Google プロバイダに入っているもの）は消さない。
++
++### 1-2. 手元の dart_defines に入れる
++
++`tool/dart_defines.local.json`
++
++```json
++"GOOGLE_WEB_CLIENT_ID": "（Supabase に入っている Web クライアント）",
++"GOOGLE_IOS_CLIENT_ID": "（今作った iOS クライアント）"
++```
++
++空の `GOOGLE_IOS_CLIENT_ID` のままにしない。空だと端末の Google は Safari 経由になる。
++
++### 1-3. Supabase の戻り先
++
++Authentication → URL Configuration → Redirect URLs に追加する。
++
++```
++com.narutoaii.ayg://login-callback
++```
++
++すでに入っている GitHub Pages の Web 用 URL は残す。
++
++### 1-4. 確認
++
++1. `./tool/run_ios.sh`
++2. Googleでログイン
++3. アカウント選択のあと、カロナビに戻ること
++
++iOS クライアントを入れたあとは、Google のシートがアプリ内で出る。
++
++## 2. Health 連携
++
++アプリは読み取りだけを要求する（生年月日、性別、身長、体重、アクティブエネルギー、ワークアウト）。
++
++### 2-1. Xcode
++
++1. `ios/Runner.xcworkspace` を開く
++2. Runner → Signing & Capabilities
++3. **HealthKit** があること。無ければ + Capability → HealthKit
++4. Team はこれまで通り（Naruto Kikuchi）
++5. USB で実機に入れ直す。Capabilities を足したあとは Wi-Fi 実行だけだと古い権限のままになることがある
++
++### 2-2. iPhone
++
++1. オンボーディングまたは設定 → Health / 活動量 で「利用する」
++2. ヘルスケアの許可シートで、上の項目をオン
++3. シートが出ない / 失敗するときは、設定 → プライバシーとセキュリティ → ヘルスケア → カロナビ
++
++ヘルスケアアプリに体重や身長が入っていないと、許可は通っても値は空です。その場合は手入力でよい。
++
++### 2-3. 失敗メッセージ
++
++失敗時は「取得できませんでした」だけではなく、権限・ビルド・ヘルスケア側のどれかを日本語で出す。
+
+##### docs/specifications/09_Food_Master_v1_2_Decision_Log.md
+@@ -22,12 +22,7 @@
+ 
+ ### Version 1.1 残タスク（DB 外 — App Store 公開前）
+ 
+-- アプリ内運営連絡先表示（`OFF_CONTACT_EMAIL` 案）
+-- Support URL
+-- Privacy Policy
+-- 利用規約 / コミュニティルール（公開食品・禁止投稿・通報対応方針）
+-- 公開食品詳細からの通報 UI
+-- 食品作成者ブロック UI
++法務 URL・アプリ内表示・通報 / ブロック UI は済み。公開前の残作業は `docs/legal/README.md`。
+ 
+ ---
+ 
+
+##### ios/Runner.xcodeproj/project.pbxproj
+@@ -64,6 +64,7 @@
+ 		97C146FB1CF9000F007C117D /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
+ 		97C146FD1CF9000F007C117D /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+ 		97C147001CF9000F007C117D /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
++		8F21A9C47B3E5D6A1C0F4E82 /* Runner.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Runner.entitlements; sourceTree = "<group>"; };
+ 		97C147021CF9000F007C117D /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+ 		B856959A6E66E5F01AFCEBD1 /* Pods-RunnerTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-RunnerTests.release.xcconfig"; path = "Target Support Files/Pods-RunnerTests/Pods-RunnerTests.release.xcconfig"; sourceTree = "<group>"; };
+ 		E4DD21C33FD256DF867F57DA /* Pods-RunnerTests.profile.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-RunnerTests.profile.xcconfig"; path = "Target Support Files/Pods-RunnerTests/Pods-RunnerTests.profile.xcconfig"; sourceTree = "<group>"; };
+@@ -145,6 +146,7 @@
+ 		97C146F01CF9000F007C117D /* Runner */ = {
+ 			isa = PBXGroup;
+ 			children = (
++				8F21A9C47B3E5D6A1C0F4E82 /* Runner.entitlements */,
+ 				97C146FA1CF9000F007C117D /* Main.storyboard */,
+ 				97C146FD1CF9000F007C117D /* Assets.xcassets */,
+ 				97C146FF1CF9000F007C117D /* LaunchScreen.storyboard */,
+@@ -484,6 +486,7 @@
+ 			buildSettings = {
+ 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+ 				CLANG_ENABLE_MODULES = YES;
++				CODE_SIGN_ENTITLEMENTS = Runner/Runner.entitlements;
+ 				CURRENT_PROJECT_VERSION = "$(FLUTTER_BUILD_NUMBER)";
+ 				ENABLE_BITCODE = NO;
+ 				INFOPLIST_FILE = Runner/Info.plist;
+@@ -666,6 +669,7 @@
+ 			buildSettings = {
+ 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+ 				CLANG_ENABLE_MODULES = YES;
++				CODE_SIGN_ENTITLEMENTS = Runner/Runner.entitlements;
+ 				CURRENT_PROJECT_VERSION = "$(FLUTTER_BUILD_NUMBER)";
+ 				ENABLE_BITCODE = NO;
+ 				INFOPLIST_FILE = Runner/Info.plist;
+@@ -688,6 +692,7 @@
+ 			buildSettings = {
+ 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+ 				CLANG_ENABLE_MODULES = YES;
++				CODE_SIGN_ENTITLEMENTS = Runner/Runner.entitlements;
+ 				CURRENT_PROJECT_VERSION = "$(FLUTTER_BUILD_NUMBER)";
+ 				ENABLE_BITCODE = NO;
+ 				INFOPLIST_FILE = Runner/Info.plist;
+
+##### ios/Runner/Info.plist
+@@ -26,6 +26,16 @@
+ 	<string>$(FLUTTER_BUILD_NUMBER)</string>
+ 	<key>CFBundleURLTypes</key>
+ 	<array>
++		<dict>
++			<key>CFBundleTypeRole</key>
++			<string>Editor</string>
++			<key>CFBundleURLName</key>
++			<string>com.narutoaii.ayg</string>
++			<key>CFBundleURLSchemes</key>
++			<array>
++				<string>com.narutoaii.ayg</string>
++			</array>
++		</dict>
+ 		<dict>
+ 			<key>CFBundleTypeRole</key>
+ 			<string>Editor</string>
+@@ -35,10 +45,6 @@
+ 			</array>
+ 		</dict>
+ 	</array>
+-	<key>GIDClientID</key>
+-	<string>$(GID_CLIENT_ID)</string>
+-	<key>GIDServerClientID</key>
+-	<string>$(GID_SERVER_CLIENT_ID)</string>
+ 	<key>LSRequiresIPhoneOS</key>
+ 	<true/>
+ 	<key>UIApplicationSceneManifest</key>
+@@ -65,9 +71,9 @@
+   <key>NSCameraUsageDescription</key>
+   <string>商品バーコードを読み取り、食事登録を簡単にするためにカメラを使用します。</string>
+   <key>NSHealthShareUsageDescription</key>
+-  <string>消費カロリーや体重を取得し、栄養目標を正確に計算するためにHealthデータを使用します。</string>
++  <string>生年月日、性別、身長、体重、アクティブエネルギー、ワークアウトを取得し、カロリー目標の計算にだけ使います。広告やマーケティングには使いません。</string>
+   <key>NSHealthUpdateUsageDescription</key>
+-  <string>必要に応じてHealthデータを更新するために使用します。</string>
++  <string>許諾いただいた範囲で、カロナビの記録を Health に書き戻すために使います。広告やマーケティングには使いません。</string>
+   <key>UIApplicationSupportsIndirectInputEvents</key>
+ 	<true/>
+ 	<key>UILaunchStoryboardName</key>
+
+##### ios/Runner/Runner.entitlements
+@@ -0,0 +1,14 @@
++<?xml version="1.0" encoding="UTF-8"?>
++<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
++<plist version="1.0">
++<dict>
++	<key>com.apple.developer.applesignin</key>
++	<array>
++		<string>Default</string>
++	</array>
++	<key>com.apple.developer.healthkit</key>
++	<true/>
++	<key>com.apple.developer.healthkit.access</key>
++	<array/>
++</dict>
++</plist>
+
+##### legal/account-deletion.html
+@@ -45,7 +45,7 @@ <h2>削除されるもの</h2>
+       <h2>残るもの</h2>
+       <p>
+         公開食品は、他の利用者が検索・利用できる共有データとしてクラウドに残します。
+-        作成者の氏名やメールアドレスは公開食品に載せません。
++        作成者欄は「削除済みユーザー」と表示します。氏名やメールアドレスは載せません。
+         法令で保管が必要な記録や、対応済みの問い合わせは、必要な期間残ることがあります。
+       </p>
+ 
+
+##### legal/privacy.html
+@@ -100,7 +100,7 @@ <h2>6. 第三者提供</h2>
+       <h2>7. 委託と国外取扱い</h2>
+       <p>サービス提供のため、次の事業者に取扱いを委託し、または預けることがあります。</p>
+       <ul>
+-        <li>Google LLC（Google ログイン、Health Connect、アプリ内課金）</li>
++        <li>Google LLC（Google ログイン、Health Connect）</li>
+         <li>Apple Inc.（Sign in with Apple、Apple Health、アプリ内課金）</li>
+         <li>Supabase, Inc.（クラウド上のデータベースと認証）</li>
+         <li>Open Food Facts（バーコードからの食品情報。公開データベース）</li>
+@@ -116,7 +116,7 @@ <h2>8. 公開食品</h2>
+       <p>
+         利用者が食品を「公開」した場合、その食品名、基準量、栄養情報などは他の利用者から検索・利用できます。
+         公開食品は、作成者のアカウント削除後も、他の利用者と運営が使える形でクラウドに残します。
+-        氏名やメールアドレスは公開食品に載せません。
++        その場合、作成者欄は「削除済みユーザー」と表示します。氏名やメールアドレスは載せません。
+       </p>
+ 
+       <h2>9. 安全管理措置</h2>
+
+##### legal/terms.html
+@@ -35,7 +35,7 @@ <h2>2. 定義</h2>
+       <ul>
+         <li>利用者: 本サービスにログインした人</li>
+         <li>公開食品: 利用者が他の利用者から検索・利用できる状態で投稿した食品情報</li>
+-        <li>ストア: Apple Inc. の App Store、または Google LLC の Google Play</li>
++        <li>ストア: 現在は Apple Inc. の App Store</li>
+       </ul>
+ 
+       <h2>3. サービス内容</h2>
+@@ -83,6 +83,7 @@ <h2>7. 公開食品</h2>
+         公開食品の著作権その他の権利は、法令に従い利用者に残ります。
+         ただし運営は、本サービスの提供、検索、表示、保全、改善のために、公開食品を複製・保存・表示できます。
+         アカウントを削除しても、公開食品は他の利用者と運営が使える形でクラウドに残します。
++        その場合、作成者欄は「削除済みユーザー」と表示します。
+         個人の食事・運動・体重の記録や、非公開の保存食品は削除します。
+       </p>
+       <p>
+
+##### legal/tokushoho.html
+@@ -34,11 +34,13 @@ <h1>特定商取引法に基づく表記</h1>
+             >calonavi.ayg.support@gmail.com</a
+           >
+         </li>
+-        <li>販売価格: 各購入画面に税込で表示します</li>
++        <li>
++          販売価格: カロナビ+ 月額 380円、年額 4,180円（年額は1ヶ月分お得）。いずれも税込。購入画面の表示が正です
++        </li>
+         <li>数量: 各購入画面に表示します</li>
+         <li>送料: かかりません（デジタル役務です）</li>
+         <li>販売価格以外に必要な費用: インターネット接続料、通信料は利用者の負担です</li>
+-        <li>支払方法: Apple Inc. の App Store、または Google LLC の Google Play のアプリ内課金</li>
++        <li>支払方法: Apple Inc. の App Store のアプリ内課金</li>
+         <li>支払時期: 各ストアが定める時期</li>
+         <li>役務の提供時期: 決済完了後、直ちにアプリ内で利用できます</li>
+         <li>申込みの有効期限: 定めはありません</li>
+@@ -48,7 +50,7 @@ <h1>特定商取引法に基づく表記</h1>
+         <li>
+           定期購入の解約: ストアの定期購入（サブスクリプション）設定から行ってください。アプリの削除、ログアウト、アカウント削除だけでは課金は止まりません
+         </li>
+-        <li>動作環境: 対象ストアが配布する iOS または Android 端末。詳細は各ストアのページを見てください</li>
++        <li>動作環境: App Store が配布する iOS 端末。詳細はストアのページを見てください</li>
+       </ul>
+     </main>
+     <footer>
+
+##### lib/app.dart
+@@ -9,7 +9,7 @@ import 'screens/shell/main_shell_screen.dart';
+ import 'services/open_food_facts_service.dart';
+ import 'state/app_controller.dart';
+ import 'theme/app_theme.dart';
+-import 'constants/app_strings.dart';
++import 'widgets/common/app_keyboard_dismiss.dart';
+ import 'widgets/startup/app_startup_gate.dart';
+ 
+ class AygApp extends StatelessWidget {
+@@ -33,6 +33,9 @@ class AygApp extends StatelessWidget {
+     return MaterialApp(
+       title: AppStrings.appTitle,
+       theme: AppTheme.light,
++      builder: (context, child) {
++        return AppKeyboardHost(child: child ?? const SizedBox.shrink());
++      },
+       home: ListenableBuilder(
+         listenable: controller,
+         builder: (context, child) {
+
+##### lib/app_web.dart
+@@ -7,6 +7,7 @@ import 'screens/shell/web_main_shell_screen.dart';
+ import 'services/open_food_facts_service.dart';
+ import 'state/app_controller.dart';
+ import 'theme/app_theme.dart';
++import 'widgets/common/app_keyboard_dismiss.dart';
+ 
+ class AygWebApp extends StatelessWidget {
+   const AygWebApp({
+@@ -25,6 +26,9 @@ class AygWebApp extends StatelessWidget {
+     return MaterialApp(
+       title: 'カロナビ（開発用プレビュー）',
+       theme: AppTheme.light,
++      builder: (context, child) {
++        return AppKeyboardHost(child: child ?? const SizedBox.shrink());
++      },
+       home: ListenableBuilder(
+         listenable: controller,
+         builder: (context, child) {
+
+##### lib/bootstrap/native_bootstrap.dart
+@@ -1,4 +1,5 @@
+ import 'package:flutter/material.dart';
++import 'package:shared_preferences/shared_preferences.dart';
+ import 'package:supabase_flutter/supabase_flutter.dart';
+ 
+ import '../app.dart';
+@@ -25,8 +26,10 @@ import '../repositories/supabase/supabase_saved_food_repository.dart';
+ import '../repositories/supabase/supabase_workout_template_repository.dart';
+ import '../repositories/user_repository.dart';
+ import '../repositories/supabase/supabase_blocked_food_creator_repository.dart';
++import '../repositories/storekit_subscription_repository.dart';
+ import '../repositories/supabase_authentication_repository.dart';
+ import '../repositories/weight_repository.dart';
++import '../repositories/local_subscription_usage_store.dart';
+ import '../services/local_user_data_clearer.dart';
+ import '../services/open_food_facts_service.dart';
+ import '../state/app_controller.dart';
+@@ -111,6 +114,12 @@ Future<void> bootstrapApp() async {
+     workoutTemplateRepository: workoutTemplateRepository,
+   );
+ 
++  final preferences = await SharedPreferences.getInstance();
++  final subscriptionRepository = StoreKitSubscriptionRepository(
++    preferences: preferences,
++  );
++  await subscriptionRepository.initialize();
++
+   final controller = AppController(
+     healthRepository: healthRepository,
+     authenticationRepository: authenticationRepository,
+@@ -129,6 +138,10 @@ Future<void> bootstrapApp() async {
+     blockedCreatorRepository: foodMasterRepositories.blockedCreators,
+     mealTemplateRepository: mealTemplateRepository,
+     workoutTemplateRepository: workoutTemplateRepository,
++    subscriptionRepository: subscriptionRepository,
++    subscriptionUsageStore: LocalSubscriptionUsageStore(
++      preferences: preferences,
++    ),
+   );
+   await controller.initialize();
+ 
+
+##### lib/bootstrap/web_bootstrap.dart
+@@ -1,5 +1,6 @@
+ import 'package:flutter/foundation.dart';
+ import 'package:flutter/material.dart';
++import 'package:shared_preferences/shared_preferences.dart';
+ import 'package:supabase_flutter/supabase_flutter.dart';
+ 
+ import '../app.dart';
+@@ -26,6 +27,7 @@ import '../repositories/data_sync_repository.dart';
+ import '../repositories/food_master_repositories.dart';
+ import '../repositories/health_repository.dart';
+ import '../repositories/local_session_store.dart';
++import '../repositories/local_subscription_usage_store.dart';
+ import '../repositories/supabase/supabase_blocked_food_creator_repository.dart';
+ import '../repositories/supabase/supabase_food_rating_repository.dart';
+ import '../repositories/supabase/supabase_food_report_repository.dart';
+@@ -188,6 +190,7 @@ Future<void> bootstrapWebApp() async {
+       workoutTemplateRepository: workoutTemplateRepository,
+     );
+ 
++    final preferences = await SharedPreferences.getInstance();
+     final controller = AppController(
+       healthRepository: healthRepository,
+       authenticationRepository: authenticationRepository,
+@@ -206,6 +209,9 @@ Future<void> bootstrapWebApp() async {
+       blockedCreatorRepository: foodMasterRepositories.blockedCreators,
+       mealTemplateRepository: mealTemplateRepository,
+       workoutTemplateRepository: workoutTemplateRepository,
++      subscriptionUsageStore: LocalSubscriptionUsageStore(
++        preferences: preferences,
++      ),
+     );
+ 
+     if (kDebugMode) {
+
+##### lib/config/subscription_catalog.dart
+@@ -0,0 +1,19 @@
++/// カロナビ+ の商品と無料枠。App Store Connect の Product ID と揃える。
++class SubscriptionCatalog {
++  SubscriptionCatalog._();
++
++  static const productName = 'カロナビ+';
++  static const monthlyProductId = 'calonavi_plus_monthly';
++  static const yearlyProductId = 'calonavi_plus_yearly';
++
++  static const monthlyYen = 380;
++  static const yearlyYen = 4180;
++
++  static const publicFoodSearchesPerDay = 5;
++  static const mealTemplateLimit = 3;
++  static const workoutTemplateLimit = 3;
++
++  static const monthlyLabel = '月額 380円';
++  static const yearlyLabel = '年額 4,180円';
++  static const yearlySavingLabel = '1ヶ月分お得';
++}
+
+##### lib/config/supabase_config.dart
+@@ -42,4 +42,12 @@ class SupabaseConfig {
+   static bool get isConfigured => url.isNotEmpty && anonKey.isNotEmpty;
+ 
+   static bool get isGoogleConfigured => googleWebClientId.isNotEmpty;
++
++  static bool get isGoogleNativeConfigured =>
++      googleWebClientId.isNotEmpty && googleIosClientId.isNotEmpty;
++
++  /// Native Google OAuth / Supabase の戻り先。
++  /// Supabase Auth の Redirect URLs に同じ値を入れる。
++  static const String nativeAuthRedirectUrl =
++      'com.narutoaii.ayg://login-callback';
+ }
+
+##### lib/constants/app_strings.dart
+@@ -30,9 +30,35 @@ class AppStrings {
+   static const settingsSupport = 'サポート';
+   static const settingsTokushoho = '特定商取引法に基づく表記';
+   static const settingsAccountDeletion = 'アカウント削除';
+-  static const settingsAccountDeletionSubtitle = '公開食品は残ります。アプリ内で確認できます';
++  static const settingsAccountDeletionSubtitle = '公開食品は残ります。アプリ内で削除できます';
++  static const accountDeletionLead =
++      '削除するとログインできなくなります。公開食品は残ります。作成者欄は「削除済みユーザー」になります。';
++  static const accountDeletionRemoves = '削除されるもの';
++  static const accountDeletionKeeps = '残るもの';
++  static const accountDeletionBilling =
++      'ストアの定期購入は、この操作では止まりません。先に各ストアで解約してください。';
++  static const accountDeletionConfirmTitle = 'アカウントを削除しますか？';
++  static const accountDeletionConfirmBody =
++      'この操作は取り消せません。個人の記録は消えます。公開食品は残り、作成者は「削除済みユーザー」と表示されます。';
++  static const accountDeletionExecute = 'アカウントを削除する';
++  static const accountDeletionUnavailable =
++      '自動削除はまだ使えません。サポートメールから削除を依頼できます。';
++  static const accountDeletionMailSubject = 'アカウント削除';
++  static const accountDeletionFailed = '削除に失敗しました';
++  static const accountDeletionReadPolicy = '詳しい説明を読む';
+   static const loginLegalAgreement = 'ログインにより、利用規約とプライバシーポリシーに同意したものとします。';
+-
++  static const loginAppleUnavailableOnWeb = 'このプレビューでは Apple ログインは使えません。';
++  static const plusTitle = 'カロナビ+';
++  static const plusLead =
++      '公開食品検索とテンプレートの上限を外します。記録・Health・バーコードはこれまでどおり無料です。';
++  static const plusFreeQuota =
++      '無料枠: 公開食品検索 5回/日、食事テンプレート 3件、運動テンプレート 3件。';
++  static const plusRestore = '購入を復元';
++  static const plusPurchaseUnavailable = 'この画面では購入できません。iPhone のアプリから購入してください。';
++  static const plusLegalNote =
++      '価格は税込です。購入画面の表示が正です。定期購入の解約は App Store の設定から行います。';
++  static const plusActive = '加入中';
++  static const plusInactive = '無料枠あり';
+ 
+   static const birthDate = '生年月日';
+   static const gender = '性別';
+
+##### lib/models/health_profile_data.dart
+@@ -20,6 +20,14 @@ class HealthProfileData {
+ 
+   static const empty = HealthProfileData();
+ 
++  bool get hasAnyValue =>
++      birthDate != null ||
++      gender != null ||
++      heightCm != null ||
++      weightKg != null ||
++      activeEnergyBurnedKcal != null ||
++      workouts.isNotEmpty;
++
+   HealthProfileData copyWith({
+     DateTime? birthDate,
+     Gender? gender,
+
+##### lib/models/saved_food.dart
+@@ -33,6 +33,7 @@ class SavedFood {
+     this.lastUsedAt,
+     this.reportCount = 0,
+     this.version = 1,
++    this.ownerDeleted = false,
+     required this.createdAt,
+     required this.updatedAt,
+     this.deletedAt,
+@@ -73,6 +74,9 @@ class SavedFood {
+   /// 公開食品の利用者向け内容変更回数（V1.1 は履歴なし・将来互換用）。
+   final int version;
+ 
++  /// 作成者アカウント削除後の公開食品。氏名は出さず「削除済みユーザー」と表示する。
++  final bool ownerDeleted;
++
+   final DateTime createdAt;
+   final DateTime updatedAt;
+   final DateTime? deletedAt;
+@@ -93,6 +97,9 @@ class SavedFood {
+   /// 表示用の基準単位文字列。
+   String get baseUnit => servingUnitLabel?.trim() ?? '';
+ 
++  /// 公開食品の作成者欄。本名やメールは使わない。
++  String get creatorLabel => ownerDeleted ? '削除済みユーザー' : 'ユーザー';
++
+   SavedFood copyWith({
+     String? foodId,
+     String? ownerUserId,
+@@ -118,6 +125,7 @@ class SavedFood {
+     DateTime? lastUsedAt,
+     int? reportCount,
+     int? version,
++    bool? ownerDeleted,
+     DateTime? createdAt,
+     DateTime? updatedAt,
+     DateTime? deletedAt,
+@@ -148,6 +156,7 @@ class SavedFood {
+       lastUsedAt: lastUsedAt ?? this.lastUsedAt,
+       reportCount: reportCount ?? this.reportCount,
+       version: version ?? this.version,
++      ownerDeleted: ownerDeleted ?? this.ownerDeleted,
+       createdAt: createdAt ?? this.createdAt,
+       updatedAt: updatedAt ?? this.updatedAt,
+       deletedAt: deletedAt ?? this.deletedAt,
+
+##### lib/models/strength_workout_log.dart
+@@ -0,0 +1,189 @@
++import 'dart:convert';
++
++import 'exercise_entry.dart';
++
++class StrengthSetLog {
++  const StrengthSetLog({this.weightKg, this.reps});
++
++  final double? weightKg;
++  final int? reps;
++
++  bool get isEmpty => weightKg == null && reps == null;
++
++  Map<String, Object?> toJson() => {'kg': weightKg, 'reps': reps};
++
++  static StrengthSetLog fromJson(Map<String, dynamic> json) {
++    return StrengthSetLog(
++      weightKg: (json['kg'] as num?)?.toDouble(),
++      reps: (json['reps'] as num?)?.toInt(),
++    );
++  }
++}
++
++class StrengthExerciseLog {
++  const StrengthExerciseLog({required this.name, required this.sets});
++
++  final String name;
++  final List<StrengthSetLog> sets;
++
++  Map<String, Object?> toJson() => {
++    'name': name,
++    'sets': sets.map((set) => set.toJson()).toList(),
++  };
++
++  static StrengthExerciseLog fromJson(Map<String, dynamic> json) {
++    final rawSets = json['sets'];
++    return StrengthExerciseLog(
++      name: (json['name'] as String? ?? '').trim(),
++      sets: rawSets is List
++          ? rawSets
++                .whereType<Map>()
++                .map(
++                  (set) =>
++                      StrengthSetLog.fromJson(Map<String, dynamic>.from(set)),
++                )
++                .toList()
++          : const [],
++    );
++  }
++}
++
++class StrengthWorkoutLog {
++  const StrengthWorkoutLog({required this.exercises});
++
++  final List<StrengthExerciseLog> exercises;
++
++  bool get isEmpty => exercises.isEmpty;
++
++  int get totalSets =>
++      exercises.fold(0, (sum, exercise) => sum + exercise.sets.length);
++
++  String get summary {
++    return exercises
++        .map((exercise) {
++          if (exercise.sets.isEmpty) {
++            return exercise.name;
++          }
++          final first = exercise.sets.first;
++          final same = exercise.sets.every(
++            (set) =>
++                set.weightKg == first.weightKg && set.reps == first.reps,
++          );
++          final setLabel = '${exercise.sets.length}セット';
++          if (same && first.weightKg != null && first.reps != null) {
++            return '${exercise.name} $setLabel ${first.weightKg}kg×${first.reps}';
++          }
++          return '${exercise.name} $setLabel';
++        })
++        .join(' · ');
++  }
++
++  Map<String, Object?> toJson() => {
++    'exercises': exercises.map((exercise) => exercise.toJson()).toList(),
++  };
++
++  static StrengthWorkoutLog fromJson(Map<String, dynamic> json) {
++    final raw = json['exercises'];
++    return StrengthWorkoutLog(
++      exercises: raw is List
++          ? raw
++                .whereType<Map>()
++                .map(
++                  (exercise) => StrengthExerciseLog.fromJson(
++                    Map<String, dynamic>.from(exercise),
++                  ),
++                )
++                .where((exercise) => exercise.name.isNotEmpty)
++                .toList()
++          : const [],
++    );
++  }
++}
++
++class StrengthNotesPayload {
++  const StrengthNotesPayload({this.log, this.memo = ''});
++
++  final StrengthWorkoutLog? log;
++  final String memo;
++}
++
++/// Persists the multi-exercise set log inside `notes` so no DB migration is needed.
++class StrengthNotesCodec {
++  static const startMarker = '<!--ayg-strength-v1-->';
++  static const endMarker = '<!--/ayg-strength-v1-->';
++
++  static String encode({StrengthWorkoutLog? log, String memo = ''}) {
++    final trimmedMemo = memo.trim();
++    if (log == null || log.isEmpty) {
++      return trimmedMemo;
++    }
++    final buffer = StringBuffer()
++      ..writeln(startMarker)
++      ..writeln(jsonEncode(log.toJson()))
++      ..writeln(endMarker);
++    if (trimmedMemo.isNotEmpty) {
++      buffer.write(trimmedMemo);
++    }
++    return buffer.toString().trim();
++  }
++
++  static StrengthNotesPayload parse(String? raw) {
++    final text = raw ?? '';
++    final start = text.indexOf(startMarker);
++    final end = text.indexOf(endMarker);
++    if (start < 0 || end < 0 || end <= start) {
++      return StrengthNotesPayload(memo: text.trim());
++    }
++    final jsonText = text.substring(start + startMarker.length, end).trim();
++    final memo = text.substring(end + endMarker.length).trim();
++    try {
++      final decoded = jsonDecode(jsonText);
++      if (decoded is Map<String, dynamic>) {
++        final log = StrengthWorkoutLog.fromJson(decoded);
++        return StrengthNotesPayload(
++          log: log.isEmpty ? null : log,
++          memo: memo,
++        );
++      }
++    } catch (_) {}
++    return StrengthNotesPayload(memo: memo.isEmpty ? text.trim() : memo);
++  }
++}
++
++extension ExerciseStrengthDetails on ExerciseEntry {
++  StrengthWorkoutLog? get strengthLog {
++    final parsed = StrengthNotesCodec.parse(notes).log;
++    if (parsed != null && !parsed.isEmpty) {
++      return parsed;
++    }
++    return legacyStrengthLog;
++  }
++
++  StrengthWorkoutLog? get legacyStrengthLog {
++    if (sets == null && reps == null && liftWeightKg == null) {
++      return null;
++    }
++    final setCount = sets != null && sets! > 0 ? sets! : 1;
++    return StrengthWorkoutLog(
++      exercises: [
++        StrengthExerciseLog(
++          name: name.trim().isEmpty ? '筋トレ' : name.trim(),
++          sets: [
++            for (var i = 0; i < setCount; i++)
++              StrengthSetLog(weightKg: liftWeightKg, reps: reps),
++          ],
++        ),
++      ],
++    );
++  }
++
++  String get memoText => StrengthNotesCodec.parse(notes).memo;
++
++  String? get strengthSummary {
++    final log = strengthLog;
++    if (log == null || log.isEmpty) {
++      return null;
++    }
++    return log.summary;
++  }
++}
+
+##### lib/platform/web/repositories/web_supabase_authentication_repository.dart
+@@ -1,10 +1,11 @@
+ import 'package:supabase_flutter/supabase_flutter.dart' hide AuthUser;
+ 
+ import '../../../config/supabase_config.dart';
++import '../../../repositories/account_deletion_rpc.dart';
+ import '../../../repositories/auth_exceptions.dart';
+ import '../../../repositories/authentication_repository.dart';
+ 
+-/// Web 向け Supabase OAuth 認証（Google のみ）。
++/// Web 向け Supabase OAuth 認証（Google のみ。Apple はアプリで使う）。
+ class WebSupabaseAuthenticationRepository extends AuthenticationRepository {
+   WebSupabaseAuthenticationRepository({SupabaseClient? client})
+     : _client = client ?? Supabase.instance.client;
+@@ -33,7 +34,9 @@ class WebSupabaseAuthenticationRepository extends AuthenticationRepository {
+   @override
+   Future<void> loginWithGoogle() async {
+     if (!SupabaseConfig.isGoogleConfigured) {
+-      throw GoogleSignInFailedException('Google Sign-In is not configured.');
++      throw GoogleSignInFailedException(
++        'Googleログインの設定がありません。GOOGLE_WEB_CLIENT_ID を入れてください。',
++      );
+     }
+ 
+     try {
+@@ -48,14 +51,19 @@ class WebSupabaseAuthenticationRepository extends AuthenticationRepository {
+ 
+   @override
+   Future<void> loginWithApple() async {
+-    throw UnimplementedError('Apple Sign-In is not available on Web preview.');
++    throw AppleSignInUnavailableException();
+   }
+ 
+   @override
+   Future<void> logout() async {
+     await _client.auth.signOut();
+   }
+ 
++  @override
++  Future<void> deleteOwnAccount() {
++    return deleteOwnAccountWithClient(_client);
++  }
++
+   String get _redirectUrl {
+     final base = Uri.base;
+     final path = base.path.endsWith('/') ? base.path : '${base.path}/';
+
+##### lib/platform/web/web_unsupported_health_repository.dart
+@@ -17,6 +17,9 @@ class UnsupportedHealthRepository implements HealthRepository {
+   @override
+   bool get isAvailable => false;
+ 
++  @override
++  String? get lastFailureMessage => 'この端末では Health 連携に対応していません。';
++
+   @override
+   Future<HealthProfileData> fetchProfileData() async {
+     return HealthProfileData.empty;
+
+##### lib/repositories/account_deletion_rpc.dart
+@@ -0,0 +1,27 @@
++import 'package:supabase_flutter/supabase_flutter.dart';
++
++import 'auth_exceptions.dart';
++
++/// `public.delete_own_account()` を呼ぶ。関数が無いときは unavailable。
++Future<void> deleteOwnAccountWithClient(SupabaseClient client) async {
++  try {
++    await client.rpc('delete_own_account');
++  } on PostgrestException catch (error) {
++    if (_isMissingFunction(error)) {
++      throw AccountDeletionUnavailableException();
++    }
++    throw AccountDeletionFailedException(error.message);
++  }
++}
++
++bool _isMissingFunction(PostgrestException error) {
++  final code = error.code ?? '';
++  final message = error.message.toLowerCase();
++  if (code == 'PGRST202' || code == '42883') {
++    return true;
++  }
++  return message.contains('delete_own_account') &&
++      (message.contains('does not exist') ||
++          message.contains('not find') ||
++          message.contains('could not find'));
++}
+
+##### lib/repositories/apple_sign_in_client.dart
+@@ -0,0 +1,87 @@
++import 'dart:convert';
++import 'dart:math';
++
++import 'package:crypto/crypto.dart';
++import 'package:sign_in_with_apple/sign_in_with_apple.dart';
++
++import 'auth_exceptions.dart';
++
++/// Native Apple ID token and the raw nonce Supabase must verify.
++class AppleIdTokenResult {
++  const AppleIdTokenResult({
++    required this.identityToken,
++    required this.rawNonce,
++  });
++
++  final String identityToken;
++  final String rawNonce;
++}
++
++typedef AppleNonceFactory = String Function();
++typedef AppleCredentialFetcher =
++    Future<AuthorizationCredentialAppleID> Function(String hashedNonce);
++
++/// SHA-256 hashed nonce + Sign in with Apple identity token.
++class AppleSignInClient {
++  const AppleSignInClient({
++    AppleNonceFactory? nonceFactory,
++    AppleCredentialFetcher? credentialFetcher,
++  }) : _nonceFactory = nonceFactory,
++       _credentialFetcher = credentialFetcher;
++
++  final AppleNonceFactory? _nonceFactory;
++  final AppleCredentialFetcher? _credentialFetcher;
++
++  Future<AppleIdTokenResult> fetchIdToken() async {
++    final rawNonce = (_nonceFactory ?? generateAppleNonce)();
++    final hashedNonce = sha256Hex(rawNonce);
++
++    try {
++      final credential = await (_credentialFetcher ?? _defaultCredentialFetcher)(
++        hashedNonce,
++      );
++      final idToken = credential.identityToken;
++      if (idToken == null || idToken.isEmpty) {
++        throw AppleSignInFailedException('Apple identity token is missing.');
++      }
++      return AppleIdTokenResult(identityToken: idToken, rawNonce: rawNonce);
++    } on AppleSignInCancelledException {
++      rethrow;
++    } on AppleSignInFailedException {
++      rethrow;
++    } on SignInWithAppleAuthorizationException catch (error) {
++      if (error.code == AuthorizationErrorCode.canceled) {
++        throw AppleSignInCancelledException();
++      }
++      throw AppleSignInFailedException(error.message);
++    } on SignInWithAppleException catch (error) {
++      throw AppleSignInFailedException(error.toString());
++    }
++  }
++
++  static Future<AuthorizationCredentialAppleID> _defaultCredentialFetcher(
++    String hashedNonce,
++  ) {
++    return SignInWithApple.getAppleIDCredential(
++      scopes: const [
++        AppleIDAuthorizationScopes.email,
++        AppleIDAuthorizationScopes.fullName,
++      ],
++      nonce: hashedNonce,
++    );
++  }
++}
++
++String generateAppleNonce([int length = 32]) {
++  const charset =
++      '0123456789ABCDEFGHIJKLMNOPQRSTUVXYZabcdefghijklmnopqrstuvwxyz-._';
++  final random = Random.secure();
++  return List.generate(
++    length,
++    (_) => charset[random.nextInt(charset.length)],
++  ).join();
++}
++
++String sha256Hex(String input) {
++  return sha256.convert(utf8.encode(input)).toString();
++}
+
+##### lib/repositories/auth_exceptions.dart
+@@ -13,3 +13,41 @@ class GoogleSignInFailedException implements Exception {
+   @override
+   String toString() => message;
+ }
++
++/// Apple Sign-In がユーザー操作でキャンセルされた。
++class AppleSignInCancelledException implements Exception {
++  @override
++  String toString() => 'Apple sign-in was cancelled.';
++}
++
++/// Apple Sign-In / Supabase Auth が失敗した。
++class AppleSignInFailedException implements Exception {
++  AppleSignInFailedException(this.message);
++
++  final String message;
++
++  @override
++  String toString() => message;
++}
++
++/// Web プレビューなど、この画面では Apple ログインが使えない。
++class AppleSignInUnavailableException implements Exception {
++  @override
++  String toString() => 'Apple sign-in is not available.';
++}
++
++/// 本番に delete_own_account がまだ無い。
++class AccountDeletionUnavailableException implements Exception {
++  @override
++  String toString() => 'Account deletion is not available.';
++}
++
++/// アカウント削除に失敗した。
++class AccountDeletionFailedException implements Exception {
++  AccountDeletionFailedException(this.message);
++
++  final String message;
++
++  @override
++  String toString() => message;
++}
+
+##### lib/repositories/authentication_repository.dart
+@@ -13,6 +13,10 @@ abstract class AuthenticationRepository {
+   Future<void> loginWithApple();
+ 
+   Future<void> logout();
++
++  /// 個人データを消し、公開食品は残す。本番に RPC が無いときは
++  /// [AccountDeletionUnavailableException] を投げる。
++  Future<void> deleteOwnAccount();
+ }
+ 
+ /// 認証済みユーザー情報。
+
+##### lib/repositories/google_sign_in_factory.dart
+@@ -0,0 +1,17 @@
++import 'package:flutter/foundation.dart';
++import 'package:google_sign_in/google_sign_in.dart';
++
++/// Native Google Sign-In. Empty iOS client ID must not construct the SDK.
++/// The iOS plugin crashes with: You must specify |clientID| in |GIDConfiguration|.
++GoogleSignIn? createGoogleSignIn({
++  required String iosClientId,
++  required String webClientId,
++}) {
++  if (kIsWeb || iosClientId.isEmpty) {
++    return null;
++  }
++  return GoogleSignIn(
++    clientId: iosClientId,
++    serverClientId: webClientId.isEmpty ? null : webClientId,
++  );
++}
+
+##### lib/repositories/health_repository.dart
+@@ -6,6 +6,9 @@ import '../models/health_profile_data.dart';
+ abstract class HealthRepository {
+   bool get isAvailable;
+ 
++  /// Last request/fetch failure, in Japanese when set by the platform impl.
++  String? get lastFailureMessage;
++
+   Future<bool> requestPermissions();
+ 
+   Future<HealthProfileData> fetchProfileData();
+
+##### lib/repositories/isar/unsupported_health_repository.dart
+@@ -19,6 +19,9 @@ class UnsupportedHealthRepository implements HealthRepository {
+   @override
+   bool get isAvailable => false;
+ 
++  @override
++  String? get lastFailureMessage => 'この端末では Health 連携に対応していません。';
++
+   @override
+   Future<HealthProfileData> fetchProfileData() async {
+     return HealthProfileData.empty;
+
+##### lib/repositories/local_subscription_usage_store.dart
+@@ -0,0 +1,49 @@
++import 'package:shared_preferences/shared_preferences.dart';
++
++import '../utils/local_date.dart';
++
++/// 公開食品検索の1日あたり回数。加入状態は [SubscriptionRepository] が持つ。
++class LocalSubscriptionUsageStore {
++  LocalSubscriptionUsageStore({SharedPreferences? preferences})
++    : _preferences = preferences,
++      _memory = preferences == null ? <String, int>{} : null;
++
++  final SharedPreferences? _preferences;
++  final Map<String, int>? _memory;
++
++  String _searchKey(String userId, DateTime day) {
++    final date = localDayStart(day);
++    final stamp =
++        '${date.year.toString().padLeft(4, '0')}-'
++        '${date.month.toString().padLeft(2, '0')}-'
++        '${date.day.toString().padLeft(2, '0')}';
++    return 'public_food_search_count:$userId:$stamp';
++  }
++
++  Future<int> publicSearchCount({
++    required String userId,
++    required DateTime day,
++  }) async {
++    final key = _searchKey(userId, day);
++    final prefs = _preferences;
++    if (prefs != null) {
++      return prefs.getInt(key) ?? 0;
++    }
++    return _memory![key] ?? 0;
++  }
++
++  Future<int> incrementPublicSearch({
++    required String userId,
++    required DateTime day,
++  }) async {
++    final next = await publicSearchCount(userId: userId, day: day) + 1;
++    final key = _searchKey(userId, day);
++    final prefs = _preferences;
++    if (prefs != null) {
++      await prefs.setInt(key, next);
++    } else {
++      _memory![key] = next;
++    }
++    return next;
++  }
++}
+
+##### lib/repositories/platform_health_repository.dart
+@@ -23,6 +23,7 @@ class PlatformHealthRepository implements HealthRepository {
+   final Health _health;
+   final WeightRepository _weightRepository;
+   final HealthWorkoutLocalStore _workoutStore;
++  bool _configured = false;
+ 
+   static const _readTypes = [
+     HealthDataType.BIRTH_DATE,
+@@ -36,50 +37,86 @@ class PlatformHealthRepository implements HealthRepository {
+   @override
+   bool get isAvailable => !kIsWeb;
+ 
++  @override
++  String? lastFailureMessage;
++
+   @override
+   Future<bool> requestPermissions() async {
++    lastFailureMessage = null;
+     if (!isAvailable) {
++      lastFailureMessage = 'この端末では Health 連携に対応していません。';
+       return false;
+     }
+ 
+     try {
+-      return await _health.requestAuthorization(_readTypes);
+-    } catch (_) {
++      await _ensureConfigured();
++      final granted = await _health.requestAuthorization(
++        _readTypes,
++        permissions: List<HealthDataAccess>.filled(
++          _readTypes.length,
++          HealthDataAccess.READ,
++        ),
++      );
++      if (!granted) {
++        lastFailureMessage =
++            'Health の許可が得られませんでした。iPhoneの設定 → プライバシーとセキュリティ → ヘルスケア → カロナビ で読み取りをオンにしてください。';
++      }
++      return granted;
++    } catch (error) {
++      lastFailureMessage = _messageForError(error);
+       return false;
+     }
+   }
+ 
+   @override
+   Future<HealthProfileData> fetchProfileData() async {
+     if (!isAvailable) {
++      lastFailureMessage ??= 'この端末では Health 連携に対応していません。';
++      return HealthProfileData.empty;
++    }
++
++    try {
++      await _ensureConfigured();
++    } catch (error) {
++      lastFailureMessage = _messageForError(error);
+       return HealthProfileData.empty;
+     }
+ 
+     final now = DateTime.now();
+     final startOfDay = DateTime(now.year, now.month, now.day);
+ 
+-    try {
+-      final birthDate = await _fetchBirthDate();
+-      final gender = await _fetchGender();
+-      final heightCm = await _fetchHeightCm();
+-      final weightKg = await _fetchLatestWeightKg(startOfDay, now);
+-      final activeEnergyBurnedKcal = await _fetchActiveEnergyBurnedKcal(
+-        startOfDay,
+-        now,
+-      );
+-      final workouts = await _fetchWorkouts(startOfDay, now);
+-
+-      return HealthProfileData(
+-        birthDate: birthDate,
+-        gender: gender,
+-        heightCm: heightCm,
+-        weightKg: weightKg,
+-        activeEnergyBurnedKcal: activeEnergyBurnedKcal,
+-        workouts: workouts,
+-      );
+-    } catch (_) {
+-      return HealthProfileData.empty;
++    final birthDate = await _safeFetch('生年月日', _fetchBirthDate);
++    final gender = await _safeFetch('性別', _fetchGender);
++    final heightCm = await _safeFetch('身長', _fetchHeightCm);
++    final weightKg = await _safeFetch(
++      '体重',
++      () => _fetchLatestWeightKg(startOfDay, now),
++    );
++    final activeEnergyBurnedKcal = await _safeFetch(
++      'アクティブエネルギー',
++      () => _fetchActiveEnergyBurnedKcal(startOfDay, now),
++    );
++    final workouts =
++        await _safeFetch('ワークアウト', () => _fetchWorkouts(startOfDay, now)) ??
++        const <HealthWorkoutRecord>[];
++
++    final data = HealthProfileData(
++      birthDate: birthDate,
++      gender: gender,
++      heightCm: heightCm,
++      weightKg: weightKg,
++      activeEnergyBurnedKcal: activeEnergyBurnedKcal,
++      workouts: workouts,
++    );
++
++    if (!data.hasAnyValue && lastFailureMessage == null) {
++      lastFailureMessage =
++          'Health から値を読めませんでした。ヘルスケアに体重・身長が入っているか、カロナビの読み取り許可を確認してください。';
++    } else if (data.hasAnyValue) {
++      lastFailureMessage = null;
+     }
++
++    return data;
+   }
+ 
+   @override
+@@ -102,6 +139,33 @@ class PlatformHealthRepository implements HealthRepository {
+     return _workoutStore.saveWorkoutRecords(records);
+   }
+ 
++  Future<void> _ensureConfigured() async {
++    if (_configured) {
++      return;
++    }
++    await _health.configure();
++    _configured = true;
++  }
++
++  Future<T?> _safeFetch<T>(String label, Future<T?> Function() run) async {
++    try {
++      return await run();
++    } catch (error) {
++      lastFailureMessage = '$labelを取得できませんでした。${_messageForError(error)}';
++      return null;
++    }
++  }
++
++  String _messageForError(Object error) {
++    final text = error.toString();
++    if (text.contains('entitlement') ||
++        text.contains('Authorization not determined') ||
++        text.contains('Missing')) {
++      return 'HealthKit の権限がビルドに入っていません。Xcode の Signing & Capabilities に HealthKit があるか確認し、USB で入れ直してください。';
++    }
++    return text;
++  }
++
+   Future<DateTime?> _fetchBirthDate() async {
+     final points = await _health.getHealthDataFromTypes(
+       types: [HealthDataType.BIRTH_DATE],
+@@ -176,7 +240,7 @@ class PlatformHealthRepository implements HealthRepository {
+     return value.numericValue.toDouble();
+   }
+ 
+-  Future<double> _fetchActiveEnergyBurnedKcal(
++  Future<double?> _fetchActiveEnergyBurnedKcal(
+     DateTime start,
+     DateTime end,
+   ) async {
+@@ -187,14 +251,16 @@ class PlatformHealthRepository implements HealthRepository {
+     );
+ 
+     var total = 0.0;
++    var sawValue = false;
+     for (final point in points) {
+       final value = point.value;
+       if (value is NumericHealthValue) {
+         total += value.numericValue.toDouble();
++        sawValue = true;
+       }
+     }
+ 
+-    return total;
++    return sawValue ? total : null;
+   }
+ 
+   Future<List<HealthWorkoutRecord>> _fetchWorkouts(
+
+##### lib/repositories/storekit_subscription_repository.dart
+@@ -0,0 +1,121 @@
++import 'dart:async';
++
++import 'package:in_app_purchase/in_app_purchase.dart';
++import 'package:shared_preferences/shared_preferences.dart';
++
++import '../config/subscription_catalog.dart';
++import 'subscription_exceptions.dart';
++import 'subscription_repository.dart';
++
++/// App Store の自動更新サブスクリプション。
++class StoreKitSubscriptionRepository extends SubscriptionRepository {
++  StoreKitSubscriptionRepository({
++    InAppPurchase? store,
++    SharedPreferences? preferences,
++  }) : _store = store ?? InAppPurchase.instance,
++       _preferences = preferences;
++
++  static const _plusKey = 'calonavi_plus_active';
++
++  final InAppPurchase _store;
++  final SharedPreferences? _preferences;
++  final StreamController<bool> _plusController =
++      StreamController<bool>.broadcast();
++  StreamSubscription<List<PurchaseDetails>>? _purchaseSubscription;
++  bool _plus = false;
++
++  @override
++  bool get isPlusActive => _plus;
++
++  @override
++  Stream<bool> get plusChanges => _plusController.stream;
++
++  Future<void> initialize() async {
++    final prefs = _preferences ?? await SharedPreferences.getInstance();
++    _plus = prefs.getBool(_plusKey) ?? false;
++    _purchaseSubscription ??= _store.purchaseStream.listen(_onPurchases);
++    try {
++      await restore();
++    } catch (_) {}
++  }
++
++  @override
++  Future<void> restore() async {
++    await _store.restorePurchases();
++  }
++
++  @override
++  Future<void> purchaseMonthly() {
++    return _buy(SubscriptionCatalog.monthlyProductId);
++  }
++
++  @override
++  Future<void> purchaseYearly() {
++    return _buy(SubscriptionCatalog.yearlyProductId);
++  }
++
++  Future<void> _buy(String productId) async {
++    final available = await _store.isAvailable();
++    if (!available) {
++      throw SubscriptionPurchaseUnavailableException();
++    }
++    final response = await _store.queryProductDetails({
++      SubscriptionCatalog.monthlyProductId,
++      SubscriptionCatalog.yearlyProductId,
++    });
++    if (response.error != null) {
++      throw SubscriptionPurchaseFailedException(response.error!.message);
++    }
++    ProductDetails? product;
++    for (final item in response.productDetails) {
++      if (item.id == productId) {
++        product = item;
++        break;
++      }
++    }
++    if (product == null) {
++      throw SubscriptionPurchaseFailedException(
++        '購入商品が見つかりません。App Store Connect で商品を作成してください。',
++      );
++    }
++    final launched = await _store.buyNonConsumable(
++      purchaseParam: PurchaseParam(productDetails: product),
++    );
++    if (!launched) {
++      throw SubscriptionPurchaseFailedException('購入画面を開けませんでした。');
++    }
++  }
++
++  Future<void> _onPurchases(List<PurchaseDetails> purchases) async {
++    for (final purchase in purchases) {
++      final isPlusProduct =
++          purchase.productID == SubscriptionCatalog.monthlyProductId ||
++          purchase.productID == SubscriptionCatalog.yearlyProductId;
++      if (isPlusProduct &&
++          (purchase.status == PurchaseStatus.purchased ||
++              purchase.status == PurchaseStatus.restored)) {
++        await _setPlus(true);
++      }
++      if (purchase.pendingCompletePurchase) {
++        await _store.completePurchase(purchase);
++      }
++      if (purchase.status == PurchaseStatus.error &&
++          purchase.error != null &&
++          purchase.error!.message.isNotEmpty) {
++        // 購入失敗は画面側のタイムアウトやキャンセルと別に、ストアが通知する。
++      }
++    }
++  }
++
++  Future<void> _setPlus(bool value) async {
++    _plus = value;
++    final prefs = _preferences ?? await SharedPreferences.getInstance();
++    await prefs.setBool(_plusKey, value);
++    _plusController.add(value);
++  }
++
++  Future<void> dispose() async {
++    await _purchaseSubscription?.cancel();
++    await _plusController.close();
++  }
++}
+
+##### lib/repositories/subscription_exceptions.dart
+@@ -0,0 +1,35 @@
++import '../config/subscription_catalog.dart';
++
++enum SubscriptionLimitKind { publicFoodSearch, mealTemplate, workoutTemplate }
++
++class SubscriptionLimitExceededException implements Exception {
++  SubscriptionLimitExceededException(this.kind);
++
++  final SubscriptionLimitKind kind;
++
++  @override
++  String toString() {
++    return switch (kind) {
++      SubscriptionLimitKind.publicFoodSearch =>
++        '公開食品検索は1日${SubscriptionCatalog.publicFoodSearchesPerDay}回までです。',
++      SubscriptionLimitKind.mealTemplate =>
++        '食事テンプレートは${SubscriptionCatalog.mealTemplateLimit}件までです。',
++      SubscriptionLimitKind.workoutTemplate =>
++        '運動テンプレートは${SubscriptionCatalog.workoutTemplateLimit}件までです。',
++    };
++  }
++}
++
++class SubscriptionPurchaseUnavailableException implements Exception {
++  @override
++  String toString() => 'この環境ではアプリ内課金を使えません。';
++}
++
++class SubscriptionPurchaseFailedException implements Exception {
++  SubscriptionPurchaseFailedException(this.message);
++
++  final String message;
++
++  @override
++  String toString() => message;
++}
+
+##### lib/repositories/subscription_repository.dart
+@@ -0,0 +1,12 @@
++/// カロナビ+ の加入状態と購入。
++abstract class SubscriptionRepository {
++  bool get isPlusActive;
++
++  Stream<bool> get plusChanges;
++
++  Future<void> restore();
++
++  Future<void> purchaseMonthly();
++
++  Future<void> purchaseYearly();
++}
+
+##### lib/repositories/supabase/food_master_row_mapper.dart
+@@ -49,6 +49,7 @@ class FoodMasterRowMapper {
+       lastUsedAt: _parseDateTime(row['last_used_at']),
+       reportCount: (row['report_count'] as num?)?.toInt() ?? 0,
+       version: (row['version'] as num?)?.toInt() ?? 1,
++      ownerDeleted: row['owner_deleted'] == true,
+       createdAt: DateTime.parse(row['created_at'] as String),
+       updatedAt: DateTime.parse(row['updated_at'] as String),
+       deletedAt: _parseDateTime(row['deleted_at']),
+
+##### lib/repositories/supabase/supabase_saved_food_repository.dart
+@@ -372,6 +372,7 @@ class SupabaseSavedFoodRepository implements SavedFoodRemoteStore {
+       updatedAt: now,
+       deletedAt: null,
+       version: SavedFoodVersionPolicy.initialVersion,
++      ownerDeleted: false,
+     );
+   }
+ }
+
+##### lib/repositories/supabase_authentication_repository.dart
+@@ -1,33 +1,35 @@
++import 'dart:async';
++
+ import 'package:flutter/foundation.dart';
+ import 'package:google_sign_in/google_sign_in.dart';
+ import 'package:supabase_flutter/supabase_flutter.dart' hide AuthUser;
+ import 'package:url_launcher/url_launcher.dart';
+ 
+ import '../config/supabase_config.dart';
+ import '../config/web_auth_config.dart';
++import 'account_deletion_rpc.dart';
++import 'apple_sign_in_client.dart';
+ import 'auth_exceptions.dart';
+ import 'authentication_repository.dart';
++import 'google_sign_in_factory.dart';
+ 
+-/// Supabase Auth + Google Sign-In 実装。
++/// Supabase Auth + Google / Apple Sign-In 実装。
+ class SupabaseAuthenticationRepository extends AuthenticationRepository {
+   SupabaseAuthenticationRepository({
+     SupabaseClient? client,
+     GoogleSignIn? googleSignIn,
++    AppleSignInClient? appleSignInClient,
+   }) : _client = client ?? Supabase.instance.client,
+-       _googleSignIn = kIsWeb
+-           ? null
+-           : googleSignIn ??
+-                 GoogleSignIn(
+-                   clientId: SupabaseConfig.googleIosClientId.isEmpty
+-                       ? null
+-                       : SupabaseConfig.googleIosClientId,
+-                   serverClientId: SupabaseConfig.googleWebClientId.isEmpty
+-                       ? null
+-                       : SupabaseConfig.googleWebClientId,
+-                 );
++       _googleSignIn = googleSignIn ??
++           createGoogleSignIn(
++             iosClientId: SupabaseConfig.googleIosClientId,
++             webClientId: SupabaseConfig.googleWebClientId,
++           ),
++       _appleSignInClient = appleSignInClient ?? const AppleSignInClient();
+ 
+   final SupabaseClient _client;
+   final GoogleSignIn? _googleSignIn;
++  final AppleSignInClient _appleSignInClient;
+ 
+   @override
+   AuthUser? get currentUser => _mapUser(_client.auth.currentUser);
+@@ -58,7 +60,9 @@ class SupabaseAuthenticationRepository extends AuthenticationRepository {
+   @override
+   Future<void> loginWithGoogle() async {
+     if (!SupabaseConfig.isGoogleConfigured) {
+-      throw GoogleSignInFailedException('Google Sign-In is not configured.');
++      throw GoogleSignInFailedException(
++        'Googleログインの設定がありません。tool/dart_defines.local.json の GOOGLE_WEB_CLIENT_ID を入れてください。',
++      );
+     }
+ 
+     if (kIsWeb) {
+@@ -68,18 +72,21 @@ class SupabaseAuthenticationRepository extends AuthenticationRepository {
+         authScreenLaunchMode: LaunchMode.externalApplication,
+       );
+       if (!launched) {
+-        throw GoogleSignInFailedException(
+-          'Could not launch Google sign-in browser.',
+-        );
++        throw GoogleSignInFailedException('Googleログイン画面を開けませんでした。');
+       }
+       return;
+     }
+ 
+     final googleSignIn = _googleSignIn;
+-    if (googleSignIn == null) {
+-      throw GoogleSignInFailedException('Google Sign-In is not available.');
++    if (googleSignIn != null) {
++      await _loginWithNativeGoogle(googleSignIn);
++      return;
+     }
+ 
++    await _loginWithGoogleOAuth();
++  }
++
++  Future<void> _loginWithNativeGoogle(GoogleSignIn googleSignIn) async {
+     final googleUser = await googleSignIn.signIn();
+     if (googleUser == null) {
+       throw GoogleSignInCancelledException();
+@@ -88,7 +95,9 @@ class SupabaseAuthenticationRepository extends AuthenticationRepository {
+     final googleAuth = await googleUser.authentication;
+     final idToken = googleAuth.idToken;
+     if (idToken == null) {
+-      throw GoogleSignInFailedException('Google ID token is missing.');
++      throw GoogleSignInFailedException(
++        'Google の ID トークンを取得できませんでした。GOOGLE_IOS_CLIENT_ID と GOOGLE_WEB_CLIENT_ID を確認してください。',
++      );
+     }
+ 
+     try {
+@@ -102,11 +111,65 @@ class SupabaseAuthenticationRepository extends AuthenticationRepository {
+     }
+   }
+ 
++  /// iOS クライアントがまだ無いときでも、既存の Web クライアントでログインできる。
++  Future<void> _loginWithGoogleOAuth() async {
++    if (_client.auth.currentSession != null) {
++      return;
++    }
++
++    final sessionReady = Completer<void>();
++    final subscription = _client.auth.onAuthStateChange.listen((event) {
++      if (event.session != null && !sessionReady.isCompleted) {
++        sessionReady.complete();
++      }
++    });
++
++    try {
++      final launched = await _client.auth.signInWithOAuth(
++        OAuthProvider.google,
++        redirectTo: SupabaseConfig.nativeAuthRedirectUrl,
++        authScreenLaunchMode: LaunchMode.externalApplication,
++      );
++      if (!launched) {
++        throw GoogleSignInFailedException('Googleログイン画面を開けませんでした。');
++      }
++      await sessionReady.future.timeout(
++        const Duration(minutes: 2),
++        onTimeout: () {
++          throw GoogleSignInFailedException(
++            'Googleログインが完了しませんでした。Safari からカロナビに戻ったあと、もう一度試してください。Supabase の Redirect URLs に ${SupabaseConfig.nativeAuthRedirectUrl} があるかも確認してください。',
++          );
++        },
++      );
++    } on AuthException catch (error) {
++      throw GoogleSignInFailedException(error.message);
++    } finally {
++      await subscription.cancel();
++    }
++  }
++
+   @override
+   Future<void> loginWithApple() async {
+-    throw UnimplementedError(
+-      'Apple Sign-In will be implemented in a later phase.',
+-    );
++    if (kIsWeb) {
++      throw AppleSignInUnavailableException();
++    }
++
++    try {
++      final result = await _appleSignInClient.fetchIdToken();
++      await _client.auth.signInWithIdToken(
++        provider: OAuthProvider.apple,
++        idToken: result.identityToken,
++        nonce: result.rawNonce,
++      );
++    } on AppleSignInCancelledException {
++      rethrow;
++    } on AppleSignInUnavailableException {
++      rethrow;
++    } on AppleSignInFailedException {
++      rethrow;
++    } on AuthException catch (error) {
++      throw AppleSignInFailedException(error.message);
++    }
+   }
+ 
+   @override
+@@ -115,6 +178,11 @@ class SupabaseAuthenticationRepository extends AuthenticationRepository {
+     await _client.auth.signOut();
+   }
+ 
++  @override
++  Future<void> deleteOwnAccount() {
++    return deleteOwnAccountWithClient(_client);
++  }
++
+   AuthUser? _mapUser(User? user) {
+     if (user == null) {
+       return null;
+@@ -141,11 +209,14 @@ class UnconfiguredAuthenticationRepository extends AuthenticationRepository {
+ 
+   @override
+   Future<void> loginWithApple() async {
+-    throw UnimplementedError(
+-      'Apple Sign-In will be implemented in a later phase.',
+-    );
++    throw AppleSignInFailedException('Supabase is not configured.');
+   }
+ 
+   @override
+   Future<void> logout() async {}
++
++  @override
++  Future<void> deleteOwnAccount() async {
++    throw AccountDeletionUnavailableException();
++  }
+ }
+
+##### lib/repositories/unavailable_subscription_repository.dart
+@@ -0,0 +1,24 @@
++import 'subscription_exceptions.dart';
++import 'subscription_repository.dart';
++
++/// Web Preview など、ストア課金が無い環境。
++class UnavailableSubscriptionRepository extends SubscriptionRepository {
++  @override
++  bool get isPlusActive => false;
++
++  @override
++  Stream<bool> get plusChanges => const Stream.empty();
++
++  @override
++  Future<void> restore() async {}
++
++  @override
++  Future<void> purchaseMonthly() {
++    throw SubscriptionPurchaseUnavailableException();
++  }
++
++  @override
++  Future<void> purchaseYearly() {
++    throw SubscriptionPurchaseUnavailableException();
++  }
++}
+
+##### lib/screens/auth/login_screen.dart
+@@ -46,6 +46,13 @@ class _LoginScreenState extends State<LoginScreen> {
+       await widget.controller.handleAuthenticatedSession();
+     } on GoogleSignInCancelledException {
+       return;
++    } on GoogleSignInFailedException catch (error) {
++      if (!mounted) {
++        return;
++      }
++      ScaffoldMessenger.of(
++        context,
++      ).showSnackBar(SnackBar(content: Text(error.message)));
+     } catch (error) {
+       if (!mounted) {
+         return;
+@@ -61,9 +68,34 @@ class _LoginScreenState extends State<LoginScreen> {
+   }
+ 
+   Future<void> _signInWithApple() async {
+-    ScaffoldMessenger.of(
+-      context,
+-    ).showSnackBar(const SnackBar(content: Text('Appleログインは準備中です（TODO）')));
++    setState(() => _isLoading = true);
++    try {
++      await widget.authenticationRepository.loginWithApple();
++      if (kIsWeb) {
++        return;
++      }
++      await widget.controller.handleAuthenticatedSession();
++    } on AppleSignInCancelledException {
++      return;
++    } on AppleSignInUnavailableException {
++      if (!mounted) {
++        return;
++      }
++      ScaffoldMessenger.of(context).showSnackBar(
++        const SnackBar(content: Text(AppStrings.loginAppleUnavailableOnWeb)),
++      );
++    } catch (error) {
++      if (!mounted) {
++        return;
++      }
++      ScaffoldMessenger.of(
++        context,
++      ).showSnackBar(SnackBar(content: Text('Appleログインに失敗しました: $error')));
++    } finally {
++      if (mounted) {
++        setState(() => _isLoading = false);
++      }
++    }
+   }
+ 
+   Widget _buildLoginContent(BuildContext context) {
+
+##### lib/screens/exercise/exercise_form_screen.dart
+@@ -4,10 +4,11 @@ import '../../data/met_activity_catalog.dart';
+ import '../../models/exercise_category.dart';
+ import '../../models/exercise_calculation_source.dart';
+ import '../../models/exercise_entry.dart';
++import '../../models/strength_workout_log.dart';
++import '../../widgets/exercise/strength_workout_log_editor.dart';
+ import '../../services/exercise_calorie_calculator.dart';
+ import '../../state/app_controller.dart';
+ import '../../theme/app_spacing.dart';
+-import '../../widgets/common/app_text_field.dart';
+ import '../../widgets/common/delete_with_undo.dart';
+ import '../../widgets/common/primary_button.dart';
+ import '../../widgets/common/secondary_button.dart';
+@@ -39,10 +40,8 @@ class _ExerciseFormScreenState extends State<ExerciseFormScreen> {
+   late final TextEditingController _nameController;
+   late final TextEditingController _durationController;
+   late final TextEditingController _burnedKcalController;
+-  late final TextEditingController _setsController;
+-  late final TextEditingController _repsController;
+-  late final TextEditingController _liftWeightController;
+   late final TextEditingController _notesController;
++  StrengthWorkoutLog _strengthLog = const StrengthWorkoutLog(exercises: []);
+   late DateTime _loggedAt;
+   bool _isSaving = false;
+   ExerciseMetFormState _metState = ExerciseMetFormState();
+@@ -60,48 +59,25 @@ class _ExerciseFormScreenState extends State<ExerciseFormScreen> {
+     _burnedKcalController = TextEditingController(
+       text: entry != null ? entry.effectiveGrossKcal.toString() : '',
+     );
+-    _setsController = TextEditingController(
+-      text: entry?.sets?.toString() ?? '',
+-    );
+-    _repsController = TextEditingController(
+-      text: entry?.reps?.toString() ?? '',
+-    );
+-    _liftWeightController = TextEditingController(
+-      text: entry?.liftWeightKg?.toString() ?? '',
+-    );
+-    _notesController = TextEditingController(text: entry?.notes ?? '');
++    final parsedNotes = StrengthNotesCodec.parse(entry?.notes);
++    _strengthLog =
++        parsedNotes.log ??
++        entry?.legacyStrengthLog ??
++        const StrengthWorkoutLog(exercises: []);
++    _notesController = TextEditingController(text: parsedNotes.memo);
+   }
+ 
+   @override
+   void dispose() {
+     _nameController.dispose();
+     _durationController.dispose();
+     _burnedKcalController.dispose();
+-    _setsController.dispose();
+-    _repsController.dispose();
+-    _liftWeightController.dispose();
+     _notesController.dispose();
+     super.dispose();
+   }
+ 
+   bool get _isStrength => _metState.category == ExerciseCategory.strength;
+ 
+-  int? _parseOptionalInt(TextEditingController controller) {
+-    final raw = controller.text.trim();
+-    if (raw.isEmpty) {
+-      return null;
+-    }
+-    return int.tryParse(raw);
+-  }
+-
+-  double? _parseOptionalDouble(TextEditingController controller) {
+-    final raw = controller.text.trim();
+-    if (raw.isEmpty) {
+-      return null;
+-    }
+-    return double.tryParse(raw);
+-  }
+-
+   ExerciseEntry? _buildEntry() {
+     if (_formKey.currentState?.validate() != true) {
+       return null;
+@@ -122,7 +98,19 @@ class _ExerciseFormScreenState extends State<ExerciseFormScreen> {
+     }
+     final gross = grossAndNet.$1;
+     final net = grossAndNet.$2;
+-    final notes = _notesController.text.trim();
++    StrengthSetLog? firstSet;
++    if (_isStrength) {
++      for (final exercise in _strengthLog.exercises) {
++        if (exercise.sets.isNotEmpty) {
++          firstSet = exercise.sets.first;
++          break;
++        }
++      }
++    }
++    final notes = StrengthNotesCodec.encode(
++      log: _isStrength ? _strengthLog : null,
++      memo: _notesController.text,
++    );
+ 
+     return ExerciseEntry(
+       id: widget.entry?.id ?? widget.controller.generateId(),
+@@ -133,11 +121,11 @@ class _ExerciseFormScreenState extends State<ExerciseFormScreen> {
+       category: _metState.category,
+       activityId: _metState.activityId,
+       intensity: _metState.intensity,
+-      sets: _isStrength ? _parseOptionalInt(_setsController) : null,
+-      reps: _isStrength ? _parseOptionalInt(_repsController) : null,
+-      liftWeightKg: _isStrength
+-          ? _parseOptionalDouble(_liftWeightController)
++      sets: _isStrength && _strengthLog.totalSets > 0
++          ? _strengthLog.totalSets
+           : null,
++      reps: firstSet?.reps,
++      liftWeightKg: firstSet?.weightKg,
+       metValue: _metState.metValue,
+       grossKcal: gross,
+       netKcal: net,
+@@ -246,29 +234,9 @@ class _ExerciseFormScreenState extends State<ExerciseFormScreen> {
+       crossAxisAlignment: CrossAxisAlignment.stretch,
+       children: [
+         if (_isStrength)
+-          ExpansionTile(
+-            tilePadding: EdgeInsets.zero,
+-            title: const Text('セット・回数・重量（任意）'),
+-            subtitle: const Text('消費カロリーは実施時間から計算します'),
+-            children: [
+-              AppTextField(
+-                controller: _setsController,
+-                label: 'セット',
+-                keyboardType: TextInputType.number,
+-              ),
+-              AppTextField(
+-                controller: _repsController,
+-                label: '回数',
+-                keyboardType: TextInputType.number,
+-              ),
+-              AppTextField(
+-                controller: _liftWeightController,
+-                label: '重量（kg）',
+-                keyboardType: const TextInputType.numberWithOptions(
+-                  decimal: true,
+-                ),
+-              ),
+-            ],
++          StrengthWorkoutLogEditor(
++            initialLog: _strengthLog,
++            onChanged: (log) => _strengthLog = log,
+           ),
+         LoggedAtPickerField(
+           loggedAt: _loggedAt,
+@@ -287,6 +255,7 @@ class _ExerciseFormScreenState extends State<ExerciseFormScreen> {
+           child: Form(
+             key: _formKey,
+             child: ListView(
++              keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+               padding: EdgeInsets.fromLTRB(
+                 AppSpacing.md,
+                 AppSpacing.md,
+
+##### lib/screens/exercise/exercise_form_template_actions.dart
+@@ -8,10 +8,13 @@ import '../../services/exercise_calorie_calculator.dart';
+ import '../../services/exercise_weight_resolver.dart';
+ import '../../state/app_controller.dart';
+ import '../../theme/app_spacing.dart';
++import '../../widgets/common/app_keyboard_dismiss.dart';
+ import '../../widgets/common/app_card.dart';
+ import '../../widgets/common/logged_at_picker_field.dart';
+ import '../../widgets/common/primary_button.dart';
+ import '../../widgets/layout/app_form_constraint.dart';
++import '../../repositories/subscription_exceptions.dart';
++import '../subscription/calonavi_plus_screen.dart';
+ import '../workout_template/workout_template_screens.dart';
+ 
+ Future<void> openWorkoutTemplatePicker({
+@@ -48,8 +51,16 @@ Future<void> openWorkoutTemplatePicker({
+ Future<void> openWorkoutTemplateCreate(
+   BuildContext context,
+   AppController controller,
+-) {
+-  return Navigator.of(context).push<void>(
++) async {
++  final allowed = await guardPlusFeature(
++    context: context,
++    controller: controller,
++    ensure: controller.ensureCanCreateWorkoutTemplate,
++  );
++  if (!allowed || !context.mounted) {
++    return;
++  }
++  await Navigator.of(context).push<void>(
+     MaterialPageRoute<void>(
+       builder: (context) => WorkoutTemplateFormScreen(controller: controller),
+     ),
+@@ -70,6 +81,9 @@ Future<void> saveCurrentExerciseAsTemplate({
+         controller: nameController,
+         decoration: const InputDecoration(labelText: 'テンプレート名'),
+         autofocus: true,
++        textInputAction: TextInputAction.done,
++        onSubmitted: (_) => dismissAppKeyboard(),
++        onTapOutside: (_) => dismissAppKeyboard(),
+       ),
+       actions: [
+         TextButton(
+@@ -99,6 +113,7 @@ Future<void> saveCurrentExerciseAsTemplate({
+   }
+ 
+   try {
++    await controller.ensureCanCreateWorkoutTemplate();
+     await controller.saveWorkoutTemplate(
+       draft: WorkoutTemplateDraft(name: name, items: [itemDraft]),
+     );
+@@ -108,6 +123,10 @@ Future<void> saveCurrentExerciseAsTemplate({
+     ScaffoldMessenger.of(
+       context,
+     ).showSnackBar(const SnackBar(content: Text('テンプレートを保存しました')));
++  } on SubscriptionLimitExceededException {
++    if (context.mounted) {
++      await showCalonaviPlus(context, controller.subscriptionRepository);
++    }
+   } catch (error) {
+     if (!context.mounted) {
+       return;
+
+##### lib/screens/food/barcode_scanner_screen.dart
+@@ -3,7 +3,7 @@ import 'package:mobile_scanner/mobile_scanner.dart';
+ 
+ import '../../utils/nutrition_format.dart';
+ 
+-/// カメラで EAN-13 / JAN バーコードを読み取る画面。
++/// カメラで EAN / JAN / UPC バーコードを読み取る画面。
+ class BarcodeScannerScreen extends StatefulWidget {
+   const BarcodeScannerScreen({super.key});
+ 
+@@ -13,7 +13,14 @@ class BarcodeScannerScreen extends StatefulWidget {
+ 
+ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
+   final MobileScannerController _controller = MobileScannerController(
+-    formats: [BarcodeFormat.ean13],
++    autoStart: true,
++    facing: CameraFacing.back,
++    formats: const [
++      BarcodeFormat.ean13,
++      BarcodeFormat.ean8,
++      BarcodeFormat.upcA,
++      BarcodeFormat.upcE,
++    ],
+   );
+ 
+   bool _hasScanned = false;
+@@ -45,48 +52,118 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
+     Navigator.of(context).pop(normalized);
+   }
+ 
+-  void _handlePermissionDenied() {
+-    if (!mounted) {
+-      return;
+-    }
+-    Navigator.of(context).pop();
++  Future<void> _toggleTorch() async {
++    await _controller.toggleTorch();
+   }
+ 
+   @override
+   Widget build(BuildContext context) {
+     return Scaffold(
+-      appBar: AppBar(title: const Text('バーコードをスキャン')),
+-      body: MobileScanner(
+-        controller: _controller,
+-        onDetect: _handleDetect,
+-        errorBuilder: (context, error) {
+-          final isPermissionDenied =
+-              error.errorCode == MobileScannerErrorCode.permissionDenied;
+-
+-          if (isPermissionDenied) {
+-            WidgetsBinding.instance.addPostFrameCallback((_) {
+-              if (mounted) {
+-                ScaffoldMessenger.of(context).showSnackBar(
+-                  const SnackBar(
+-                    content: Text('カメラを利用できません。手入力またはテキスト検索をご利用ください。'),
+-                  ),
+-                );
+-                _handlePermissionDenied();
+-              }
+-            });
+-          }
++      backgroundColor: Colors.black,
++      appBar: AppBar(
++        title: const Text('バーコードをスキャン'),
++        actions: [
++          IconButton(
++            tooltip: 'ライト',
++            onPressed: _toggleTorch,
++            icon: const Icon(Icons.flash_on),
++          ),
++          IconButton(
++            tooltip: '閉じる',
++            onPressed: () => Navigator.of(context).pop(),
++            icon: const Icon(Icons.close),
++          ),
++        ],
++      ),
++      body: Stack(
++        fit: StackFit.expand,
++        children: [
++          MobileScanner(
++            controller: _controller,
++            onDetect: _handleDetect,
++            errorBuilder: (context, error) {
++              final isPermissionDenied =
++                  error.errorCode == MobileScannerErrorCode.permissionDenied;
+ 
+-          return Center(
++              return ColoredBox(
++                color: Colors.black,
++                child: Center(
++                  child: Padding(
++                    padding: const EdgeInsets.all(24),
++                    child: Column(
++                      mainAxisSize: MainAxisSize.min,
++                      children: [
++                        Text(
++                          isPermissionDenied
++                              ? 'カメラの使用が許可されていません。iPhoneの設定 → カロナビ → カメラをオンにしてください。'
++                              : 'カメラを起動できませんでした。もう一度開くか、番号を手入力してください。',
++                          textAlign: TextAlign.center,
++                          style: const TextStyle(color: Colors.white),
++                        ),
++                        const SizedBox(height: 16),
++                        TextButton(
++                          onPressed: () => Navigator.of(context).pop(),
++                          child: const Text('戻る'),
++                        ),
++                      ],
++                    ),
++                  ),
++                ),
++              );
++            },
++          ),
++          const IgnorePointer(child: _BarcodeViewfinder()),
++          const Align(
++            alignment: Alignment.bottomCenter,
+             child: Padding(
+-              padding: const EdgeInsets.all(24),
++              padding: EdgeInsets.fromLTRB(24, 0, 24, 48),
+               child: Text(
+-                isPermissionDenied ? 'カメラ権限が必要です' : 'カメラを起動できませんでした',
++                'バーコードを枠内に合わせてください',
+                 textAlign: TextAlign.center,
++                style: TextStyle(color: Colors.white, fontSize: 16),
+               ),
+             ),
+-          );
+-        },
++          ),
++        ],
+       ),
+     );
+   }
+ }
++
++class _BarcodeViewfinder extends StatelessWidget {
++  const _BarcodeViewfinder();
++
++  @override
++  Widget build(BuildContext context) {
++    return CustomPaint(painter: _ViewfinderPainter(), child: const SizedBox.expand());
++  }
++}
++
++class _ViewfinderPainter extends CustomPainter {
++  @override
++  void paint(Canvas canvas, Size size) {
++    final cutout = RRect.fromRectAndRadius(
++      Rect.fromCenter(
++        center: Offset(size.width / 2, size.height / 2),
++        width: size.width * 0.78,
++        height: 160,
++      ),
++      const Radius.circular(16),
++    );
++    final overlay = Path()
++      ..addRect(Offset.zero & size)
++      ..addRRect(cutout)
++      ..fillType = PathFillType.evenOdd;
++    canvas.drawPath(overlay, Paint()..color = const Color(0x88000000));
++    canvas.drawRRect(
++      cutout,
++      Paint()
++        ..color = Colors.white
++        ..style = PaintingStyle.stroke
++        ..strokeWidth = 3,
++    );
++  }
++
++  @override
++  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
++}
+
+##### lib/screens/food/food_form_navigation.dart
+@@ -21,16 +21,28 @@ void openFoodFormScreen(
+   FoodEntry? entry,
+   DateTime? initialLoggedAt,
+   FoodFormScreenBuilder? foodFormBuilder,
++  bool autoStartBarcodeScan = false,
+ }) {
+   final builder = foodFormBuilder ?? defaultFoodFormScreenBuilder;
+   Navigator.of(context).push(
+     MaterialPageRoute<void>(
+-      builder: (context) => builder(
+-        controller: controller,
+-        openFoodFactsService: openFoodFactsService,
+-        entry: entry,
+-        initialLoggedAt: initialLoggedAt,
+-      ),
++      builder: (context) {
++        if (autoStartBarcodeScan && foodFormBuilder == null) {
++          return FoodFormScreen(
++            controller: controller,
++            openFoodFactsService: openFoodFactsService,
++            entry: entry,
++            initialLoggedAt: initialLoggedAt,
++            autoStartBarcodeScan: true,
++          );
++        }
++        return builder(
++          controller: controller,
++          openFoodFactsService: openFoodFactsService,
++          entry: entry,
++          initialLoggedAt: initialLoggedAt,
++        );
++      },
+     ),
+   );
+ }
+
+##### lib/screens/food/food_form_screen.dart
+@@ -56,13 +56,15 @@ class FoodFormScreen extends StatefulWidget {
+     this.entry,
+     this.initialPublicFood,
+     this.initialLoggedAt,
++    this.autoStartBarcodeScan = false,
+   });
+ 
+   final AppController controller;
+   final OpenFoodFactsService openFoodFactsService;
+   final FoodEntry? entry;
+   final SavedFood? initialPublicFood;
+   final DateTime? initialLoggedAt;
++  final bool autoStartBarcodeScan;
+ 
+   bool get isEditing => entry != null;
+ 
+@@ -148,6 +150,14 @@ class _FoodFormScreenState extends State<FoodFormScreen> {
+           _applySavedFoodSelection(initialPublicFood);
+         }
+       });
++    } else if (!widget.isEditing &&
++        widget.autoStartBarcodeScan &&
++        _isMobilePlatform) {
++      WidgetsBinding.instance.addPostFrameCallback((_) {
++        if (mounted) {
++          _openBarcodeScanner();
++        }
++      });
+     }
+   }
+ 
+@@ -685,56 +695,33 @@ class _FoodFormScreenState extends State<FoodFormScreen> {
+                     child: Column(
+                       crossAxisAlignment: CrossAxisAlignment.stretch,
+                       children: [
+-                        SecondaryButton(
+-                          label: 'テンプレートから追加',
+-                          icon: Icons.view_list_outlined,
+-                          onPressed: _openTemplatePicker,
+-                        ),
+-                        const SizedBox(height: AppSpacing.xs),
+-                        SecondaryButton(
+-                          label: 'テンプレートを作成',
+-                          icon: Icons.add_box_outlined,
+-                          onPressed: _openTemplateCreate,
+-                        ),
+-                      ],
+-                    ),
+-                  ),
+-                  const SizedBox(height: AppSpacing.sm),
+-                  AppCard(
+-                    padding: const EdgeInsets.symmetric(
+-                      horizontal: AppSpacing.md,
+-                      vertical: AppSpacing.sm,
+-                    ),
+-                    child: Column(
+-                      crossAxisAlignment: CrossAxisAlignment.stretch,
+-                      children: [
+-                        SecondaryButton(
+-                          label: '公開食品を検索',
+-                          icon: Icons.public,
+-                          onPressed: _openPublicFoodSearch,
+-                        ),
+-                        const SizedBox(height: AppSpacing.xs),
++                        if (_isMobilePlatform) ...[
++                          PrimaryButton(
++                            label: 'カメラでバーコードを読み取る',
++                            icon: Icons.qr_code_scanner,
++                            onPressed: _isSearching
++                                ? null
++                                : _openBarcodeScanner,
++                          ),
++                          const SizedBox(height: AppSpacing.xs),
++                          Text(
++                            '商品のバーコードにカメラを向けると、栄養情報を取り込みます。',
++                            style: Theme.of(context).textTheme.bodySmall
++                                ?.copyWith(color: AppColors.secondaryText),
++                          ),
++                          const SizedBox(height: AppSpacing.sm),
++                        ],
+                         SecondaryButton(
+                           label: _barcodeSectionExpanded
+-                              ? 'バーコード入力を閉じる'
+-                              : 'バーコードから追加',
+-                          icon: Icons.qr_code,
++                              ? '番号の手入力を閉じる'
++                              : 'バーコード番号を手入力',
++                          icon: Icons.pin,
+                           onPressed: () => setState(
+                             () => _barcodeSectionExpanded =
+                                 !_barcodeSectionExpanded,
+                           ),
+                         ),
+                         if (_barcodeSectionExpanded) ...[
+-                          if (_isMobilePlatform) ...[
+-                            const SizedBox(height: AppSpacing.xs),
+-                            PrimaryButton(
+-                              label: 'カメラでスキャン',
+-                              icon: Icons.qr_code_scanner,
+-                              onPressed: _isSearching
+-                                  ? null
+-                                  : _openBarcodeScanner,
+-                            ),
+-                          ],
+                           const SizedBox(height: AppSpacing.sm),
+                           AppTextField(
+                             controller: _barcodeController,
+@@ -756,6 +743,35 @@ class _FoodFormScreenState extends State<FoodFormScreen> {
+                     ),
+                   ),
+                   const SizedBox(height: AppSpacing.sm),
++                  AppCard(
++                    padding: const EdgeInsets.symmetric(
++                      horizontal: AppSpacing.md,
++                      vertical: AppSpacing.sm,
++                    ),
++                    child: Column(
++                      crossAxisAlignment: CrossAxisAlignment.stretch,
++                      children: [
++                        SecondaryButton(
++                          label: '公開食品を検索',
++                          icon: Icons.public,
++                          onPressed: _openPublicFoodSearch,
++                        ),
++                        const SizedBox(height: AppSpacing.xs),
++                        SecondaryButton(
++                          label: 'テンプレートから追加',
++                          icon: Icons.view_list_outlined,
++                          onPressed: _openTemplatePicker,
++                        ),
++                        const SizedBox(height: AppSpacing.xs),
++                        SecondaryButton(
++                          label: 'テンプレートを作成',
++                          icon: Icons.add_box_outlined,
++                          onPressed: _openTemplateCreate,
++                        ),
++                      ],
++                    ),
++                  ),
++                  const SizedBox(height: AppSpacing.sm),
+                   if (_manualInputHighlighted)
+                     Padding(
+                       padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+
+##### lib/screens/food/food_form_template_actions.dart
+@@ -1,18 +1,29 @@
+ import 'package:flutter/material.dart';
+ 
++import '../../widgets/common/app_keyboard_dismiss.dart';
+ import '../../models/food_unit_type.dart';
++import '../../repositories/subscription_exceptions.dart';
+ import '../../models/macro_field.dart';
+ import '../../models/meal_template_draft.dart';
+ import '../../state/app_controller.dart';
+ import '../meal_template/meal_template_form_screen.dart';
++import '../subscription/calonavi_plus_screen.dart';
+ import 'food_meal_registration_screen.dart';
+ 
+ /// 食事フォームからテンプレート関連の導線を開く。
+ Future<void> openFoodTemplateCreate(
+   BuildContext context,
+   AppController controller,
+-) {
+-  return Navigator.of(context).push<void>(
++) async {
++  final allowed = await guardPlusFeature(
++    context: context,
++    controller: controller,
++    ensure: controller.ensureCanCreateMealTemplate,
++  );
++  if (!allowed || !context.mounted) {
++    return;
++  }
++  await Navigator.of(context).push<void>(
+     MaterialPageRoute<void>(
+       builder: (context) => MealTemplateFormScreen(controller: controller),
+     ),
+@@ -52,6 +63,9 @@ Future<void> saveCurrentFoodAsTemplate({
+           border: OutlineInputBorder(),
+         ),
+         autofocus: true,
++        textInputAction: TextInputAction.done,
++        onSubmitted: (_) => dismissAppKeyboard(),
++        onTapOutside: (_) => dismissAppKeyboard(),
+       ),
+       actions: [
+         TextButton(
+@@ -81,6 +95,7 @@ Future<void> saveCurrentFoodAsTemplate({
+   }
+ 
+   try {
++    await controller.ensureCanCreateMealTemplate();
+     await controller.saveMealTemplate(
+       draft: MealTemplateDraft(name: name, items: [itemDraft]),
+     );
+@@ -90,6 +105,10 @@ Future<void> saveCurrentFoodAsTemplate({
+     ScaffoldMessenger.of(
+       context,
+     ).showSnackBar(SnackBar(content: Text('「$name」をテンプレートとして保存しました')));
++  } on SubscriptionLimitExceededException {
++    if (context.mounted) {
++      await showCalonaviPlus(context, controller.subscriptionRepository);
++    }
+   } catch (error) {
+     if (!context.mounted) {
+       return;
+
+##### lib/screens/food/food_tab_screen.dart
+@@ -67,7 +67,11 @@ class _FoodTabScreenState extends State<FoodTabScreen> {
+     );
+   }
+ 
+-  void _openFoodForm(BuildContext context, {FoodEntry? entry}) {
++  void _openFoodForm(
++    BuildContext context, {
++    FoodEntry? entry,
++    bool autoStartBarcodeScan = false,
++  }) {
+     if (entry == null && !canAddRecordOnDay(_selectedDate)) {
+       showFutureDayAddBlockedSnackBar(context);
+       return;
+@@ -80,6 +84,7 @@ class _FoodTabScreenState extends State<FoodTabScreen> {
+       entry: entry,
+       initialLoggedAt: entry == null ? _initialLoggedAtForNewEntry : null,
+       foodFormBuilder: widget.foodFormBuilder,
++      autoStartBarcodeScan: autoStartBarcodeScan,
+     );
+   }
+ 
+@@ -159,12 +164,18 @@ class _FoodTabScreenState extends State<FoodTabScreen> {
+                     switch (value) {
+                       case 'food':
+                         _openFoodForm(context);
++                      case 'scan':
++                        _openFoodForm(context, autoStartBarcodeScan: true);
+                       case 'alcohol':
+                         _openAlcoholForm(context);
+                     }
+                   },
+                   itemBuilder: (context) => const [
+                     PopupMenuItem(value: 'food', child: Text('食事を追加')),
++                    PopupMenuItem(
++                      value: 'scan',
++                      child: Text('バーコードをスキャン'),
++                    ),
+                     PopupMenuItem(value: 'alcohol', child: Text('アルコールを追加')),
+                   ],
+                 ),
+
+##### lib/screens/food/web_food_form_screen.dart
+@@ -17,6 +17,7 @@ import '../../services/open_food_facts_service.dart';
+ import '../../services/source_food_edit_policy.dart';
+ import '../../widgets/food/source_food_update_dialog.dart';
+ import '../../state/app_controller.dart';
++import '../../widgets/common/app_keyboard_dismiss.dart';
+ import '../../utils/nutrition_format.dart';
+ import '../../widgets/food/macro_nutrition_fields.dart';
+ import '../../widgets/food/macro_nutrition_input_controller.dart';
+@@ -582,6 +583,9 @@ class _WebFoodFormScreenState extends State<WebFoodFormScreen> {
+                   ),
+                   keyboardType: TextInputType.number,
+                   enabled: !_isSearching,
++                  textInputAction: TextInputAction.done,
++                  onSubmitted: (_) => dismissAppKeyboard(),
++                  onTapOutside: (_) => dismissAppKeyboard(),
+                 ),
+                 const SizedBox(height: 12),
+                 FilledButton.icon(
+@@ -626,6 +630,7 @@ class _WebFoodFormScreenState extends State<WebFoodFormScreen> {
+                   border: OutlineInputBorder(),
+                 ),
+                 textInputAction: TextInputAction.next,
++                onTapOutside: (_) => dismissAppKeyboard(),
+                 validator: (value) {
+                   if (value == null || value.trim().isEmpty) {
+                     return '食品名を入力してください';
+@@ -665,6 +670,9 @@ class _WebFoodFormScreenState extends State<WebFoodFormScreen> {
+                 keyboardType: const TextInputType.numberWithOptions(
+                   decimal: true,
+                 ),
++                textInputAction: TextInputAction.done,
++                onFieldSubmitted: (_) => dismissAppKeyboard(),
++                onTapOutside: (_) => dismissAppKeyboard(),
+                 onChanged: (_) => setState(() {}),
+                 validator: (value) {
+                   if (value == null || value.trim().isEmpty) {
+
+##### lib/screens/home/home_screen.dart
+@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
+ import '../../constants/app_strings.dart';
+ import '../../models/alcohol_entry.dart';
+ import '../../models/exercise_entry.dart';
++import '../../models/strength_workout_log.dart';
+ import '../../models/food_entry.dart';
+ import '../../models/goal.dart';
+ import '../../services/open_food_facts_service.dart';
+@@ -674,7 +675,12 @@ class _TodayExerciseTile extends StatelessWidget {
+       ),
+       onTap: onTap,
+       title: Text(entry.name),
+-      subtitle: Text(timeLabel),
++      subtitle: Text(
++        [
++          timeLabel,
++          if (entry.strengthSummary != null) entry.strengthSummary!,
++        ].join(' · '),
++      ),
+       trailing: Row(
+         mainAxisSize: MainAxisSize.min,
+         children: [
+
+##### lib/screens/meal_template/meal_template_form_screen.dart
+@@ -4,7 +4,9 @@ import '../../models/food_unit_type.dart';
+ import '../../models/meal_template_draft.dart';
+ import '../../models/saved_food.dart';
+ import '../../models/saved_food_entry_selection.dart';
++import '../../repositories/subscription_exceptions.dart';
+ import '../../state/app_controller.dart';
++import '../subscription/calonavi_plus_screen.dart';
+ import '../../theme/app_spacing.dart';
+ import '../../utils/macro_display.dart';
+ import '../../utils/nutrition_format.dart';
+@@ -228,6 +230,11 @@ class _MealTemplateFormScreenState extends State<MealTemplateFormScreen> {
+         return;
+       }
+       Navigator.of(context).pop(true);
++    } on SubscriptionLimitExceededException {
++      if (!mounted) {
++        return;
++      }
++      await showCalonaviPlus(context, widget.controller.subscriptionRepository);
+     } catch (error) {
+       if (!mounted) {
+         return;
+
+##### lib/screens/meal_template/meal_template_list_screen.dart
+@@ -13,6 +13,7 @@ import '../../widgets/common/app_empty_state.dart';
+ import '../../widgets/common/app_loading_state.dart';
+ import '../../widgets/common/app_text_field.dart';
+ import '../../widgets/layout/app_content_constraint.dart';
++import '../subscription/calonavi_plus_screen.dart';
+ import 'meal_template_form_screen.dart';
+ 
+ class MealTemplateListScreen extends StatefulWidget {
+@@ -58,6 +59,14 @@ class _MealTemplateListScreenState extends State<MealTemplateListScreen> {
+   }
+ 
+   Future<void> _openCreate() async {
++    final allowed = await guardPlusFeature(
++      context: context,
++      controller: widget.controller,
++      ensure: widget.controller.ensureCanCreateMealTemplate,
++    );
++    if (!allowed || !mounted) {
++      return;
++    }
+     final saved = await Navigator.of(context).push<bool>(
+       MaterialPageRoute<bool>(
+         builder: (context) =>
+
+##### lib/screens/onboarding/health_setup_screen.dart
+@@ -53,10 +53,13 @@ class _HealthSetupScreenState extends State<HealthSetupScreen> {
+ 
+     setState(() => _isLoading = false);
+ 
+-    if (!granted) {
++    if (!granted || !profileData.hasAnyValue) {
+       ScaffoldMessenger.of(context).showSnackBar(
+-        const SnackBar(
+-          content: Text('Healthデータを取得できませんでした。取得できない項目は手入力してください。'),
++        SnackBar(
++          content: Text(
++            widget.healthRepository.lastFailureMessage ??
++                'Healthデータを取得できませんでした。取得できない項目は手入力してください。',
++          ),
+         ),
+       );
+     }
+
+##### lib/screens/saved_food/public_food_search_screen.dart
+@@ -13,8 +13,10 @@ import '../../widgets/common/secondary_button.dart';
+ import '../../widgets/layout/app_content_constraint.dart';
+ import '../../services/open_food_facts_service.dart';
+ import '../../services/public_food_meal_add_flow.dart';
++import '../../repositories/subscription_exceptions.dart';
+ import '../../widgets/saved_food/public_food_detail_sheet.dart';
+ import '../../widgets/saved_food/public_food_search_result_tile.dart';
++import '../subscription/calonavi_plus_screen.dart';
+ import '../food/food_form_screen.dart';
+ 
+ class PublicFoodSearchScreen extends StatefulWidget {
+@@ -78,6 +80,16 @@ class _PublicFoodSearchScreenState extends State<PublicFoodSearchScreen> {
+           _errorMessage = '該当する公開食品が見つかりませんでした';
+         }
+       });
++    } on SubscriptionLimitExceededException {
++      if (!mounted) {
++        return;
++      }
++      setState(() => _isSearching = false);
++      await showCalonaviPlus(
++        context,
++        widget.controller.subscriptionRepository,
++      );
++      return;
+     } catch (error) {
+       if (!mounted) {
+         return;
+
+##### lib/screens/settings/account_deletion_screen.dart
+@@ -0,0 +1,194 @@
++import 'package:flutter/material.dart';
++import 'package:url_launcher/url_launcher.dart';
++
++import '../../config/app_contact_config.dart';
++import '../../constants/app_strings.dart';
++import '../../repositories/auth_exceptions.dart';
++import '../../repositories/authentication_repository.dart';
++import '../../state/app_controller.dart';
++import '../../theme/app_colors.dart';
++import '../../theme/app_spacing.dart';
++import '../../widgets/common/app_card.dart';
++import '../../widgets/common/primary_button.dart';
++import '../../widgets/common/secondary_button.dart';
++import '../../widgets/layout/app_content_constraint.dart';
++import '../legal/legal_document.dart';
++import '../legal/legal_document_screen.dart';
++
++class AccountDeletionScreen extends StatefulWidget {
++  const AccountDeletionScreen({
++    super.key,
++    required this.controller,
++    required this.authenticationRepository,
++    this.supportEmail,
++  });
++
++  final AppController controller;
++  final AuthenticationRepository authenticationRepository;
++  final String? supportEmail;
++
++  @override
++  State<AccountDeletionScreen> createState() => _AccountDeletionScreenState();
++}
++
++class _AccountDeletionScreenState extends State<AccountDeletionScreen> {
++  bool _isDeleting = false;
++
++  String get _contactEmail {
++    return (widget.supportEmail ?? AppContactConfig.contactEmail).trim();
++  }
++
++  Future<void> _openMail() async {
++    final email = _contactEmail;
++    if (email.isEmpty) {
++      return;
++    }
++    final uri = Uri(
++      scheme: 'mailto',
++      path: email,
++      queryParameters: {'subject': AppStrings.accountDeletionMailSubject},
++    );
++    await launchUrl(uri, mode: LaunchMode.externalApplication);
++  }
++
++  Future<void> _confirmAndDelete() async {
++    final confirmed = await showDialog<bool>(
++      context: context,
++      builder: (context) {
++        return AlertDialog(
++          title: const Text(AppStrings.accountDeletionConfirmTitle),
++          content: const Text(AppStrings.accountDeletionConfirmBody),
++          actions: [
++            TextButton(
++              onPressed: () => Navigator.of(context).pop(false),
++              child: const Text(AppStrings.cancel),
++            ),
++            TextButton(
++              onPressed: () => Navigator.of(context).pop(true),
++              child: const Text(AppStrings.accountDeletionExecute),
++            ),
++          ],
++        );
++      },
++    );
++    if (confirmed != true || !mounted) {
++      return;
++    }
++
++    setState(() => _isDeleting = true);
++    try {
++      await widget.authenticationRepository.deleteOwnAccount();
++      await widget.controller.logout(force: true);
++    } on AccountDeletionUnavailableException {
++      if (!mounted) {
++        return;
++      }
++      await _showUnavailable();
++    } on AccountDeletionFailedException catch (error) {
++      if (!mounted) {
++        return;
++      }
++      ScaffoldMessenger.of(context).showSnackBar(
++        SnackBar(content: Text('${AppStrings.accountDeletionFailed}: $error')),
++      );
++    } finally {
++      if (mounted) {
++        setState(() => _isDeleting = false);
++      }
++    }
++  }
++
++  Future<void> _showUnavailable() async {
++    await showDialog<void>(
++      context: context,
++      builder: (context) {
++        return AlertDialog(
++          title: const Text(AppStrings.settingsAccountDeletion),
++          content: const Text(AppStrings.accountDeletionUnavailable),
++          actions: [
++            TextButton(
++              onPressed: () => Navigator.of(context).pop(),
++              child: const Text(AppStrings.cancel),
++            ),
++            if (_contactEmail.isNotEmpty)
++              TextButton(
++                onPressed: () {
++                  Navigator.of(context).pop();
++                  _openMail();
++                },
++                child: const Text(AppStrings.settingsContactOperator),
++              ),
++          ],
++        );
++      },
++    );
++  }
++
++  @override
++  Widget build(BuildContext context) {
++    final body = Theme.of(context).textTheme.bodyMedium;
++
++    return Scaffold(
++      appBar: AppBar(title: const Text(AppStrings.settingsAccountDeletion)),
++      body: SafeArea(
++        child: AppContentConstraint(
++          child: ListView(
++            padding: const EdgeInsets.all(AppSpacing.md),
++            children: [
++              Text(AppStrings.accountDeletionLead, style: body),
++              const SizedBox(height: AppSpacing.md),
++              AppCard(
++                child: Column(
++                  crossAxisAlignment: CrossAxisAlignment.start,
++                  children: [
++                    Text(
++                      AppStrings.accountDeletionRemoves,
++                      style: Theme.of(context).textTheme.titleSmall,
++                    ),
++                    const SizedBox(height: AppSpacing.xs),
++                    const Text('・食事・運動・体重などの個人の記録'),
++                    const Text('・非公開の保存食品、テンプレート'),
++                    const Text('・プロフィール、目標、Health から取り込んだ個人向けデータ'),
++                  ],
++                ),
++              ),
++              const SizedBox(height: AppSpacing.md),
++              AppCard(
++                child: Column(
++                  crossAxisAlignment: CrossAxisAlignment.start,
++                  children: [
++                    Text(
++                      AppStrings.accountDeletionKeeps,
++                      style: Theme.of(context).textTheme.titleSmall,
++                    ),
++                    const SizedBox(height: AppSpacing.xs),
++                    const Text('・公開食品（作成者は「削除済みユーザー」。氏名やメールは載せません）'),
++                  ],
++                ),
++              ),
++              const SizedBox(height: AppSpacing.md),
++              Text(
++                AppStrings.accountDeletionBilling,
++                style: body?.copyWith(color: AppColors.secondaryText),
++              ),
++              const SizedBox(height: AppSpacing.lg),
++              PrimaryButton(
++                label: AppStrings.accountDeletionExecute,
++                loading: _isDeleting,
++                onPressed: _isDeleting ? null : _confirmAndDelete,
++              ),
++              const SizedBox(height: AppSpacing.sm),
++              SecondaryButton(
++                label: AppStrings.accountDeletionReadPolicy,
++                onPressed: () => showLegalDocument(
++                  context,
++                  LegalDocument.accountDeletion,
++                ),
++              ),
++            ],
++          ),
++        ),
++      ),
++    );
++  }
++}
+
+##### lib/screens/settings/settings_basic_info_screen.dart
+@@ -1,5 +1,6 @@
+ import 'package:flutter/material.dart';
+ 
++import '../../widgets/common/app_keyboard_dismiss.dart';
+ import '../../constants/app_strings.dart';
+ import '../../models/user_profile.dart';
+ import '../../state/app_controller.dart';
+@@ -127,6 +128,9 @@ class _SettingsBasicInfoScreenState extends State<SettingsBasicInfoScreen> {
+                 keyboardType: const TextInputType.numberWithOptions(
+                   decimal: true,
+                 ),
++                textInputAction: TextInputAction.done,
++                onFieldSubmitted: (_) => dismissAppKeyboard(),
++                onTapOutside: (_) => dismissAppKeyboard(),
+                 validator: (value) {
+                   if (value == null || value.isEmpty) {
+                     return '身長を入力してください';
+@@ -151,6 +155,9 @@ class _SettingsBasicInfoScreenState extends State<SettingsBasicInfoScreen> {
+                 keyboardType: const TextInputType.numberWithOptions(
+                   decimal: true,
+                 ),
++                textInputAction: TextInputAction.done,
++                onFieldSubmitted: (_) => dismissAppKeyboard(),
++                onTapOutside: (_) => dismissAppKeyboard(),
+                 validator: (value) {
+                   if (value == null || value.isEmpty) {
+                     return '現在体重を入力してください';
+
+##### lib/screens/settings/settings_goal_screen.dart
+@@ -1,5 +1,6 @@
+ import 'package:flutter/material.dart';
+ 
++import '../../widgets/common/app_keyboard_dismiss.dart';
+ import '../../constants/app_strings.dart';
+ import '../../models/calculation/goal_pace.dart';
+ import '../../models/goal.dart';
+@@ -160,6 +161,9 @@ class _SettingsGoalScreenState extends State<SettingsGoalScreen> {
+                 keyboardType: const TextInputType.numberWithOptions(
+                   decimal: true,
+                 ),
++                textInputAction: TextInputAction.done,
++                onFieldSubmitted: (_) => dismissAppKeyboard(),
++                onTapOutside: (_) => dismissAppKeyboard(),
+                 validator: (value) {
+                   if (value == null || value.isEmpty) {
+                     return '目標体重を入力してください';
+
+##### lib/screens/settings/settings_health_activity_screen.dart
+@@ -58,8 +58,11 @@ class _SettingsHealthActivityScreenState
+       }
+       if (!granted) {
+         ScaffoldMessenger.of(context).showSnackBar(
+-          const SnackBar(
+-            content: Text('Healthデータを取得できませんでした。取得できない項目は手入力してください。'),
++          SnackBar(
++            content: Text(
++              widget.healthRepository.lastFailureMessage ??
++                  'Healthデータを取得できませんでした。取得できない項目は手入力してください。',
++            ),
+           ),
+         );
+       }
+@@ -91,7 +94,12 @@ class _SettingsHealthActivityScreenState
+     setState(() => _isBusy = false);
+     ScaffoldMessenger.of(context).showSnackBar(
+       SnackBar(
+-        content: Text(success ? 'Healthデータを再取得しました' : 'Healthデータを取得できませんでした'),
++        content: Text(
++          success
++              ? 'Healthデータを再取得しました'
++              : (widget.healthRepository.lastFailureMessage ??
++                    'Healthデータを取得できませんでした'),
++        ),
+       ),
+     );
+   }
+
+##### lib/screens/settings/settings_screen.dart
+@@ -13,11 +13,13 @@ import '../../widgets/common/settings_list_tile.dart';
+ import '../../widgets/layout/app_content_constraint.dart';
+ import '../legal/legal_document.dart';
+ import '../legal/legal_document_screen.dart';
+-import 'settings_basic_info_screen.dart';
++import 'account_deletion_screen.dart';
+ import 'calculation_references_screen.dart';
++import 'settings_basic_info_screen.dart';
+ import 'settings_food_master_screen.dart';
+ import 'settings_goal_screen.dart';
+ import 'settings_health_activity_screen.dart';
++import '../subscription/calonavi_plus_screen.dart';
+ 
+ class SettingsScreen extends StatelessWidget {
+   const SettingsScreen({
+@@ -166,6 +168,18 @@ class SettingsScreen extends StatelessWidget {
+                 padding: EdgeInsets.zero,
+                 child: Column(
+                   children: [
++                    SettingsListTile(
++                      icon: Icons.workspace_premium_outlined,
++                      title: AppStrings.plusTitle,
++                      subtitle: controller.isCalonaviPlusActive
++                          ? AppStrings.plusActive
++                          : AppStrings.plusInactive,
++                      onTap: () => showCalonaviPlus(
++                        context,
++                        controller.subscriptionRepository,
++                      ),
++                    ),
++                    const Divider(height: 1),
+                     SettingsListTile(
+                       icon: Icons.description_outlined,
+                       title: '利用規約',
+@@ -198,10 +212,18 @@ class SettingsScreen extends StatelessWidget {
+                       icon: Icons.person_off_outlined,
+                       title: AppStrings.settingsAccountDeletion,
+                       subtitle: AppStrings.settingsAccountDeletionSubtitle,
+-                      onTap: () => showLegalDocument(
+-                        context,
+-                        LegalDocument.accountDeletion,
+-                      ),
++                      onTap: () {
++                        Navigator.of(context).push(
++                          MaterialPageRoute<void>(
++                            builder: (context) => AccountDeletionScreen(
++                              controller: controller,
++                              authenticationRepository:
++                                  authenticationRepository,
++                              supportEmail: contactEmail,
++                            ),
++                          ),
++                        );
++                      },
+                     ),
+                     if (contactEmail.isNotEmpty) ...[
+                       const Divider(height: 1),
+
+##### lib/screens/subscription/calonavi_plus_screen.dart
+@@ -0,0 +1,154 @@
++import 'package:flutter/material.dart';
++
++import '../../config/subscription_catalog.dart';
++import '../../constants/app_strings.dart';
++import '../../repositories/subscription_exceptions.dart';
++import '../../repositories/subscription_repository.dart';
++import '../../state/app_controller.dart';
++import '../../theme/app_colors.dart';
++import '../../theme/app_spacing.dart';
++import '../../widgets/common/app_card.dart';
++import '../../widgets/common/primary_button.dart';
++import '../../widgets/common/secondary_button.dart';
++import '../../widgets/layout/app_content_constraint.dart';
++
++Future<bool> guardPlusFeature({
++  required BuildContext context,
++  required AppController controller,
++  required Future<void> Function() ensure,
++}) async {
++  try {
++    await ensure();
++    return true;
++  } on SubscriptionLimitExceededException {
++    if (context.mounted) {
++      await showCalonaviPlus(context, controller.subscriptionRepository);
++    }
++    return false;
++  }
++}
++
++Future<void> showCalonaviPlus(
++  BuildContext context,
++  SubscriptionRepository repository,
++) {
++  return Navigator.of(context).push<void>(
++    MaterialPageRoute<void>(
++      fullscreenDialog: true,
++      builder: (context) => CalonaviPlusScreen(repository: repository),
++    ),
++  );
++}
++
++class CalonaviPlusScreen extends StatefulWidget {
++  const CalonaviPlusScreen({super.key, required this.repository});
++
++  final SubscriptionRepository repository;
++
++  @override
++  State<CalonaviPlusScreen> createState() => _CalonaviPlusScreenState();
++}
++
++class _CalonaviPlusScreenState extends State<CalonaviPlusScreen> {
++  bool _busy = false;
++
++  Future<void> _run(Future<void> Function() action) async {
++    setState(() => _busy = true);
++    try {
++      await action();
++      if (!mounted) {
++        return;
++      }
++      if (widget.repository.isPlusActive && Navigator.of(context).canPop()) {
++        Navigator.of(context).pop();
++      }
++    } on SubscriptionPurchaseUnavailableException {
++      if (!mounted) {
++        return;
++      }
++      ScaffoldMessenger.of(context).showSnackBar(
++        const SnackBar(content: Text(AppStrings.plusPurchaseUnavailable)),
++      );
++    } catch (error) {
++      if (!mounted) {
++        return;
++      }
++      ScaffoldMessenger.of(
++        context,
++      ).showSnackBar(SnackBar(content: Text('$error')));
++    } finally {
++      if (mounted) {
++        setState(() => _busy = false);
++      }
++    }
++  }
++
++  @override
++  Widget build(BuildContext context) {
++    final body = Theme.of(context).textTheme.bodyMedium;
++
++    return Scaffold(
++      appBar: AppBar(
++        title: const Text(AppStrings.plusTitle),
++        leading: IconButton(
++          tooltip: '閉じる',
++          onPressed: () => Navigator.of(context).pop(),
++          icon: const Icon(Icons.close),
++        ),
++      ),
++      body: SafeArea(
++        child: AppContentConstraint(
++          child: ListView(
++            padding: const EdgeInsets.all(AppSpacing.md),
++            children: [
++              Text(AppStrings.plusLead, style: body),
++              const SizedBox(height: AppSpacing.md),
++              const AppCard(
++                child: Column(
++                  crossAxisAlignment: CrossAxisAlignment.start,
++                  children: [
++                    Text('・公開食品検索が無制限'),
++                    Text('・食事テンプレートが無制限'),
++                    Text('・運動テンプレートが無制限'),
++                  ],
++                ),
++              ),
++              const SizedBox(height: AppSpacing.md),
++              Text(
++                AppStrings.plusFreeQuota,
++                style: body?.copyWith(color: AppColors.secondaryText),
++              ),
++              const SizedBox(height: AppSpacing.lg),
++              PrimaryButton(
++                label: '${SubscriptionCatalog.monthlyLabel}で続ける',
++                loading: _busy,
++                onPressed: _busy
++                    ? null
++                    : () => _run(widget.repository.purchaseMonthly),
++              ),
++              SecondaryButton(
++                label:
++                    '${SubscriptionCatalog.yearlyLabel}（${SubscriptionCatalog.yearlySavingLabel}）',
++                onPressed: _busy
++                    ? null
++                    : () => _run(widget.repository.purchaseYearly),
++              ),
++              const SizedBox(height: AppSpacing.sm),
++              TextButton(
++                onPressed: _busy
++                    ? null
++                    : () => _run(widget.repository.restore),
++                child: const Text(AppStrings.plusRestore),
++              ),
++              const SizedBox(height: AppSpacing.md),
++              Text(
++                AppStrings.plusLegalNote,
++                style: Theme.of(context).textTheme.bodySmall,
++              ),
++            ],
++          ),
++        ),
++      ),
++    );
++  }
++}
+
+##### lib/screens/workout_template/workout_template_screens.dart
+@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
+ 
+ import '../../models/exercise_category.dart';
+ import '../../models/workout_template.dart';
++import '../../repositories/subscription_exceptions.dart';
+ import '../../state/app_controller.dart';
+ import '../../theme/app_spacing.dart';
+ import '../../utils/id_generator.dart';
+@@ -11,6 +12,7 @@ import '../../widgets/common/app_empty_state.dart';
+ import '../../widgets/common/app_loading_state.dart';
+ import '../../widgets/common/app_text_field.dart';
+ import '../../widgets/layout/app_content_constraint.dart';
++import '../subscription/calonavi_plus_screen.dart';
+ 
+ class WorkoutTemplateFormScreen extends StatefulWidget {
+   const WorkoutTemplateFormScreen({
+@@ -104,6 +106,11 @@ class _WorkoutTemplateFormScreenState extends State<WorkoutTemplateFormScreen> {
+         return;
+       }
+       Navigator.of(context).pop(true);
++    } on SubscriptionLimitExceededException {
++      if (!mounted) {
++        return;
++      }
++      await showCalonaviPlus(context, widget.controller.subscriptionRepository);
+     } catch (error) {
+       if (!mounted) {
+         return;
+@@ -207,6 +214,14 @@ class _WorkoutTemplateListScreenState extends State<WorkoutTemplateListScreen> {
+   }
+ 
+   Future<void> _openCreate() async {
++    final allowed = await guardPlusFeature(
++      context: context,
++      controller: widget.controller,
++      ensure: widget.controller.ensureCanCreateWorkoutTemplate,
++    );
++    if (!allowed || !mounted) {
++      return;
++    }
+     final saved = await Navigator.of(context).push<bool>(
+       MaterialPageRoute<bool>(
+         builder: (context) =>
+@@ -478,6 +493,14 @@ class _WorkoutTemplatePickerScreenState
+   }
+ 
+   Future<void> _openCreate() async {
++    final allowed = await guardPlusFeature(
++      context: context,
++      controller: widget.controller,
++      ensure: widget.controller.ensureCanCreateWorkoutTemplate,
++    );
++    if (!allowed || !mounted) {
++      return;
++    }
+     final saved = await Navigator.of(context).push<bool>(
+       MaterialPageRoute<bool>(
+         builder: (context) =>
+
+##### lib/services/subscription_policy.dart
+@@ -0,0 +1,41 @@
++import '../config/subscription_catalog.dart';
++
++/// 無料枠の判定だけを持つ。UI や StoreKit には依存しない。
++class SubscriptionPolicy {
++  const SubscriptionPolicy();
++
++  bool canUse({
++    required bool isPlus,
++    required int used,
++    required int limit,
++  }) {
++    return isPlus || used < limit;
++  }
++
++  bool canSearchPublicFood({required bool isPlus, required int usedToday}) {
++    return canUse(
++      isPlus: isPlus,
++      used: usedToday,
++      limit: SubscriptionCatalog.publicFoodSearchesPerDay,
++    );
++  }
++
++  bool canCreateMealTemplate({required bool isPlus, required int currentCount}) {
++    return canUse(
++      isPlus: isPlus,
++      used: currentCount,
++      limit: SubscriptionCatalog.mealTemplateLimit,
++    );
++  }
++
++  bool canCreateWorkoutTemplate({
++    required bool isPlus,
++    required int currentCount,
++  }) {
++    return canUse(
++      isPlus: isPlus,
++      used: currentCount,
++      limit: SubscriptionCatalog.workoutTemplateLimit,
++    );
++  }
++}
+
+##### lib/state/app_controller.dart
+@@ -40,6 +40,11 @@ import '../models/user_profile.dart';
+ import '../models/weight_entry.dart';
+ import '../models/workout_template.dart';
+ import '../repositories/authentication_repository.dart';
++import '../repositories/local_subscription_usage_store.dart';
++import '../repositories/subscription_exceptions.dart';
++import '../repositories/subscription_repository.dart';
++import '../repositories/unavailable_subscription_repository.dart';
++import '../services/subscription_policy.dart';
+ import '../repositories/exceptions/food_master_exceptions.dart';
+ import '../repositories/contracts/blocked_food_creator_repository_base.dart';
+ import '../repositories/contracts/food_rating_repository_base.dart';
+@@ -97,6 +102,8 @@ class AppController extends ChangeNotifier {
+     BlockedFoodCreatorRepositoryBase? blockedCreatorRepository,
+     MealTemplateRepositoryBase? mealTemplateRepository,
+     WorkoutTemplateRepositoryBase? workoutTemplateRepository,
++    SubscriptionRepository? subscriptionRepository,
++    LocalSubscriptionUsageStore? subscriptionUsageStore,
+   }) : _nutritionEngine = nutritionEngine ?? NutritionEngine(),
+        _healthRepository = healthRepository,
+        _authenticationRepository = authenticationRepository,
+@@ -115,6 +122,10 @@ class AppController extends ChangeNotifier {
+        _blockedCreatorRepository = blockedCreatorRepository,
+        _mealTemplateRepository = mealTemplateRepository,
+        _workoutTemplateRepository = workoutTemplateRepository,
++       _subscriptionRepository =
++           subscriptionRepository ?? UnavailableSubscriptionRepository(),
++       _subscriptionUsageStore =
++           subscriptionUsageStore ?? LocalSubscriptionUsageStore(),
+        _savedFoodSearchService = const SavedFoodSearchService(),
+        _savedFoodDuplicateService = const SavedFoodDuplicateService(),
+        _savedFoodEntryBuilder = const SavedFoodEntryBuilder(),
+@@ -124,7 +135,8 @@ class AppController extends ChangeNotifier {
+        _mealTemplateTotalsService = const MealTemplateTotalsService(),
+        _mealTemplateDependencyService = const MealTemplateDependencyService(),
+        _mealTemplateApplyService = const MealTemplateApplyService(),
+-       _searchSuggestionService = const SearchSuggestionService();
++       _searchSuggestionService = const SearchSuggestionService(),
++       _subscriptionPolicy = const SubscriptionPolicy();
+ 
+   final NutritionEngine _nutritionEngine;
+   final HealthRepository? _healthRepository;
+@@ -144,6 +156,9 @@ class AppController extends ChangeNotifier {
+   final BlockedFoodCreatorRepositoryBase? _blockedCreatorRepository;
+   final MealTemplateRepositoryBase? _mealTemplateRepository;
+   final WorkoutTemplateRepositoryBase? _workoutTemplateRepository;
++  final SubscriptionRepository _subscriptionRepository;
++  final LocalSubscriptionUsageStore _subscriptionUsageStore;
++  final SubscriptionPolicy _subscriptionPolicy;
+   final SavedFoodSearchService _savedFoodSearchService;
+   final SavedFoodDuplicateService _savedFoodDuplicateService;
+   final SavedFoodEntryBuilder _savedFoodEntryBuilder;
+@@ -201,6 +216,10 @@ class AppController extends ChangeNotifier {
+   bool get isAuthenticated =>
+       _authenticationRepository?.isAuthenticated ?? false;
+ 
++  SubscriptionRepository get subscriptionRepository => _subscriptionRepository;
++
++  bool get isCalonaviPlusActive => _subscriptionRepository.isPlusActive;
++
+   String get currentOwnerUserId =>
+       _authenticationRepository?.currentUser?.id ?? localOwnerUserId;
+ 
+@@ -259,6 +278,13 @@ class AppController extends ChangeNotifier {
+       _clearInMemoryState();
+     }
+ 
++    try {
++      await _subscriptionRepository.restore();
++    } catch (_) {}
++    _subscriptionRepository.plusChanges.listen((_) {
++      notifyListeners();
++    });
++
+     _isInitializing = false;
+     notifyListeners();
+   }
+@@ -355,8 +381,8 @@ class AppController extends ChangeNotifier {
+     }
+   }
+ 
+-  Future<void> logout() async {
+-    if (_isSyncInProgress) {
++  Future<void> logout({bool force = false}) async {
++    if (_isSyncInProgress && !force) {
+       return;
+     }
+     _resetSyncState();
+@@ -668,8 +694,7 @@ class AppController extends ChangeNotifier {
+ 
+     final profileData = await healthRepository.fetchProfileData();
+     await applyHealthProfileData(profileData);
+-    return profileData.weightKg != null ||
+-        profileData.activeEnergyBurnedKcal != null;
++    return profileData.hasAnyValue;
+   }
+ 
+   void setGoal(Goal value) {
+@@ -1484,6 +1509,52 @@ class AppController extends ChangeNotifier {
+     return keys.map((key) => displayNames[key] ?? key).toList();
+   }
+ 
++  Future<void> ensureCanCreateMealTemplate() async {
++    if (_subscriptionPolicy.canCreateMealTemplate(
++      isPlus: isCalonaviPlusActive,
++      currentCount: (await searchMealTemplates('')).length,
++    )) {
++      return;
++    }
++    throw SubscriptionLimitExceededException(
++      SubscriptionLimitKind.mealTemplate,
++    );
++  }
++
++  Future<void> ensureCanCreateWorkoutTemplate() async {
++    if (_subscriptionPolicy.canCreateWorkoutTemplate(
++      isPlus: isCalonaviPlusActive,
++      currentCount: (await searchWorkoutTemplates('')).length,
++    )) {
++      return;
++    }
++    throw SubscriptionLimitExceededException(
++      SubscriptionLimitKind.workoutTemplate,
++    );
++  }
++
++  Future<void> _consumePublicFoodSearchSlot() async {
++    if (isCalonaviPlusActive) {
++      return;
++    }
++    final used = await _subscriptionUsageStore.publicSearchCount(
++      userId: currentOwnerUserId,
++      day: DateTime.now(),
++    );
++    if (!_subscriptionPolicy.canSearchPublicFood(
++      isPlus: false,
++      usedToday: used,
++    )) {
++      throw SubscriptionLimitExceededException(
++        SubscriptionLimitKind.publicFoodSearch,
++      );
++    }
++    await _subscriptionUsageStore.incrementPublicSearch(
++      userId: currentOwnerUserId,
++      day: DateTime.now(),
++    );
++  }
++
+   Future<List<PublicFoodSearchMatch>> searchPublicSavedFoods(
+     String query,
+   ) async {
+@@ -1493,6 +1564,7 @@ class AppController extends ChangeNotifier {
+     }
+ 
+     try {
++      await _consumePublicFoodSearchSlot();
+       final candidates = await repository.searchPublic(query: query);
+       final ratingsByKey = <String, ({int goodCount, int badCount})>{};
+       for (final food in candidates) {
+@@ -1511,6 +1583,8 @@ class AppController extends ChangeNotifier {
+         query: query,
+         ratingsByKey: ratingsByKey,
+       );
++    } on SubscriptionLimitExceededException {
++      rethrow;
+     } catch (_) {
+       return const [];
+     }
+@@ -1921,6 +1995,9 @@ class AppController extends ChangeNotifier {
+     if (draft.items.isEmpty) {
+       throw ArgumentError('Template must include at least one item');
+     }
++    if (templateId == null) {
++      await ensureCanCreateWorkoutTemplate();
++    }
+ 
+     final now = DateTime.now();
+     final id = templateId ?? generateId();
+@@ -2030,6 +2107,9 @@ class AppController extends ChangeNotifier {
+     if (draft.items.isEmpty) {
+       throw ArgumentError('Template must include at least one item');
+     }
++    if (templateId == null) {
++      await ensureCanCreateMealTemplate();
++    }
+ 
+     final now = DateTime.now();
+     final id = templateId ?? generateId();
+
+##### lib/utils/nutrition_format.dart
+@@ -1,4 +1,4 @@
+-/// EAN-13 / JAN 向けバーコード正規化（Prototype）。
++/// EAN-13 / JAN / UPC 向けバーコード正規化。
+ String? normalizeEan13Barcode(String? raw) {
+   if (raw == null) {
+     return null;
+@@ -8,6 +8,12 @@ String? normalizeEan13Barcode(String? raw) {
+   if (digits.length == 13) {
+     return digits;
+   }
++  if (digits.length == 12) {
++    return '0$digits';
++  }
++  if (digits.length == 8) {
++    return digits;
++  }
+ 
+   return null;
+ }
+
+##### lib/utils/saved_food_display_labels.dart
+@@ -12,6 +12,10 @@ class SavedFoodDisplayLabels {
+     };
+   }
+ 
++  static String creator(bool ownerDeleted) {
++    return ownerDeleted ? '削除済みユーザー' : 'ユーザー';
++  }
++
+   static String sourceType(FoodSourceType sourceType) {
+     return switch (sourceType) {
+       FoodSourceType.manual => '手入力',
+
+##### lib/widgets/common/app_keyboard_dismiss.dart
+@@ -0,0 +1,100 @@
++import 'package:flutter/material.dart';
++import 'package:flutter/rendering.dart';
++
++/// Dismisses the software keyboard from anywhere in the app.
++void dismissAppKeyboard() {
++  FocusManager.instance.primaryFocus?.unfocus();
++}
++
++/// Wraps the navigator so every keyboard can be closed by:
++/// - tapping anywhere that is not a text field
++/// - tapping × / 完了 on the bar above the keyboard
++class AppKeyboardHost extends StatelessWidget {
++  const AppKeyboardHost({super.key, required this.child});
++
++  final Widget child;
++
++  static const double accessoryHeight = 44;
++
++  static bool hitsEditableText(Offset position, int viewId) {
++    final result = HitTestResult();
++    WidgetsBinding.instance.hitTestInView(result, position, viewId);
++    for (final entry in result.path) {
++      if (entry.target is RenderEditable) {
++        return true;
++      }
++    }
++    return false;
++  }
++
++  void _onPointerDown(PointerDownEvent event) {
++    final focus = FocusManager.instance.primaryFocus;
++    if (focus == null || !focus.hasFocus) {
++      return;
++    }
++    if (hitsEditableText(event.position, event.viewId)) {
++      return;
++    }
++    dismissAppKeyboard();
++  }
++
++  @override
++  Widget build(BuildContext context) {
++    final media = MediaQuery.of(context);
++    final keyboardHeight = media.viewInsets.bottom;
++    final accessoryHeight = keyboardHeight > 0
++        ? AppKeyboardHost.accessoryHeight
++        : 0.0;
++
++    return MediaQuery(
++      data: media.copyWith(
++        viewInsets: media.viewInsets.copyWith(
++          bottom: keyboardHeight + accessoryHeight,
++        ),
++      ),
++      child: Stack(
++        fit: StackFit.expand,
++        children: [
++          Listener(
++            behavior: HitTestBehavior.translucent,
++            onPointerDown: _onPointerDown,
++            child: child,
++          ),
++          if (keyboardHeight > 0)
++            Positioned(
++              left: 0,
++              right: 0,
++              bottom: keyboardHeight,
++              child: Material(
++                elevation: 8,
++                color: Theme.of(context).colorScheme.surface,
++                child: SafeArea(
++                  top: false,
++                  bottom: false,
++                  child: SizedBox(
++                    height: AppKeyboardHost.accessoryHeight,
++                    child: Row(
++                      children: [
++                        const SizedBox(width: 4),
++                        IconButton(
++                          tooltip: '閉じる',
++                          onPressed: dismissAppKeyboard,
++                          icon: const Icon(Icons.close),
++                        ),
++                        const Spacer(),
++                        TextButton(
++                          onPressed: dismissAppKeyboard,
++                          child: const Text('完了'),
++                        ),
++                        const SizedBox(width: 8),
++                      ],
++                    ),
++                  ),
++                ),
++              ),
++            ),
++        ],
++      ),
++    );
++  }
++}
+
+##### lib/widgets/common/app_text_field.dart
+@@ -1,6 +1,8 @@
+ import 'package:flutter/material.dart';
+ import 'package:flutter/services.dart';
+ 
++import 'app_keyboard_dismiss.dart';
++
+ class AppTextField extends StatelessWidget {
+   const AppTextField({
+     super.key,
+@@ -9,6 +11,7 @@ class AppTextField extends StatelessWidget {
+     this.hint,
+     this.helper,
+     this.keyboardType,
++    this.textInputAction,
+     this.inputFormatters,
+     this.obscureText = false,
+     this.maxLines = 1,
+@@ -24,6 +27,7 @@ class AppTextField extends StatelessWidget {
+   final String? hint;
+   final String? helper;
+   final TextInputType? keyboardType;
++  final TextInputAction? textInputAction;
+   final List<TextInputFormatter>? inputFormatters;
+   final bool obscureText;
+   final int maxLines;
+@@ -44,10 +48,16 @@ class AppTextField extends StatelessWidget {
+         suffixIcon: suffixIcon,
+       ),
+       keyboardType: keyboardType,
++      textInputAction:
++          textInputAction ??
++          (maxLines == 1 ? TextInputAction.done : TextInputAction.newline),
+       inputFormatters: inputFormatters,
+       obscureText: obscureText,
+       maxLines: maxLines,
+       onChanged: onChanged,
++      onFieldSubmitted: maxLines == 1 ? (_) => dismissAppKeyboard() : null,
++      onTapOutside: (_) => dismissAppKeyboard(),
++      onEditingComplete: maxLines == 1 ? dismissAppKeyboard : null,
+       validator: validator,
+       readOnly: readOnly,
+       onTap: onTap,
+
+##### lib/widgets/exercise/exercise_met_calculation_section.dart
+@@ -517,10 +517,8 @@ class _ExerciseMetCalculationSectionState
+                 },
+               ),
+               if (_manualOverride)
+-                TextField(
+-                  decoration: const InputDecoration(
+-                    labelText: '手動 追加消費 kcal（net）',
+-                  ),
++                AppTextField(
++                  label: '手動 追加消費 kcal（net）',
+                   keyboardType: const TextInputType.numberWithOptions(
+                     decimal: true,
+                   ),
+
+##### lib/widgets/exercise/strength_workout_log_editor.dart
+@@ -0,0 +1,357 @@
++import 'package:flutter/material.dart';
++
++import '../../models/strength_workout_log.dart';
++import '../../theme/app_colors.dart';
++import '../../theme/app_spacing.dart';
++import '../common/app_text_field.dart';
++import '../common/secondary_button.dart';
++
++const suggestedStrengthNames = [
++  'ベンチプレス',
++  'スクワット',
++  'デッドリフト',
++  'ショルダープレス',
++  'ラットプルダウン',
++  'ベントオーバーロウ',
++  'アームカール',
++  'トライセプス',
++  'レッグプレス',
++  'プランク',
++];
++
++class StrengthWorkoutLogEditor extends StatefulWidget {
++  const StrengthWorkoutLogEditor({
++    super.key,
++    required this.initialLog,
++    required this.onChanged,
++  });
++
++  final StrengthWorkoutLog? initialLog;
++  final ValueChanged<StrengthWorkoutLog> onChanged;
++
++  @override
++  State<StrengthWorkoutLogEditor> createState() =>
++      _StrengthWorkoutLogEditorState();
++}
++
++class _StrengthWorkoutLogEditorState extends State<StrengthWorkoutLogEditor> {
++  late List<_ExerciseDraft> _exercises;
++
++  @override
++  void initState() {
++    super.initState();
++    final initial = widget.initialLog?.exercises ?? const [];
++    _exercises = initial.isEmpty
++        ? [_ExerciseDraft.empty()]
++        : initial.map(_ExerciseDraft.fromLog).toList();
++  }
++
++  @override
++  void dispose() {
++    for (final exercise in _exercises) {
++      exercise.dispose();
++    }
++    super.dispose();
++  }
++
++  void _notify() {
++    widget.onChanged(
++      StrengthWorkoutLog(
++        exercises: _exercises
++            .map((exercise) => exercise.toLog())
++            .where((exercise) => exercise.name.isNotEmpty)
++            .toList(),
++      ),
++    );
++  }
++
++  void _addExercise({String name = ''}) {
++    if (name.isNotEmpty) {
++      final emptyIndex = _exercises.indexWhere(
++        (exercise) => exercise.nameController.text.trim().isEmpty,
++      );
++      if (emptyIndex >= 0) {
++        setState(() {
++          _exercises[emptyIndex].nameController.text = name;
++        });
++        _notify();
++        return;
++      }
++    }
++    setState(() {
++      _exercises.add(_ExerciseDraft.empty(name: name));
++    });
++    _notify();
++  }
++
++  void _removeExercise(int index) {
++    if (_exercises.length == 1) {
++      _exercises[index].nameController.clear();
++      for (final set in _exercises[index].sets) {
++        set.weightController.clear();
++        set.repsController.clear();
++      }
++      setState(() {});
++      _notify();
++      return;
++    }
++    setState(() {
++      _exercises.removeAt(index).dispose();
++    });
++    _notify();
++  }
++
++  void _addSet(int exerciseIndex) {
++    setState(() {
++      final sets = _exercises[exerciseIndex].sets;
++      final last = sets.last;
++      _exercises[exerciseIndex].sets.add(
++        _SetDraft(
++          weightController: TextEditingController(
++            text: last.weightController.text,
++          ),
++          repsController: TextEditingController(text: last.repsController.text),
++        ),
++      );
++    });
++    _notify();
++  }
++
++  void _removeSet(int exerciseIndex, int setIndex) {
++    final exercise = _exercises[exerciseIndex];
++    if (exercise.sets.length == 1) {
++      exercise.sets.first.weightController.clear();
++      exercise.sets.first.repsController.clear();
++      setState(() {});
++      _notify();
++      return;
++    }
++    setState(() {
++      exercise.sets.removeAt(setIndex).dispose();
++    });
++    _notify();
++  }
++
++  @override
++  Widget build(BuildContext context) {
++    return Column(
++      crossAxisAlignment: CrossAxisAlignment.stretch,
++      children: [
++        Text('種目の記録', style: Theme.of(context).textTheme.titleSmall),
++        const SizedBox(height: AppSpacing.xxs),
++        Text(
++          'ジムと同じく、種目ごとにセット・重量・回数を残せます。消費カロリーは上の実施時間から計算します。',
++          style: Theme.of(
++            context,
++          ).textTheme.bodySmall?.copyWith(color: AppColors.secondaryText),
++        ),
++        const SizedBox(height: AppSpacing.sm),
++        Wrap(
++          spacing: AppSpacing.xs,
++          runSpacing: AppSpacing.xs,
++          children: [
++            for (final name in suggestedStrengthNames)
++              ActionChip(
++                label: Text(name),
++                onPressed: () => _addExercise(name: name),
++              ),
++          ],
++        ),
++        const SizedBox(height: AppSpacing.sm),
++        for (var exerciseIndex = 0; exerciseIndex < _exercises.length; exerciseIndex++)
++          _ExerciseCard(
++            draft: _exercises[exerciseIndex],
++            onChanged: _notify,
++            onRemove: () => _removeExercise(exerciseIndex),
++            onAddSet: () => _addSet(exerciseIndex),
++            onRemoveSet: (setIndex) => _removeSet(exerciseIndex, setIndex),
++          ),
++        SecondaryButton(
++          label: '種目を追加',
++          icon: Icons.add,
++          onPressed: _addExercise,
++        ),
++      ],
++    );
++  }
++}
++
++class _ExerciseCard extends StatelessWidget {
++  const _ExerciseCard({
++    required this.draft,
++    required this.onChanged,
++    required this.onRemove,
++    required this.onAddSet,
++    required this.onRemoveSet,
++  });
++
++  final _ExerciseDraft draft;
++  final VoidCallback onChanged;
++  final VoidCallback onRemove;
++  final VoidCallback onAddSet;
++  final ValueChanged<int> onRemoveSet;
++
++  @override
++  Widget build(BuildContext context) {
++    return Padding(
++      padding: const EdgeInsets.only(bottom: AppSpacing.sm),
++      child: DecoratedBox(
++        decoration: BoxDecoration(
++          border: Border.all(color: AppColors.border),
++          borderRadius: BorderRadius.circular(12),
++        ),
++        child: Padding(
++          padding: const EdgeInsets.all(AppSpacing.sm),
++          child: Column(
++            crossAxisAlignment: CrossAxisAlignment.stretch,
++            children: [
++              Row(
++                children: [
++                  Expanded(
++                    child: AppTextField(
++                      controller: draft.nameController,
++                      label: '種目名',
++                      hint: 'ベンチプレス',
++                      onChanged: (_) => onChanged(),
++                    ),
++                  ),
++                  IconButton(
++                    tooltip: 'この種目を削除',
++                    onPressed: onRemove,
++                    icon: const Icon(Icons.close),
++                  ),
++                ],
++              ),
++              for (var setIndex = 0; setIndex < draft.sets.length; setIndex++)
++                Padding(
++                  padding: const EdgeInsets.only(top: AppSpacing.xs),
++                  child: Row(
++                    crossAxisAlignment: CrossAxisAlignment.start,
++                    children: [
++                      Padding(
++                        padding: const EdgeInsets.only(top: 16),
++                        child: SizedBox(
++                          width: 56,
++                          child: Text(
++                            'セット${setIndex + 1}',
++                            style: Theme.of(context).textTheme.bodySmall,
++                          ),
++                        ),
++                      ),
++                      Expanded(
++                        child: AppTextField(
++                          controller: draft.sets[setIndex].weightController,
++                          label: '重量（kg）',
++                          keyboardType: const TextInputType.numberWithOptions(
++                            decimal: true,
++                          ),
++                          onChanged: (_) => onChanged(),
++                        ),
++                      ),
++                      const SizedBox(width: AppSpacing.xs),
++                      Expanded(
++                        child: AppTextField(
++                          controller: draft.sets[setIndex].repsController,
++                          label: '回数',
++                          keyboardType: TextInputType.number,
++                          onChanged: (_) => onChanged(),
++                        ),
++                      ),
++                      IconButton(
++                        tooltip: 'このセットを削除',
++                        onPressed: () => onRemoveSet(setIndex),
++                        icon: const Icon(Icons.remove_circle_outline),
++                      ),
++                    ],
++                  ),
++                ),
++              Align(
++                alignment: Alignment.centerLeft,
++                child: TextButton.icon(
++                  onPressed: onAddSet,
++                  icon: const Icon(Icons.add, size: 18),
++                  label: const Text('セットを追加'),
++                ),
++              ),
++            ],
++          ),
++        ),
++      ),
++    );
++  }
++}
++
++class _ExerciseDraft {
++  _ExerciseDraft({required this.nameController, required this.sets});
++
++  factory _ExerciseDraft.empty({String name = ''}) {
++    return _ExerciseDraft(
++      nameController: TextEditingController(text: name),
++      sets: [_SetDraft.empty()],
++    );
++  }
++
++  factory _ExerciseDraft.fromLog(StrengthExerciseLog log) {
++    return _ExerciseDraft(
++      nameController: TextEditingController(text: log.name),
++      sets: log.sets.isEmpty
++          ? [_SetDraft.empty()]
++          : log.sets.map(_SetDraft.fromLog).toList(),
++    );
++  }
++
++  final TextEditingController nameController;
++  final List<_SetDraft> sets;
++
++  StrengthExerciseLog toLog() {
++    return StrengthExerciseLog(
++      name: nameController.text.trim(),
++      sets: sets
++          .map((set) => set.toLog())
++          .where((set) => !set.isEmpty)
++          .toList(),
++    );
++  }
++
++  void dispose() {
++    nameController.dispose();
++    for (final set in sets) {
++      set.dispose();
++    }
++  }
++}
++
++class _SetDraft {
++  _SetDraft({required this.weightController, required this.repsController});
++
++  factory _SetDraft.empty() {
++    return _SetDraft(
++      weightController: TextEditingController(),
++      repsController: TextEditingController(),
++    );
++  }
++
++  factory _SetDraft.fromLog(StrengthSetLog set) {
++    return _SetDraft(
++      weightController: TextEditingController(
++        text: set.weightKg?.toString() ?? '',
++      ),
++      repsController: TextEditingController(text: set.reps?.toString() ?? ''),
++    );
++  }
++
++  final TextEditingController weightController;
++  final TextEditingController repsController;
++
++  StrengthSetLog toLog() {
++    return StrengthSetLog(
++      weightKg: double.tryParse(weightController.text.trim()),
++      reps: int.tryParse(repsController.text.trim()),
++    );
++  }
++
++  void dispose() {
++    weightController.dispose();
++    repsController.dispose();
++  }
++}
+
+##### lib/widgets/history/workout_history_list.dart
+@@ -1,6 +1,7 @@
+ import 'package:flutter/material.dart';
+ 
+ import '../../models/exercise_entry.dart';
++import '../../models/strength_workout_log.dart';
+ import '../../theme/app_colors.dart';
+ import '../../theme/app_spacing.dart';
+ import '../../utils/history_grouping.dart';
+@@ -36,6 +37,17 @@ class WorkoutHistoryList extends StatelessWidget {
+     return '$h:$m';
+   }
+ 
++  String _subtitleFor(ExerciseEntry entry) {
++    final parts = <String>[
++      '${_formatTime(entry.loggedAt)} · ${entry.durationMin} 分',
++    ];
++    final summary = entry.strengthSummary;
++    if (summary != null && summary.isNotEmpty) {
++      parts.add(summary);
++    }
++    return parts.join(' · ');
++  }
++
+   @override
+   Widget build(BuildContext context) {
+     final hasEntries = dateGroups.any((group) => group.items.isNotEmpty);
+@@ -68,8 +80,7 @@ class WorkoutHistoryList extends StatelessWidget {
+                       onTap: () => onTapEntry(dateGroup.items[i]),
+                       title: Text(dateGroup.items[i].name),
+                       subtitle: Text(
+-                        '${_formatTime(dateGroup.items[i].loggedAt)} · '
+-                        '${dateGroup.items[i].durationMin} 分',
++                        _subtitleFor(dateGroup.items[i]),
+                       ),
+                       trailing: Row(
+                         mainAxisSize: MainAxisSize.min,
+
+##### lib/widgets/saved_food/duplicate_saved_food_dialog.dart
+@@ -1,5 +1,6 @@
+ import 'package:flutter/material.dart';
+ 
++import '../common/app_keyboard_dismiss.dart';
+ import '../../models/duplicate_saved_food_action.dart';
+ import '../../models/saved_food.dart';
+ 
+@@ -108,6 +109,9 @@ class _DuplicateSavedFoodDialogState extends State<_DuplicateSavedFoodDialog> {
+                   labelText: '新しい食品名',
+                   border: OutlineInputBorder(),
+                 ),
++                textInputAction: TextInputAction.done,
++                onSubmitted: (_) => dismissAppKeyboard(),
++                onTapOutside: (_) => dismissAppKeyboard(),
+               ),
+             ],
+             RadioListTile<DuplicateSavedFoodAction>(
+
+##### lib/widgets/saved_food/public_food_detail_sheet.dart
+@@ -182,6 +182,7 @@ class _PublicFoodDetailSheetState extends State<_PublicFoodDetailSheet> {
+               ),
+               if (food.brand != null && food.brand!.isNotEmpty)
+                 Text('ブランド: ${food.brand}'),
++              Text('作成者: ${food.creatorLabel}'),
+               Text(
+                 '登録元: ${SavedFoodDisplayLabels.sourceType(food.sourceType)}',
+               ),
+
+##### lib/widgets/saved_food/public_food_report_dialog.dart
+@@ -1,5 +1,6 @@
+ import 'package:flutter/material.dart';
+ 
++import '../common/app_keyboard_dismiss.dart';
+ import '../../models/food_report.dart';
+ import '../../models/saved_food.dart';
+ import '../../state/app_controller.dart';
+@@ -115,6 +116,7 @@ class _PublicFoodReportDialogState extends State<_PublicFoodReportDialog> {
+               ),
+               maxLines: 3,
+               enabled: !_isSubmitting,
++              onTapOutside: (_) => dismissAppKeyboard(),
+             ),
+             if (_errorMessage != null) ...[
+               const SizedBox(height: 8),
+
+##### lib/widgets/saved_food/public_food_search_result_tile.dart
+@@ -55,6 +55,10 @@ class PublicFoodSearchResultTile extends StatelessWidget {
+             ),
+             if (food.brand != null && food.brand!.isNotEmpty)
+               Text('ブランド: ${food.brand}', style: theme.textTheme.bodySmall),
++            Text(
++              '作成者: ${food.creatorLabel}',
++              style: theme.textTheme.bodySmall,
++            ),
+             Text(
+               '登録元: ${SavedFoodDisplayLabels.sourceType(food.sourceType)} · '
+               'Good ${match.goodCount} / Bad ${match.badCount}',
+
+##### macos/Runner/Info.plist
+@@ -30,6 +30,16 @@
+ 	<string>NSApplication</string>
+ 	<key>CFBundleURLTypes</key>
+ 	<array>
++		<dict>
++			<key>CFBundleTypeRole</key>
++			<string>Editor</string>
++			<key>CFBundleURLName</key>
++			<string>com.narutoaii.ayg</string>
++			<key>CFBundleURLSchemes</key>
++			<array>
++				<string>com.narutoaii.ayg</string>
++			</array>
++		</dict>
+ 		<dict>
+ 			<key>CFBundleTypeRole</key>
+ 			<string>Editor</string>
+@@ -39,9 +49,5 @@
+ 			</array>
+ 		</dict>
+ 	</array>
+-	<key>GIDClientID</key>
+-	<string>$(GID_CLIENT_ID)</string>
+-	<key>GIDServerClientID</key>
+-	<string>$(GID_SERVER_CLIENT_ID)</string>
+ </dict>
+ </plist>
+
+##### pubspec.yaml
+@@ -43,9 +43,12 @@ dependencies:
+   path_provider: ^2.1.5
+   supabase_flutter: ^2.9.1
+   google_sign_in: ^6.3.0
++  sign_in_with_apple: ^6.1.4
++  crypto: ^3.0.6
+   url_launcher: ^6.3.2
+   shared_preferences: ^2.5.3
+   uuid: ^4.6.0
++  in_app_purchase: ^3.2.3
+ 
+ dev_dependencies:
+   flutter_test:
+
+##### supabase/migrations/20260920120000_delete_own_account_keep_public_foods.sql
+@@ -14,6 +14,9 @@ begin;
+ alter table public.users
+   add column if not exists deleted_at timestamptz;
+ 
++alter table public.saved_foods
++  add column if not exists owner_deleted boolean not null default false;
++
+ create or replace function public.delete_own_account()
+ returns void
+ language plpgsql
+@@ -46,6 +49,11 @@ begin
+     where user_id = uid
+       and visibility is distinct from 'public';
+ 
++  update public.saved_foods
++  set owner_deleted = true
++  where user_id = uid
++    and visibility = 'public';
++
+   delete from public.food_entries where user_id = uid;
+   delete from public.exercise_entries where user_id = uid;
+   delete from public.weight_entries where user_id = uid;
+
+##### test/account_deletion_screen_test.dart
+@@ -0,0 +1,138 @@
++import 'package:flutter/material.dart';
++import 'package:flutter_test/flutter_test.dart';
++
++import 'package:ayg/constants/app_strings.dart';
++import 'package:ayg/models/activity_level.dart';
++import 'package:ayg/models/goal.dart';
++import 'package:ayg/models/nutrition_settings.dart';
++import 'package:ayg/models/user_profile.dart';
++import 'package:ayg/repositories/authentication_repository.dart';
++import 'package:ayg/screens/settings/account_deletion_screen.dart';
++import 'package:ayg/screens/settings/settings_screen.dart';
++import 'package:ayg/state/app_controller.dart';
++import 'package:ayg/theme/app_theme.dart';
++
++import 'mocks/mock_authentication_repository.dart';
++import 'mocks/mock_health_repository.dart';
++
++void main() {
++  TestWidgetsFlutterBinding.ensureInitialized();
++
++  final referenceDate = DateTime(2026, 7, 21);
++
++  AppController createController({
++    required MockAuthenticationRepository authRepository,
++  }) {
++    final controller = AppController(
++      healthRepository: MockHealthRepository(isAvailable: false),
++      authenticationRepository: authRepository,
++    );
++    controller.setProfile(
++      UserProfile(
++        birthDate: DateTime(1990, 1, 1),
++        gender: Gender.male,
++        heightCm: 175,
++        weightKg: 75,
++      ),
++    );
++    controller.setNutritionSettings(
++      const NutritionSettings(
++        useHealthIntegration: false,
++        activityLevel: ActivityLevel.moderate,
++      ),
++    );
++    controller.setGoal(
++      Goal(
++        type: GoalType.maintain,
++        targetWeightKg: 75,
++        targetDate: referenceDate.add(const Duration(days: 90)),
++      ),
++    );
++    return controller;
++  }
++
++  testWidgets('settings opens in-app account deletion', (tester) async {
++    final authRepository = MockAuthenticationRepository(
++      currentUser: const AuthUser(id: 'user-1', email: 'test@example.com'),
++    );
++    final controller = createController(authRepository: authRepository);
++
++    await tester.pumpWidget(
++      MaterialApp(
++        theme: AppTheme.light,
++        home: SettingsScreen(
++          controller: controller,
++          authenticationRepository: authRepository,
++          hideHealthSettings: true,
++          supportEmail: 'calonavi.ayg.support@gmail.com',
++        ),
++      ),
++    );
++
++    await tester.tap(find.text(AppStrings.settingsAccountDeletion));
++    await tester.pumpAndSettle();
++
++    expect(find.byType(AccountDeletionScreen), findsOneWidget);
++    expect(find.text(AppStrings.accountDeletionExecute), findsOneWidget);
++
++    await authRepository.dispose();
++  });
++
++  testWidgets('confirmed deletion calls repository then logs out', (
++    tester,
++  ) async {
++    final authRepository = MockAuthenticationRepository(
++      currentUser: const AuthUser(id: 'user-1', email: 'test@example.com'),
++    );
++    final controller = createController(authRepository: authRepository);
++
++    await tester.pumpWidget(
++      MaterialApp(
++        theme: AppTheme.light,
++        home: AccountDeletionScreen(
++          controller: controller,
++          authenticationRepository: authRepository,
++          supportEmail: 'calonavi.ayg.support@gmail.com',
++        ),
++      ),
++    );
++
++    await tester.tap(find.text(AppStrings.accountDeletionExecute));
++    await tester.pumpAndSettle();
++    await tester.tap(find.text(AppStrings.accountDeletionExecute).last);
++    await tester.pumpAndSettle();
++
++    expect(authRepository.deleteOwnAccountCalled, isTrue);
++    expect(authRepository.logoutCalled, isTrue);
++
++    await authRepository.dispose();
++  });
++
++  testWidgets('missing RPC offers email fallback', (tester) async {
++    final authRepository = MockAuthenticationRepository(
++      currentUser: const AuthUser(id: 'user-1', email: 'test@example.com'),
++    )..simulateDeleteUnavailable = true;
++    final controller = createController(authRepository: authRepository);
++
++    await tester.pumpWidget(
++      MaterialApp(
++        theme: AppTheme.light,
++        home: AccountDeletionScreen(
++          controller: controller,
++          authenticationRepository: authRepository,
++          supportEmail: 'calonavi.ayg.support@gmail.com',
++        ),
++      ),
++    );
++
++    await tester.tap(find.text(AppStrings.accountDeletionExecute));
++    await tester.pumpAndSettle();
++    await tester.tap(find.text(AppStrings.accountDeletionExecute).last);
++    await tester.pumpAndSettle();
++
++    expect(find.text(AppStrings.accountDeletionUnavailable), findsOneWidget);
++    expect(authRepository.logoutCalled, isFalse);
++
++    await authRepository.dispose();
++  });
++}
+
+##### test/app_keyboard_dismiss_test.dart
+@@ -0,0 +1,57 @@
++import 'package:ayg/widgets/common/app_keyboard_dismiss.dart';
++import 'package:flutter/material.dart';
++import 'package:flutter_test/flutter_test.dart';
++
++void main() {
++  testWidgets('shows close and done when the keyboard inset is open', (
++    tester,
++  ) async {
++    addTearDown(tester.view.resetViewInsets);
++    tester.view.viewInsets = const FakeViewPadding(bottom: 280);
++
++    await tester.pumpWidget(
++      MaterialApp(
++        builder: (context, child) =>
++            AppKeyboardHost(child: child ?? const SizedBox.shrink()),
++        home: const Scaffold(body: TextField()),
++      ),
++    );
++    await tester.pump();
++
++    expect(find.text('完了'), findsOneWidget);
++    expect(find.byTooltip('閉じる'), findsOneWidget);
++
++    await tester.tap(find.byType(TextField));
++    await tester.pump();
++    expect(FocusManager.instance.primaryFocus?.hasFocus, isTrue);
++
++    await tester.tap(find.text('完了'));
++    await tester.pump();
++    expect(FocusManager.instance.primaryFocus?.hasFocus, isFalse);
++  });
++
++  testWidgets('tapping outside a field dismisses focus', (tester) async {
++    await tester.pumpWidget(
++      MaterialApp(
++        builder: (context, child) =>
++            AppKeyboardHost(child: child ?? const SizedBox.shrink()),
++        home: const Scaffold(
++          body: Column(
++            children: [
++              TextField(),
++              SizedBox(height: 80, width: double.infinity, child: Text('外')),
++            ],
++          ),
++        ),
++      ),
++    );
++
++    await tester.tap(find.byType(TextField));
++    await tester.pump();
++    expect(FocusManager.instance.primaryFocus?.hasFocus, isTrue);
++
++    await tester.tap(find.text('外'));
++    await tester.pump();
++    expect(FocusManager.instance.primaryFocus?.hasFocus, isFalse);
++  });
++}
+
+##### test/apple_sign_in_client_test.dart
+@@ -0,0 +1,84 @@
++import 'package:ayg/repositories/apple_sign_in_client.dart';
++import 'package:ayg/repositories/auth_exceptions.dart';
++import 'package:flutter_test/flutter_test.dart';
++import 'package:sign_in_with_apple/sign_in_with_apple.dart';
++
++void main() {
++  test('sha256Hex is stable', () {
++    expect(
++      sha256Hex('nonce-value'),
++      'efb4e26c3deb3dd5e04408769d1b6b371ae1e7acbe1e32332550b06f784780f2',
++    );
++  });
++
++  test('generateAppleNonce is 32 url-safe characters', () {
++    final nonce = generateAppleNonce();
++    expect(nonce.length, 32);
++    expect(RegExp(r'^[0-9A-Za-z\-._]+$').hasMatch(nonce), isTrue);
++  });
++
++  test('fetchIdToken returns identity token and raw nonce', () async {
++    const rawNonce = 'raw-nonce-value';
++    var seenHashedNonce = '';
++    final client = AppleSignInClient(
++      nonceFactory: () => rawNonce,
++      credentialFetcher: (hashedNonce) async {
++        seenHashedNonce = hashedNonce;
++        return const AuthorizationCredentialAppleID(
++          userIdentifier: 'user-1',
++          givenName: null,
++          familyName: null,
++          email: 'a@example.com',
++          identityToken: 'apple-id-token',
++          authorizationCode: 'code',
++          state: null,
++        );
++      },
++    );
++
++    final result = await client.fetchIdToken();
++
++    expect(result.identityToken, 'apple-id-token');
++    expect(result.rawNonce, rawNonce);
++    expect(seenHashedNonce, sha256Hex(rawNonce));
++  });
++
++  test('missing identity token fails', () async {
++    final client = AppleSignInClient(
++      nonceFactory: () => 'raw',
++      credentialFetcher: (_) async {
++        return const AuthorizationCredentialAppleID(
++          userIdentifier: 'user-1',
++          givenName: null,
++          familyName: null,
++          email: null,
++          identityToken: null,
++          authorizationCode: 'code',
++          state: null,
++        );
++      },
++    );
++
++    expect(
++      client.fetchIdToken(),
++      throwsA(isA<AppleSignInFailedException>()),
++    );
++  });
++
++  test('canceled Apple sheet is not a failure', () async {
++    final client = AppleSignInClient(
++      nonceFactory: () => 'raw',
++      credentialFetcher: (_) async {
++        throw const SignInWithAppleAuthorizationException(
++          code: AuthorizationErrorCode.canceled,
++          message: 'canceled',
++        );
++      },
++    );
++
++    expect(
++      client.fetchIdToken(),
++      throwsA(isA<AppleSignInCancelledException>()),
++    );
++  });
++}
+
+##### test/authentication_repository_test.dart
+@@ -66,10 +66,42 @@ void main() {
+       expect(authRepository.isAuthenticated, isFalse);
+     });
+ 
+-    test('loginWithApple is not implemented', () {
++    test('loginWithApple sets current user', () async {
++      await authRepository.loginWithApple();
++
++      expect(authRepository.loginWithAppleCalled, isTrue);
++      expect(authRepository.currentUser?.id, 'test-user-id');
++      expect(authRepository.isAuthenticated, isTrue);
++    });
++
++    test('loginWithApple cancel throws AppleSignInCancelledException', () {
++      authRepository.simulateAppleSignInCancelled = true;
++
++      expect(
++        authRepository.loginWithApple(),
++        throwsA(isA<AppleSignInCancelledException>()),
++      );
++    });
++
++    test('loginWithApple failure throws AppleSignInFailedException', () {
++      authRepository.simulateAppleSignInFailure = true;
++
+       expect(
+         authRepository.loginWithApple(),
+-        throwsA(isA<UnimplementedError>()),
++        throwsA(isA<AppleSignInFailedException>()),
++      );
++    });
++
++    test('deleteOwnAccount records the call', () async {
++      await authRepository.deleteOwnAccount();
++      expect(authRepository.deleteOwnAccountCalled, isTrue);
++    });
++
++    test('deleteOwnAccount can simulate missing RPC', () {
++      authRepository.simulateDeleteUnavailable = true;
++      expect(
++        authRepository.deleteOwnAccount(),
++        throwsA(isA<AccountDeletionUnavailableException>()),
+       );
+     });
+   });
+@@ -81,6 +113,22 @@ void main() {
+       expect(repository.isAuthenticated, isFalse);
+       expect(repository.currentUser, isNull);
+     });
++
++    test('deleteOwnAccount is unavailable', () {
++      final repository = UnconfiguredAuthenticationRepository();
++      expect(
++        repository.deleteOwnAccount(),
++        throwsA(isA<AccountDeletionUnavailableException>()),
++      );
++    });
++
++    test('loginWithApple is unavailable without Supabase', () {
++      final repository = UnconfiguredAuthenticationRepository();
++      expect(
++        repository.loginWithApple(),
++        throwsA(isA<AppleSignInFailedException>()),
++      );
++    });
+   });
+ 
+   group('AppController auth flow', () {
+
+##### test/calonavi_plus_screen_test.dart
+@@ -0,0 +1,34 @@
++import 'package:ayg/config/subscription_catalog.dart';
++import 'package:ayg/constants/app_strings.dart';
++import 'package:ayg/screens/subscription/calonavi_plus_screen.dart';
++import 'package:ayg/theme/app_theme.dart';
++import 'package:flutter/material.dart';
++import 'package:flutter_test/flutter_test.dart';
++
++import 'mocks/mock_subscription_repository.dart';
++
++void main() {
++  TestWidgetsFlutterBinding.ensureInitialized();
++
++  testWidgets('plus screen offers monthly and yearly prices', (tester) async {
++    final repository = MockSubscriptionRepository();
++    await tester.pumpWidget(
++      MaterialApp(
++        theme: AppTheme.light,
++        home: CalonaviPlusScreen(repository: repository),
++      ),
++    );
++
++    expect(find.text(AppStrings.plusTitle), findsOneWidget);
++    expect(find.textContaining(SubscriptionCatalog.monthlyLabel), findsOneWidget);
++    expect(find.textContaining(SubscriptionCatalog.yearlyLabel), findsOneWidget);
++
++    await tester.tap(find.textContaining(SubscriptionCatalog.monthlyLabel));
++    await tester.pumpAndSettle();
++
++    expect(repository.monthlyCalled, isTrue);
++    expect(repository.plus, isTrue);
++
++    await repository.dispose();
++  });
++}
+
+##### test/exercise_met_calculation_section_test.dart
+@@ -737,7 +737,7 @@ void main() {
+       expect(find.text('メモ'), findsOneWidget);
+     });
+ 
+-    testWidgets('strength category shows sets reps and lift weight', (
++    testWidgets('strength category shows multi exercise set editor', (
+       tester,
+     ) async {
+       final controller = AppController();
+@@ -752,13 +752,14 @@ void main() {
+       await tapActivityChip(tester, '筋トレ');
+ 
+       await tester.scrollUntilVisible(
+-        find.text('セット・回数・重量（任意）'),
++        find.text('種目の記録'),
+         200,
+         scrollable: find.byType(Scrollable).first,
+       );
+-      await tester.tap(find.text('セット・回数・重量（任意）'));
+-      await tester.pumpAndSettle();
+-      expect(find.widgetWithText(TextFormField, 'セット'), findsOneWidget);
++      expect(find.text('種目の記録'), findsOneWidget);
++      expect(find.text('種目を追加'), findsOneWidget);
++      expect(find.text('セットを追加'), findsOneWidget);
++      expect(find.widgetWithText(TextFormField, '種目名'), findsOneWidget);
+       expect(find.widgetWithText(TextFormField, '回数'), findsOneWidget);
+       expect(find.widgetWithText(TextFormField, '重量（kg）'), findsOneWidget);
+     });
+
+##### test/food_form_screen_test.dart
+@@ -54,6 +54,8 @@ void main() {
+       await tester.tap(find.text('open form'));
+       await tester.pumpAndSettle();
+ 
++      expect(find.text('カメラでバーコードを読み取る'), findsOneWidget);
++
+       await tester.enterText(
+         find.byKey(const ValueKey('food_name_field')),
+         'テスト食品',
+
+##### test/food_master_row_mapper_test.dart
+@@ -85,6 +85,28 @@ void main() {
+ 
+       expect(parsed.version, 4);
+     });
++
++    test('reads owner_deleted and does not let the client overwrite it', () {
++      final food = SavedFood(
++        foodId: 'f4',
++        ownerUserId: 'u1',
++        name: 'Left Rice',
++        normalizedName: 'left rice',
++        baseAmount: 100,
++        unitType: FoodUnitType.g,
++        createdAt: DateTime.utc(2026, 1, 1),
++        updatedAt: DateTime.utc(2026, 1, 2),
++      );
++      final row = FoodMasterRowMapper.savedFoodToRow(food, userId: 'u1');
++      row['owner_deleted'] = true;
++
++      final parsed = FoodMasterRowMapper.savedFoodFromRow(row);
++      expect(parsed.ownerDeleted, isTrue);
++      expect(parsed.creatorLabel, '削除済みユーザー');
++
++      final written = FoodMasterRowMapper.savedFoodToRow(parsed, userId: 'u1');
++      expect(written.containsKey('owner_deleted'), isFalse);
++    });
+   });
+ 
+   group('FoodMasterRowMapper.foodEntry', () {
+
+##### test/google_sign_in_factory_test.dart
+@@ -0,0 +1,24 @@
++import 'package:ayg/repositories/google_sign_in_factory.dart';
++import 'package:flutter_test/flutter_test.dart';
++
++void main() {
++  test('does not construct GoogleSignIn when the iOS client ID is empty', () {
++    expect(
++      createGoogleSignIn(
++        iosClientId: '',
++        webClientId: '123.apps.googleusercontent.com',
++      ),
++      isNull,
++    );
++  });
++
++  test('constructs GoogleSignIn when the iOS client ID is present', () {
++    expect(
++      createGoogleSignIn(
++        iosClientId: 'ios.apps.googleusercontent.com',
++        webClientId: 'web.apps.googleusercontent.com',
++      ),
++      isNotNull,
++    );
++  });
++}
+
+##### test/health_profile_data_test.dart
+@@ -0,0 +1,12 @@
++import 'package:ayg/models/health_profile_data.dart';
++import 'package:flutter_test/flutter_test.dart';
++
++void main() {
++  test('empty profile has no values', () {
++    expect(HealthProfileData.empty.hasAnyValue, isFalse);
++  });
++
++  test('weight only counts as a value', () {
++    expect(const HealthProfileData(weightKg: 60).hasAnyValue, isTrue);
++  });
++}
+
+##### test/legal_document_screen_test.dart
+@@ -122,6 +122,25 @@ void main() {
+     expect(find.text('特定商取引法に基づく表記'), findsOneWidget);
+     expect(find.textContaining('麹池成'), findsWidgets);
+     expect(find.textContaining('アプリ内課金'), findsOneWidget);
++    expect(find.textContaining('380'), findsOneWidget);
++    expect(find.textContaining('4,180'), findsOneWidget);
++    expect(find.byTooltip('閉じる'), findsOneWidget);
++  });
++
++  testWidgets('account deletion screen renders in-app steps from assets', (
++    WidgetTester tester,
++  ) async {
++    await tester.pumpWidget(
++      const MaterialApp(
++        home: LegalDocumentScreen(document: LegalDocument.accountDeletion),
++      ),
++    );
++    await tester.pumpAndSettle();
++
++    expect(find.text('アカウント削除'), findsOneWidget);
++    expect(find.textContaining('アプリ内からの削除'), findsOneWidget);
++    expect(find.textContaining('公開食品'), findsOneWidget);
++    expect(find.textContaining('削除済みユーザー'), findsOneWidget);
+     expect(find.byTooltip('閉じる'), findsOneWidget);
+   });
+ }
+
+##### test/mocks/mock_authentication_repository.dart
+@@ -13,10 +13,17 @@ class MockAuthenticationRepository extends AuthenticationRepository {
+ 
+   bool restoreSessionCalled = false;
+   bool loginWithGoogleCalled = false;
++  bool loginWithAppleCalled = false;
+   bool logoutCalled = false;
++  bool deleteOwnAccountCalled = false;
++  bool simulateDeleteUnavailable = false;
+   bool simulateGoogleSignInCancelled = false;
+   bool simulateGoogleSignInFailure = false;
++  bool simulateAppleSignInCancelled = false;
++  bool simulateAppleSignInFailure = false;
++  bool simulateAppleSignInUnavailable = false;
+   String googleSignInFailureMessage = 'Google sign-in failed.';
++  String appleSignInFailureMessage = 'Apple sign-in failed.';
+ 
+   void setCurrentUser(AuthUser? user) {
+     _currentUser = user;
+@@ -52,7 +59,21 @@ class MockAuthenticationRepository extends AuthenticationRepository {
+ 
+   @override
+   Future<void> loginWithApple() async {
+-    throw UnimplementedError('Apple Sign-In is not implemented yet.');
++    loginWithAppleCalled = true;
++    if (simulateAppleSignInCancelled) {
++      throw AppleSignInCancelledException();
++    }
++    if (simulateAppleSignInUnavailable) {
++      throw AppleSignInUnavailableException();
++    }
++    if (simulateAppleSignInFailure) {
++      throw AppleSignInFailedException(appleSignInFailureMessage);
++    }
++    _currentUser = const AuthUser(
++      id: 'test-user-id',
++      email: 'test@example.com',
++    );
++    _controller.add(_currentUser);
+   }
+ 
+   @override
+@@ -62,6 +83,14 @@ class MockAuthenticationRepository extends AuthenticationRepository {
+     _controller.add(null);
+   }
+ 
++  @override
++  Future<void> deleteOwnAccount() async {
++    deleteOwnAccountCalled = true;
++    if (simulateDeleteUnavailable) {
++      throw AccountDeletionUnavailableException();
++    }
++  }
++
+   Future<void> dispose() async {
+     await _controller.close();
+   }

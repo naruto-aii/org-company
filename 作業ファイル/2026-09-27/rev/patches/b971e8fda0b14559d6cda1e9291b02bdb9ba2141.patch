@@ -1,0 +1,492 @@
+From b971e8fda0b14559d6cda1e9291b02bdb9ba2141 Mon Sep 17 00:00:00 2001
+From: Cursor Agent <cursoragent@cursor.com>
+Date: Sun, 20 Sep 2026 01:32:08 +0000
+Subject: [PATCH] feat: label leftover public foods as deleted users
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Account deletion now marks remaining public foods so the creator field shows 削除済みユーザー, and store copy is limited to App Store / 麹池成.
+
+Co-authored-by: naruto.futuree <naruto.futuree@gmail.com>
+---
+ docs/01_Project.md                            | 16 ++---
+ docs/legal/README.md                          | 38 +++++-------
+ legal/account-deletion.html                   |  2 +-
+ legal/privacy.html                            |  4 +-
+ legal/terms.html                              |  3 +-
+ legal/tokushoho.html                          |  4 +-
+ lib/constants/app_strings.dart                |  4 +-
+ lib/models/saved_food.dart                    |  9 +++
+ .../supabase/food_master_row_mapper.dart      |  1 +
+ .../supabase_saved_food_repository.dart       |  1 +
+ .../settings/account_deletion_screen.dart     |  2 +-
+ lib/utils/saved_food_display_labels.dart      |  4 ++
+ .../saved_food/public_food_detail_sheet.dart  |  1 +
+ .../public_food_search_result_tile.dart       |  4 ++
+ ...0_delete_own_account_keep_public_foods.sql |  8 +++
+ test/food_master_row_mapper_test.dart         | 22 +++++++
+ test/legal_document_screen_test.dart          |  1 +
+ test/saved_food_creator_label_test.dart       | 59 +++++++++++++++++++
+ 18 files changed, 141 insertions(+), 42 deletions(-)
+ create mode 100644 test/saved_food_creator_label_test.dart
+
+diff --git a/docs/01_Project.md b/docs/01_Project.md
+index 655f581..0dc2bf7 100644
+--- a/docs/01_Project.md
++++ b/docs/01_Project.md
+@@ -174,12 +174,9 @@ Vision / Mission / 最上位目的は、今後 Owner が確定する。
+ 
+ - カロナビの **正式プロダクトはモバイルアプリ** である
+ - **iOS / Android の両方** を本線プラットフォームとして設計する
+-- **初回の正式公開は Apple App Store を優先** する
+-- Android も同時公開を意味する表現は用いない
+-
+-#### 【Open Question】
+-
+-- Google Play 公開時期
++- **初回の正式公開は Apple App Store のみ** とする
++- Android / Google Play は初回に出さない。時期は未定
++- 運営名義は法人化まで **個人・麹池成**
+ 
+ ### Web Preview
+ 
+@@ -415,13 +412,10 @@ Core Value は、プロダクト一言定義 **「エネルギー管理におけ
+ ### 【Owner Decision】
+ 
+ - カロナビは **Apple App Store での公開を予定** する
++- 初回は App Store のみ。Google Play は出さない
+ - App Store 公開前に、法務、Privacy、Apple Sign-In、審査要件、セキュリティ、TestFlight 等を完了する
+ - 詳細は後続の Release / Legal 文書で定義する
+ 
+-### 【Open Question】
+-
+-- Google Play 公開時期
+-
+ ---
+ 
+ ## Open Questions（一覧）
+@@ -432,7 +426,7 @@ Core Value は、プロダクト一言定義 **「エネルギー管理におけ
+ | Q2 | Core Value の具体的な問い・例 |
+ | Q3 | 体重専用タブの本格 UI（履歴・グラフ等）を Version 1.1 に含めるか |
+ | Q4 | Health から取得した Workout を運動履歴・消費カロリー計算へどう反映するか |
+-| Q5 | Google Play 公開時期 |
++| Q5 | Google Play を後から出す時期（初回は出さない） |
+ 
+ ---
+ 
+diff --git a/docs/legal/README.md b/docs/legal/README.md
+index 3cdc346..de14256 100644
+--- a/docs/legal/README.md
++++ b/docs/legal/README.md
+@@ -30,32 +30,26 @@
+ 
+ Owner が本番 Supabase の SQL Editor で適用する。エージェントは本番に適用しない。
+ 適用後、設定 → アカウント削除から個人データが消え、公開食品は残る。
++作成者欄は「削除済みユーザー」になる（`saved_foods.owner_deleted`）。
+ 未適用のあいだは、アプリがメール依頼にフォールバックする。
+ 
+-## Owner の意思決定が必要な項目
++## 決まったこと（2026-09-20）
+ 
+-すでに決まっていること（氏名 麹池成、東京都、IAP 初日、公開食品は削除後も残す、Health を出す、全年齢、Web Preview はアプリ非依存なら非公開可、legal HTML は公開維持）は再確認不要。
++- 初回公開は App Store のみ。Google Play は出さない
++- 運営名義は法人化まで個人・麹池成
++- アカウント削除後の公開食品は残し、作成者欄は「削除済みユーザー」
++- 法務文面は、弁護士未確認のまま出す（残余リスクは薄いと判断した場合）
+ 
+-残っている判断:
++## まだ決めること
+ 
+-1. **課金の中身**: 何を売るか（買い切り / 定期購入 / 両方）、価格、初回の商品数。特商法の価格欄と購入確認画面はこれに依存する。
+-2. **初回公開の店**: App Store のみか、同時に Google Play も出すか。
+-3. **Apple ログインを出す時期**: Google ログインがあるため、App Store 提出前に Sign in with Apple が必要（ガイドライン 4.8）。今のボタンは「準備中」。提出前に実装するか、提出を Apple ログイン完了まで待つか。
+-4. **法人化後の名義**: 屋号なしの個人（麹池成）のまま出すか、法人後に全書類を差し替えるか。差し替え時は効力発生日を決める。
+-5. **住所・電話の請求対応方針**: ページには東京都とメールだけ。利用者・購入見込みの人から請求が来たら、本人確認のうえ遅滞なく開示する。誰が確認し、何をもって本人とするか（ログイン同一メール必須、など）を決める。
+-6. **公開食品を残す範囲の再確認**: 削除後も食品名・栄養が他ユーザーから見える。Apple は UGC 削除を期待することがある。開示済みなので通る想定だが、残したくない種類があれば今のうちに分ける。
++1. **課金の中身**（相談中）: 何を無料にし、何を有料にするか。買い切りか年額か。価格。
+ 
+-弁護士レビューは未実施。文面を「法令適合保証」とは言えない。出すか出さないかの最終判断は Owner。
++## Owner の作業
+ 
+-## Owner の作業が必要な項目
+-
+-エージェントが代行できない、または本番権限が必要な作業。
+-
+-1. **本番 Supabase**: 上記 SQL を SQL Editor で適用する。適用前にバックアップを取る。`service_role` は共有しない。
+-2. **サポートメール監視**: `calonavi.ayg.support@gmail.com` を日常的に見る。特商法の住所・電話請求と、RPC 未適用時のアカウント削除依頼は「遅滞なく」返す。
+-3. **App Store Connect**: プライバシーポリシー URL、利用規約 URL、アカウント削除 URL、Privacy Nutrition Labels（Health は目標計算のみ、広告・マーケティングに使わない）、年齢、連絡先。
+-4. **Sign in with Apple**: Apple Developer で identifier / key / capability を作り、Supabase Auth に設定する。`.p8` はリポジトリに置かない。実装後は削除時に Apple トークン無効化も必要。
+-5. **アプリ内課金**: App Store Connect で商品と価格を作る。実装（StoreKit / Play Billing）と、特商法上の購入確認表示は商品が決まってから。
+-6. **公開してよい連絡先の管理**: 番地、私用電話、身分証画像を legal HTML やストア説明に載せない。請求が来たときだけ、本人確認のうえ個別に返す。
+-7. **TestFlight / 審査提出**: 証明書、スクリーンショット、審査メモ（Health の用途、公開食品が残ること、アカウント削除の手順）。
+-8. **Google Play を出す場合**: データセーフティ、アカウント削除 URL、課金商品を別途用意する。
++1. **本番 Supabase**: 上記 SQL を適用する。適用前にバックアップ。`service_role` は共有しない
++2. **サポートメール**: 住所・電話の請求と削除依頼を、本人確認のうえ遅滞なく返す
++3. **App Store Connect**: プライバシー / 利用規約 / アカウント削除 URL、Privacy Nutrition Labels、年齢
++4. **Sign in with Apple**: アプリ側は未実装。Developer 登録だけでは足りない。実装後に提出する
++5. **アプリ内課金**: 商品が決まってから App Store Connect と StoreKit
++6. **番地・私用電話を公開ページに載せない**
++7. **TestFlight / 審査提出**
+diff --git a/legal/account-deletion.html b/legal/account-deletion.html
+index 4dbdc68..6176b08 100644
+--- a/legal/account-deletion.html
++++ b/legal/account-deletion.html
+@@ -45,7 +45,7 @@ <h2>削除されるもの</h2>
+       <h2>残るもの</h2>
+       <p>
+         公開食品は、他の利用者が検索・利用できる共有データとしてクラウドに残します。
+-        作成者の氏名やメールアドレスは公開食品に載せません。
++        作成者欄は「削除済みユーザー」と表示します。氏名やメールアドレスは載せません。
+         法令で保管が必要な記録や、対応済みの問い合わせは、必要な期間残ることがあります。
+       </p>
+ 
+diff --git a/legal/privacy.html b/legal/privacy.html
+index b6acaa7..95f2e4a 100644
+--- a/legal/privacy.html
++++ b/legal/privacy.html
+@@ -100,7 +100,7 @@ <h2>6. 第三者提供</h2>
+       <h2>7. 委託と国外取扱い</h2>
+       <p>サービス提供のため、次の事業者に取扱いを委託し、または預けることがあります。</p>
+       <ul>
+-        <li>Google LLC（Google ログイン、Health Connect、アプリ内課金）</li>
++        <li>Google LLC（Google ログイン、Health Connect）</li>
+         <li>Apple Inc.（Sign in with Apple、Apple Health、アプリ内課金）</li>
+         <li>Supabase, Inc.（クラウド上のデータベースと認証）</li>
+         <li>Open Food Facts（バーコードからの食品情報。公開データベース）</li>
+@@ -116,7 +116,7 @@ <h2>8. 公開食品</h2>
+       <p>
+         利用者が食品を「公開」した場合、その食品名、基準量、栄養情報などは他の利用者から検索・利用できます。
+         公開食品は、作成者のアカウント削除後も、他の利用者と運営が使える形でクラウドに残します。
+-        氏名やメールアドレスは公開食品に載せません。
++        その場合、作成者欄は「削除済みユーザー」と表示します。氏名やメールアドレスは載せません。
+       </p>
+ 
+       <h2>9. 安全管理措置</h2>
+diff --git a/legal/terms.html b/legal/terms.html
+index d20b7d4..bc015ed 100644
+--- a/legal/terms.html
++++ b/legal/terms.html
+@@ -35,7 +35,7 @@ <h2>2. 定義</h2>
+       <ul>
+         <li>利用者: 本サービスにログインした人</li>
+         <li>公開食品: 利用者が他の利用者から検索・利用できる状態で投稿した食品情報</li>
+-        <li>ストア: Apple Inc. の App Store、または Google LLC の Google Play</li>
++        <li>ストア: 現在は Apple Inc. の App Store</li>
+       </ul>
+ 
+       <h2>3. サービス内容</h2>
+@@ -83,6 +83,7 @@ <h2>7. 公開食品</h2>
+         公開食品の著作権その他の権利は、法令に従い利用者に残ります。
+         ただし運営は、本サービスの提供、検索、表示、保全、改善のために、公開食品を複製・保存・表示できます。
+         アカウントを削除しても、公開食品は他の利用者と運営が使える形でクラウドに残します。
++        その場合、作成者欄は「削除済みユーザー」と表示します。
+         個人の食事・運動・体重の記録や、非公開の保存食品は削除します。
+       </p>
+       <p>
+diff --git a/legal/tokushoho.html b/legal/tokushoho.html
+index 3e5edf3..97b0328 100644
+--- a/legal/tokushoho.html
++++ b/legal/tokushoho.html
+@@ -38,7 +38,7 @@ <h1>特定商取引法に基づく表記</h1>
+         <li>数量: 各購入画面に表示します</li>
+         <li>送料: かかりません（デジタル役務です）</li>
+         <li>販売価格以外に必要な費用: インターネット接続料、通信料は利用者の負担です</li>
+-        <li>支払方法: Apple Inc. の App Store、または Google LLC の Google Play のアプリ内課金</li>
++        <li>支払方法: Apple Inc. の App Store のアプリ内課金</li>
+         <li>支払時期: 各ストアが定める時期</li>
+         <li>役務の提供時期: 決済完了後、直ちにアプリ内で利用できます</li>
+         <li>申込みの有効期限: 定めはありません</li>
+@@ -48,7 +48,7 @@ <h1>特定商取引法に基づく表記</h1>
+         <li>
+           定期購入の解約: ストアの定期購入（サブスクリプション）設定から行ってください。アプリの削除、ログアウト、アカウント削除だけでは課金は止まりません
+         </li>
+-        <li>動作環境: 対象ストアが配布する iOS または Android 端末。詳細は各ストアのページを見てください</li>
++        <li>動作環境: App Store が配布する iOS 端末。詳細はストアのページを見てください</li>
+       </ul>
+     </main>
+     <footer>
+diff --git a/lib/constants/app_strings.dart b/lib/constants/app_strings.dart
+index db485d9..fa79f37 100644
+--- a/lib/constants/app_strings.dart
++++ b/lib/constants/app_strings.dart
+@@ -32,14 +32,14 @@ class AppStrings {
+   static const settingsAccountDeletion = 'アカウント削除';
+   static const settingsAccountDeletionSubtitle = '公開食品は残ります。アプリ内で削除できます';
+   static const accountDeletionLead =
+-      '削除するとログインできなくなります。公開食品は他の利用者が使える形で残ります。';
++      '削除するとログインできなくなります。公開食品は残ります。作成者欄は「削除済みユーザー」になります。';
+   static const accountDeletionRemoves = '削除されるもの';
+   static const accountDeletionKeeps = '残るもの';
+   static const accountDeletionBilling =
+       'ストアの定期購入は、この操作では止まりません。先に各ストアで解約してください。';
+   static const accountDeletionConfirmTitle = 'アカウントを削除しますか？';
+   static const accountDeletionConfirmBody =
+-      'この操作は取り消せません。個人の記録は消えます。公開食品は残ります。';
++      'この操作は取り消せません。個人の記録は消えます。公開食品は残り、作成者は「削除済みユーザー」と表示されます。';
+   static const accountDeletionExecute = 'アカウントを削除する';
+   static const accountDeletionUnavailable =
+       '自動削除はまだ使えません。サポートメールから削除を依頼できます。';
+diff --git a/lib/models/saved_food.dart b/lib/models/saved_food.dart
+index d68c7df..d0b4514 100644
+--- a/lib/models/saved_food.dart
++++ b/lib/models/saved_food.dart
+@@ -33,6 +33,7 @@ class SavedFood {
+     this.lastUsedAt,
+     this.reportCount = 0,
+     this.version = 1,
++    this.ownerDeleted = false,
+     required this.createdAt,
+     required this.updatedAt,
+     this.deletedAt,
+@@ -73,6 +74,9 @@ class SavedFood {
+   /// 公開食品の利用者向け内容変更回数（V1.1 は履歴なし・将来互換用）。
+   final int version;
+ 
++  /// 作成者アカウント削除後の公開食品。氏名は出さず「削除済みユーザー」と表示する。
++  final bool ownerDeleted;
++
+   final DateTime createdAt;
+   final DateTime updatedAt;
+   final DateTime? deletedAt;
+@@ -93,6 +97,9 @@ class SavedFood {
+   /// 表示用の基準単位文字列。
+   String get baseUnit => servingUnitLabel?.trim() ?? '';
+ 
++  /// 公開食品の作成者欄。本名やメールは使わない。
++  String get creatorLabel => ownerDeleted ? '削除済みユーザー' : 'ユーザー';
++
+   SavedFood copyWith({
+     String? foodId,
+     String? ownerUserId,
+@@ -118,6 +125,7 @@ class SavedFood {
+     DateTime? lastUsedAt,
+     int? reportCount,
+     int? version,
++    bool? ownerDeleted,
+     DateTime? createdAt,
+     DateTime? updatedAt,
+     DateTime? deletedAt,
+@@ -148,6 +156,7 @@ class SavedFood {
+       lastUsedAt: lastUsedAt ?? this.lastUsedAt,
+       reportCount: reportCount ?? this.reportCount,
+       version: version ?? this.version,
++      ownerDeleted: ownerDeleted ?? this.ownerDeleted,
+       createdAt: createdAt ?? this.createdAt,
+       updatedAt: updatedAt ?? this.updatedAt,
+       deletedAt: deletedAt ?? this.deletedAt,
+diff --git a/lib/repositories/supabase/food_master_row_mapper.dart b/lib/repositories/supabase/food_master_row_mapper.dart
+index 3c8a295..2c0e2df 100644
+--- a/lib/repositories/supabase/food_master_row_mapper.dart
++++ b/lib/repositories/supabase/food_master_row_mapper.dart
+@@ -49,6 +49,7 @@ class FoodMasterRowMapper {
+       lastUsedAt: _parseDateTime(row['last_used_at']),
+       reportCount: (row['report_count'] as num?)?.toInt() ?? 0,
+       version: (row['version'] as num?)?.toInt() ?? 1,
++      ownerDeleted: row['owner_deleted'] == true,
+       createdAt: DateTime.parse(row['created_at'] as String),
+       updatedAt: DateTime.parse(row['updated_at'] as String),
+       deletedAt: _parseDateTime(row['deleted_at']),
+diff --git a/lib/repositories/supabase/supabase_saved_food_repository.dart b/lib/repositories/supabase/supabase_saved_food_repository.dart
+index 1e36310..6e25dcd 100644
+--- a/lib/repositories/supabase/supabase_saved_food_repository.dart
++++ b/lib/repositories/supabase/supabase_saved_food_repository.dart
+@@ -372,6 +372,7 @@ class SupabaseSavedFoodRepository implements SavedFoodRemoteStore {
+       updatedAt: now,
+       deletedAt: null,
+       version: SavedFoodVersionPolicy.initialVersion,
++      ownerDeleted: false,
+     );
+   }
+ }
+diff --git a/lib/screens/settings/account_deletion_screen.dart b/lib/screens/settings/account_deletion_screen.dart
+index ec32e89..7b0fac1 100644
+--- a/lib/screens/settings/account_deletion_screen.dart
++++ b/lib/screens/settings/account_deletion_screen.dart
+@@ -162,7 +162,7 @@ class _AccountDeletionScreenState extends State<AccountDeletionScreen> {
+                       style: Theme.of(context).textTheme.titleSmall,
+                     ),
+                     const SizedBox(height: AppSpacing.xs),
+-                    const Text('・公開食品（氏名やメールは載せません）'),
++                    const Text('・公開食品（作成者は「削除済みユーザー」。氏名やメールは載せません）'),
+                   ],
+                 ),
+               ),
+diff --git a/lib/utils/saved_food_display_labels.dart b/lib/utils/saved_food_display_labels.dart
+index c9e922d..f4fcde5 100644
+--- a/lib/utils/saved_food_display_labels.dart
++++ b/lib/utils/saved_food_display_labels.dart
+@@ -12,6 +12,10 @@ class SavedFoodDisplayLabels {
+     };
+   }
+ 
++  static String creator(bool ownerDeleted) {
++    return ownerDeleted ? '削除済みユーザー' : 'ユーザー';
++  }
++
+   static String sourceType(FoodSourceType sourceType) {
+     return switch (sourceType) {
+       FoodSourceType.manual => '手入力',
+diff --git a/lib/widgets/saved_food/public_food_detail_sheet.dart b/lib/widgets/saved_food/public_food_detail_sheet.dart
+index a618122..b8ee654 100644
+--- a/lib/widgets/saved_food/public_food_detail_sheet.dart
++++ b/lib/widgets/saved_food/public_food_detail_sheet.dart
+@@ -182,6 +182,7 @@ class _PublicFoodDetailSheetState extends State<_PublicFoodDetailSheet> {
+               ),
+               if (food.brand != null && food.brand!.isNotEmpty)
+                 Text('ブランド: ${food.brand}'),
++              Text('作成者: ${food.creatorLabel}'),
+               Text(
+                 '登録元: ${SavedFoodDisplayLabels.sourceType(food.sourceType)}',
+               ),
+diff --git a/lib/widgets/saved_food/public_food_search_result_tile.dart b/lib/widgets/saved_food/public_food_search_result_tile.dart
+index f093d25..b1a799c 100644
+--- a/lib/widgets/saved_food/public_food_search_result_tile.dart
++++ b/lib/widgets/saved_food/public_food_search_result_tile.dart
+@@ -55,6 +55,10 @@ class PublicFoodSearchResultTile extends StatelessWidget {
+             ),
+             if (food.brand != null && food.brand!.isNotEmpty)
+               Text('ブランド: ${food.brand}', style: theme.textTheme.bodySmall),
++            Text(
++              '作成者: ${food.creatorLabel}',
++              style: theme.textTheme.bodySmall,
++            ),
+             Text(
+               '登録元: ${SavedFoodDisplayLabels.sourceType(food.sourceType)} · '
+               'Good ${match.goodCount} / Bad ${match.badCount}',
+diff --git a/supabase/migrations/20260920120000_delete_own_account_keep_public_foods.sql b/supabase/migrations/20260920120000_delete_own_account_keep_public_foods.sql
+index 7544a63..10c92d9 100644
+--- a/supabase/migrations/20260920120000_delete_own_account_keep_public_foods.sql
++++ b/supabase/migrations/20260920120000_delete_own_account_keep_public_foods.sql
+@@ -14,6 +14,9 @@ begin;
+ alter table public.users
+   add column if not exists deleted_at timestamptz;
+ 
++alter table public.saved_foods
++  add column if not exists owner_deleted boolean not null default false;
++
+ create or replace function public.delete_own_account()
+ returns void
+ language plpgsql
+@@ -46,6 +49,11 @@ begin
+     where user_id = uid
+       and visibility is distinct from 'public';
+ 
++  update public.saved_foods
++  set owner_deleted = true
++  where user_id = uid
++    and visibility = 'public';
++
+   delete from public.food_entries where user_id = uid;
+   delete from public.exercise_entries where user_id = uid;
+   delete from public.weight_entries where user_id = uid;
+diff --git a/test/food_master_row_mapper_test.dart b/test/food_master_row_mapper_test.dart
+index eca32c5..e9d5d08 100644
+--- a/test/food_master_row_mapper_test.dart
++++ b/test/food_master_row_mapper_test.dart
+@@ -85,6 +85,28 @@ void main() {
+ 
+       expect(parsed.version, 4);
+     });
++
++    test('reads owner_deleted and does not let the client overwrite it', () {
++      final food = SavedFood(
++        foodId: 'f4',
++        ownerUserId: 'u1',
++        name: 'Left Rice',
++        normalizedName: 'left rice',
++        baseAmount: 100,
++        unitType: FoodUnitType.g,
++        createdAt: DateTime.utc(2026, 1, 1),
++        updatedAt: DateTime.utc(2026, 1, 2),
++      );
++      final row = FoodMasterRowMapper.savedFoodToRow(food, userId: 'u1');
++      row['owner_deleted'] = true;
++
++      final parsed = FoodMasterRowMapper.savedFoodFromRow(row);
++      expect(parsed.ownerDeleted, isTrue);
++      expect(parsed.creatorLabel, '削除済みユーザー');
++
++      final written = FoodMasterRowMapper.savedFoodToRow(parsed, userId: 'u1');
++      expect(written.containsKey('owner_deleted'), isFalse);
++    });
+   });
+ 
+   group('FoodMasterRowMapper.foodEntry', () {
+diff --git a/test/legal_document_screen_test.dart b/test/legal_document_screen_test.dart
+index f34cade..9a4038a 100644
+--- a/test/legal_document_screen_test.dart
++++ b/test/legal_document_screen_test.dart
+@@ -138,6 +138,7 @@ void main() {
+     expect(find.text('アカウント削除'), findsOneWidget);
+     expect(find.textContaining('アプリ内からの削除'), findsOneWidget);
+     expect(find.textContaining('公開食品'), findsOneWidget);
++    expect(find.textContaining('削除済みユーザー'), findsOneWidget);
+     expect(find.byTooltip('閉じる'), findsOneWidget);
+   });
+ }
+diff --git a/test/saved_food_creator_label_test.dart b/test/saved_food_creator_label_test.dart
+new file mode 100644
+index 0000000..8bcd975
+--- /dev/null
++++ b/test/saved_food_creator_label_test.dart
+@@ -0,0 +1,59 @@
++import 'package:ayg/models/food_unit_type.dart';
++import 'package:ayg/models/public_food_search_match.dart';
++import 'package:ayg/models/saved_food.dart';
++import 'package:ayg/state/app_controller.dart';
++import 'package:ayg/theme/app_theme.dart';
++import 'package:ayg/widgets/saved_food/public_food_search_result_tile.dart';
++import 'package:flutter/material.dart';
++import 'package:flutter_test/flutter_test.dart';
++
++import 'mocks/mock_health_repository.dart';
++
++void main() {
++  TestWidgetsFlutterBinding.ensureInitialized();
++
++  SavedFood food({required bool ownerDeleted}) {
++    return SavedFood(
++      foodId: 'food-1',
++      ownerUserId: 'owner-1',
++      name: '公開ごはん',
++      normalizedName: '公開ごはん',
++      baseAmount: 100,
++      unitType: FoodUnitType.g,
++      servingUnitLabel: 'g',
++      ownerDeleted: ownerDeleted,
++      createdAt: DateTime(2026, 9, 20),
++      updatedAt: DateTime(2026, 9, 20),
++    );
++  }
++
++  test('creatorLabel is anonymous until the owner is deleted', () {
++    expect(food(ownerDeleted: false).creatorLabel, 'ユーザー');
++    expect(food(ownerDeleted: true).creatorLabel, '削除済みユーザー');
++  });
++
++  testWidgets('search tile shows deleted-user creator', (tester) async {
++    final controller = AppController(
++      healthRepository: MockHealthRepository(isAvailable: false),
++    );
++    await tester.pumpWidget(
++      MaterialApp(
++        theme: AppTheme.light,
++        home: Scaffold(
++          body: PublicFoodSearchResultTile(
++            controller: controller,
++            match: PublicFoodSearchMatch(
++              food: food(ownerDeleted: true),
++              goodCount: 0,
++              badCount: 0,
++              matchType: PublicFoodSearchMatchType.exactName,
++            ),
++            onTap: () {},
++          ),
++        ),
++      ),
++    );
++
++    expect(find.text('作成者: 削除済みユーザー'), findsOneWidget);
++  });
++}

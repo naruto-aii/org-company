@@ -1,0 +1,95 @@
+From df01db14db860c0f18a5845972f8070164184df9 Mon Sep 17 00:00:00 2001
+From: Cursor Agent <cursoragent@cursor.com>
+Date: Sun, 20 Sep 2026 02:05:19 +0000
+Subject: [PATCH] docs: split remaining tasks into now vs after design
+
+Keep console and functional QA moving while the designer is out. Visual work waits for Figma, icon, splash, and store screenshots.
+
+Co-authored-by: naruto.futuree <naruto.futuree@gmail.com>
+---
+ docs/01_Project.md   | 15 ++++++++-------
+ docs/legal/README.md | 37 +++++++++++++++++++++++++++----------
+ 2 files changed, 35 insertions(+), 17 deletions(-)
+
+diff --git a/docs/01_Project.md b/docs/01_Project.md
+index d54ea43..a8fc1a9 100644
+--- a/docs/01_Project.md
++++ b/docs/01_Project.md
+@@ -397,13 +397,14 @@ Core Value は、プロダクト一言定義 **「エネルギー管理におけ
+ 以下は **【Owner Decision】** として Version 1.1 正式スコープに含まれるが、**現時点で未完成** の項目である。  
+ 「将来機能」ではなく、Version 1.1 リリース前に完了すべきタスクとして扱う。
+ 
+-| # | タスク | 【Current Implementation】 |
+-|---|--------|---------------------------|
+-| 1 | **カロナビ+（380円 / 4,180円）** | 無料枠と購入画面は実装済み。Store 商品は未作成 |
+-| 2 | **実機確認** | Apple ログイン・アカウント削除を含む。未完 |
+-| 3 | **App Store 掲載・TestFlight** | 未完了 |
+-
+-推奨着手順の本文は `docs/legal/README.md`。
++| # | レーン | タスク | 【Current Implementation】 |
++|---|--------|--------|---------------------------|
++| 1 | 今できる | **カロナビ+ Store 商品** | アプリ実装済み。ASC 未作成 |
++| 2 | 今できる | **実機の機能確認** | 未完。仮デザインのままでよい |
++| 3 | 今できる | **掲載テキスト** | URL / 年齢 / Privacy Labels / 審査メモ |
++| 4 | デザイン後 | **見た目・アイコン・スクショ・TestFlight** | デザイナー待ち |
++
++推奨着手順の本文は `docs/legal/README.md`。基本タスク完了のたびに「今できる / デザイン後」を出し直す。
+ 
+ ---
+ 
+diff --git a/docs/legal/README.md b/docs/legal/README.md
+index cf8d76e..2d46a61 100644
+--- a/docs/legal/README.md
++++ b/docs/legal/README.md
+@@ -59,24 +59,41 @@ App Store Connect で上記 Product ID の自動更新サブスクリプショ
+ - 公開食品の作成者欄「削除済みユーザー」
+ - 通報・作成者ブロック
+ 
+-## 残タスク（推奨着手順）
++基本タスクが終わるごとに、下の「今できる」「デザイン後」と推奨順を出し直す。デザイナーへ見た目を依頼中。機能は凍結済み。
+ 
+-提出を止めるものから先。括弧は主担当。次は 1。
++## 今できる残タスク（推奨着手順）
++
++見た目の納品を待たなくてよい。括弧は主担当。次は 1。
+ 
+ 1. **App Store Connect でカロナビ+ を作る**（Owner）
+    - グループ: カロナビ+
+    - `calonavi_plus_monthly` 380円 / 1ヶ月
+    - `calonavi_plus_yearly` 4,180円 / 1年
+-2. **実機確認**（Owner、不具合はエージェント）
+-   - 1 のあとで一度通す。Apple ログインとアカウント削除は今すぐ可能
+-   - Google / Apple ログイン、アカウント削除、公開食品の「削除済みユーザー」、検索5回とテンプレ3件の上限、カロナビ+ 購入と復元、Health
+-3. **App Store Connect の掲載情報**（Owner）
++   - 商品名・説明は文言だけ。Figma 不要
++2. **実機の機能確認**（Owner、不具合はエージェント）
++   - 今の仮デザインのままでよい。見た目の直しはデザイン後
++   - 今すぐ: Google / Apple ログイン、アカウント削除、公開食品の「削除済みユーザー」、検索5回とテンプレ3件の上限、Health
++   - 1 のあと: カロナビ+ の購入と復元
++3. **掲載のテキストだけ先に入れる**（Owner）
+    - プライバシー / 利用規約 / アカウント削除 URL
+    - Privacy Nutrition Labels（Health は目標計算のみ。広告・マーケティングに使わない）
+-   - 年齢、スクリーンショット、審査メモ（公開食品が残ること、削除手順、Health の用途）
+-4. **TestFlight → 審査提出**（Owner）
+-5. **日常運用**（Owner）
++   - 年齢、審査メモ（公開食品が残ること、削除手順、Health の用途）
++   - スクリーンショットとアイコンは空のまま
++4. **日常運用の受け皿**（Owner）
+    - `calonavi.ayg.support@gmail.com` を見る。住所・電話請求と削除依頼は本人確認のうえ遅滞なく返す
+    - 番地・私用電話を公開ページに載せない
+ 
+-初回にやらなくてよい: Google Play、法人名義、体重タブ本格 UI、Health Workout の運動反映、写真解析、Apple token 失効、レシートのサーバ検証。
++## デザインが戻ってから着手
++
++Figma / アイコン / スプラッシュ / 店頭スクショが揃ってから。
++
++1. **見た目の実装**（エージェント）
++   - ログイン、初回設定、ホーム、食事、運動、体重、設定、空 / 読込 / エラー
++   - カロナビ+ 画面はブリーフ後に足したので、納品に無ければ現行のまま出すか追加依頼
++2. **アプリアイコンとスプラッシュ**（エージェント）
++3. **App Store スクリーンショット**（Owner、素材はデザイナー）
++4. **見た目込みの実機確認**（Owner、不具合はエージェント）
++5. **TestFlight → 審査提出**（Owner）
++   - アイコンとスクショが揃ってから出す
++
++初回にやらなくてよい: Google Play、法人名義、体重タブの機能追加、Health Workout の運動反映、写真解析、Apple token 失効、レシートのサーバ検証。

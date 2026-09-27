@@ -1,0 +1,1898 @@
+[
+  {
+    "sha": "d2b48d68fb1c340732a8c7e6eb597e9cdd1df72f",
+    "node_id": "C_kwDOTeJwqdoAKGQyYjQ4ZDY4ZmIxYzM0MDczMmE4YzdlNmViNTk3ZTljZGQxZGY3MmY",
+    "commit": {
+      "author": {
+        "name": "Cursor Agent",
+        "email": "cursoragent@cursor.com",
+        "date": "2026-09-20T01:20:09Z"
+      },
+      "committer": {
+        "name": "Cursor Agent",
+        "email": "cursoragent@cursor.com",
+        "date": "2026-09-20T01:20:09Z"
+      },
+      "message": "feat: add in-app account deletion with RPC fallback\n\nSettings now runs delete_own_account when present, falls back to email if the production function is missing, and aligns HealthKit usage strings with the privacy policy.\n\nCo-authored-by: naruto.futuree <naruto.futuree@gmail.com>",
+      "tree": {
+        "sha": "c85cb83090bd12a120287dd7d8f4c9ac3101f847",
+        "url": "https://api.github.com/repos/naruto-aii/AYG/git/trees/c85cb83090bd12a120287dd7d8f4c9ac3101f847"
+      },
+      "url": "https://api.github.com/repos/naruto-aii/AYG/git/commits/d2b48d68fb1c340732a8c7e6eb597e9cdd1df72f",
+      "comment_count": 0,
+      "verification": {
+        "verified": true,
+        "reason": "valid",
+        "signature": "-----BEGIN SSH SIGNATURE-----\nU1NIU0lHAAAAAQAAADMAAAALc3NoLWVkMjU1MTkAAAAg+qImwGMCy/grKZ50VxRHz3VfWW\nAL3QNbzIy2Nwcn+nQAAAADZ2l0AAAAAAAAAAZzaGE1MTIAAABTAAAAC3NzaC1lZDI1NTE5\nAAAAQE9gDcdJ3Hh7mjoDMrBDNx2Q+91BDktkKddujpT/95UJoMlcimaN3xRL154ldZ5bS/\nr+WaLTMjuMXIc5TeCIdgI=\n-----END SSH SIGNATURE-----",
+        "payload": "tree c85cb83090bd12a120287dd7d8f4c9ac3101f847\nparent b9d4907543ee7edc551fb43bc22d04de31989b61\nauthor Cursor Agent <cursoragent@cursor.com> 1789867209 +0000\ncommitter Cursor Agent <cursoragent@cursor.com> 1789867209 +0000\n\nfeat: add in-app account deletion with RPC fallback\n\nSettings now runs delete_own_account when present, falls back to email if the production function is missing, and aligns HealthKit usage strings with the privacy policy.\n\nCo-authored-by: naruto.futuree <naruto.futuree@gmail.com>\n",
+        "verified_at": "2026-09-20T01:20:14Z"
+      }
+    },
+    "url": "https://api.github.com/repos/naruto-aii/AYG/commits/d2b48d68fb1c340732a8c7e6eb597e9cdd1df72f",
+    "html_url": "https://github.com/naruto-aii/AYG/commit/d2b48d68fb1c340732a8c7e6eb597e9cdd1df72f",
+    "comments_url": "https://api.github.com/repos/naruto-aii/AYG/commits/d2b48d68fb1c340732a8c7e6eb597e9cdd1df72f/comments",
+    "author": {
+      "login": "cursoragent",
+      "id": 199161495,
+      "node_id": "U_kgDOC972lw",
+      "avatar_url": "https://avatars.githubusercontent.com/u/199161495?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/cursoragent",
+      "html_url": "https://github.com/cursoragent",
+      "followers_url": "https://api.github.com/users/cursoragent/followers",
+      "following_url": "https://api.github.com/users/cursoragent/following{/other_user}",
+      "gists_url": "https://api.github.com/users/cursoragent/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/cursoragent/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/cursoragent/subscriptions",
+      "organizations_url": "https://api.github.com/users/cursoragent/orgs",
+      "repos_url": "https://api.github.com/users/cursoragent/repos",
+      "events_url": "https://api.github.com/users/cursoragent/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/cursoragent/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "committer": {
+      "login": "cursoragent",
+      "id": 199161495,
+      "node_id": "U_kgDOC972lw",
+      "avatar_url": "https://avatars.githubusercontent.com/u/199161495?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/cursoragent",
+      "html_url": "https://github.com/cursoragent",
+      "followers_url": "https://api.github.com/users/cursoragent/followers",
+      "following_url": "https://api.github.com/users/cursoragent/following{/other_user}",
+      "gists_url": "https://api.github.com/users/cursoragent/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/cursoragent/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/cursoragent/subscriptions",
+      "organizations_url": "https://api.github.com/users/cursoragent/orgs",
+      "repos_url": "https://api.github.com/users/cursoragent/repos",
+      "events_url": "https://api.github.com/users/cursoragent/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/cursoragent/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "parents": [
+      {
+        "sha": "b9d4907543ee7edc551fb43bc22d04de31989b61",
+        "url": "https://api.github.com/repos/naruto-aii/AYG/commits/b9d4907543ee7edc551fb43bc22d04de31989b61",
+        "html_url": "https://github.com/naruto-aii/AYG/commit/b9d4907543ee7edc551fb43bc22d04de31989b61"
+      }
+    ]
+  },
+  {
+    "sha": "b971e8fda0b14559d6cda1e9291b02bdb9ba2141",
+    "node_id": "C_kwDOTeJwqdoAKGI5NzFlOGZkYTBiMTQ1NTlkNmNkYTFlOTI5MWIwMmJkYjliYTIxNDE",
+    "commit": {
+      "author": {
+        "name": "Cursor Agent",
+        "email": "cursoragent@cursor.com",
+        "date": "2026-09-20T01:32:08Z"
+      },
+      "committer": {
+        "name": "Cursor Agent",
+        "email": "cursoragent@cursor.com",
+        "date": "2026-09-20T01:32:08Z"
+      },
+      "message": "feat: label leftover public foods as deleted users\n\nAccount deletion now marks remaining public foods so the creator field shows 削除済みユーザー, and store copy is limited to App Store / 麹池成.\n\nCo-authored-by: naruto.futuree <naruto.futuree@gmail.com>",
+      "tree": {
+        "sha": "2bf830a9f51b652eee2965c9dbbbedb281e7e186",
+        "url": "https://api.github.com/repos/naruto-aii/AYG/git/trees/2bf830a9f51b652eee2965c9dbbbedb281e7e186"
+      },
+      "url": "https://api.github.com/repos/naruto-aii/AYG/git/commits/b971e8fda0b14559d6cda1e9291b02bdb9ba2141",
+      "comment_count": 0,
+      "verification": {
+        "verified": true,
+        "reason": "valid",
+        "signature": "-----BEGIN SSH SIGNATURE-----\nU1NIU0lHAAAAAQAAADMAAAALc3NoLWVkMjU1MTkAAAAg+qImwGMCy/grKZ50VxRHz3VfWW\nAL3QNbzIy2Nwcn+nQAAAADZ2l0AAAAAAAAAAZzaGE1MTIAAABTAAAAC3NzaC1lZDI1NTE5\nAAAAQOCSU3DZ7k+ietpCtnKsojh0OgWzTijzjl6Ztpn4iKi+swzz4ppSeRK3xRCQUIJjL6\nM2EX2eT+PjsveQRTi4ggE=\n-----END SSH SIGNATURE-----",
+        "payload": "tree 2bf830a9f51b652eee2965c9dbbbedb281e7e186\nparent d2b48d68fb1c340732a8c7e6eb597e9cdd1df72f\nauthor Cursor Agent <cursoragent@cursor.com> 1789867928 +0000\ncommitter Cursor Agent <cursoragent@cursor.com> 1789867928 +0000\n\nfeat: label leftover public foods as deleted users\n\nAccount deletion now marks remaining public foods so the creator field shows 削除済みユーザー, and store copy is limited to App Store / 麹池成.\n\nCo-authored-by: naruto.futuree <naruto.futuree@gmail.com>\n",
+        "verified_at": "2026-09-20T01:32:10Z"
+      }
+    },
+    "url": "https://api.github.com/repos/naruto-aii/AYG/commits/b971e8fda0b14559d6cda1e9291b02bdb9ba2141",
+    "html_url": "https://github.com/naruto-aii/AYG/commit/b971e8fda0b14559d6cda1e9291b02bdb9ba2141",
+    "comments_url": "https://api.github.com/repos/naruto-aii/AYG/commits/b971e8fda0b14559d6cda1e9291b02bdb9ba2141/comments",
+    "author": {
+      "login": "cursoragent",
+      "id": 199161495,
+      "node_id": "U_kgDOC972lw",
+      "avatar_url": "https://avatars.githubusercontent.com/u/199161495?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/cursoragent",
+      "html_url": "https://github.com/cursoragent",
+      "followers_url": "https://api.github.com/users/cursoragent/followers",
+      "following_url": "https://api.github.com/users/cursoragent/following{/other_user}",
+      "gists_url": "https://api.github.com/users/cursoragent/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/cursoragent/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/cursoragent/subscriptions",
+      "organizations_url": "https://api.github.com/users/cursoragent/orgs",
+      "repos_url": "https://api.github.com/users/cursoragent/repos",
+      "events_url": "https://api.github.com/users/cursoragent/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/cursoragent/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "committer": {
+      "login": "cursoragent",
+      "id": 199161495,
+      "node_id": "U_kgDOC972lw",
+      "avatar_url": "https://avatars.githubusercontent.com/u/199161495?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/cursoragent",
+      "html_url": "https://github.com/cursoragent",
+      "followers_url": "https://api.github.com/users/cursoragent/followers",
+      "following_url": "https://api.github.com/users/cursoragent/following{/other_user}",
+      "gists_url": "https://api.github.com/users/cursoragent/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/cursoragent/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/cursoragent/subscriptions",
+      "organizations_url": "https://api.github.com/users/cursoragent/orgs",
+      "repos_url": "https://api.github.com/users/cursoragent/repos",
+      "events_url": "https://api.github.com/users/cursoragent/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/cursoragent/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "parents": [
+      {
+        "sha": "d2b48d68fb1c340732a8c7e6eb597e9cdd1df72f",
+        "url": "https://api.github.com/repos/naruto-aii/AYG/commits/d2b48d68fb1c340732a8c7e6eb597e9cdd1df72f",
+        "html_url": "https://github.com/naruto-aii/AYG/commit/d2b48d68fb1c340732a8c7e6eb597e9cdd1df72f"
+      }
+    ]
+  },
+  {
+    "sha": "83a961a50452832deccd21761df1f658fdffd995",
+    "node_id": "C_kwDOTeJwqdoAKDgzYTk2MWE1MDQ1MjgzMmRlY2NkMjE3NjFkZjFmNjU4ZmRmZmQ5OTU",
+    "commit": {
+      "author": {
+        "name": "Cursor Agent",
+        "email": "cursoragent@cursor.com",
+        "date": "2026-09-20T01:46:08Z"
+      },
+      "committer": {
+        "name": "Cursor Agent",
+        "email": "cursoragent@cursor.com",
+        "date": "2026-09-20T01:46:08Z"
+      },
+      "message": "feat: add Calonavi+ limits at 380 yen monthly\n\nFree users get 5 public food searches a day and 3 meal/workout templates. Plus unlocks all three at 380 yen a month or 4,180 yen a year.\n\nCo-authored-by: naruto.futuree <naruto.futuree@gmail.com>",
+      "tree": {
+        "sha": "56c45861f600aacd57bd11da92bc6b987242b452",
+        "url": "https://api.github.com/repos/naruto-aii/AYG/git/trees/56c45861f600aacd57bd11da92bc6b987242b452"
+      },
+      "url": "https://api.github.com/repos/naruto-aii/AYG/git/commits/83a961a50452832deccd21761df1f658fdffd995",
+      "comment_count": 0,
+      "verification": {
+        "verified": true,
+        "reason": "valid",
+        "signature": "-----BEGIN SSH SIGNATURE-----\nU1NIU0lHAAAAAQAAADMAAAALc3NoLWVkMjU1MTkAAAAg+qImwGMCy/grKZ50VxRHz3VfWW\nAL3QNbzIy2Nwcn+nQAAAADZ2l0AAAAAAAAAAZzaGE1MTIAAABTAAAAC3NzaC1lZDI1NTE5\nAAAAQNduVVIjPgs+TuNqE47A84yglA9uJ51LCNWK994Iqf6fUVVGfjedXlL+jqiqcGU44J\nqOY/Ij3FnwyIjgn2Jtkw8=\n-----END SSH SIGNATURE-----",
+        "payload": "tree 56c45861f600aacd57bd11da92bc6b987242b452\nparent b971e8fda0b14559d6cda1e9291b02bdb9ba2141\nauthor Cursor Agent <cursoragent@cursor.com> 1789868768 +0000\ncommitter Cursor Agent <cursoragent@cursor.com> 1789868768 +0000\n\nfeat: add Calonavi+ limits at 380 yen monthly\n\nFree users get 5 public food searches a day and 3 meal/workout templates. Plus unlocks all three at 380 yen a month or 4,180 yen a year.\n\nCo-authored-by: naruto.futuree <naruto.futuree@gmail.com>\n",
+        "verified_at": "2026-09-20T01:46:10Z"
+      }
+    },
+    "url": "https://api.github.com/repos/naruto-aii/AYG/commits/83a961a50452832deccd21761df1f658fdffd995",
+    "html_url": "https://github.com/naruto-aii/AYG/commit/83a961a50452832deccd21761df1f658fdffd995",
+    "comments_url": "https://api.github.com/repos/naruto-aii/AYG/commits/83a961a50452832deccd21761df1f658fdffd995/comments",
+    "author": {
+      "login": "cursoragent",
+      "id": 199161495,
+      "node_id": "U_kgDOC972lw",
+      "avatar_url": "https://avatars.githubusercontent.com/u/199161495?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/cursoragent",
+      "html_url": "https://github.com/cursoragent",
+      "followers_url": "https://api.github.com/users/cursoragent/followers",
+      "following_url": "https://api.github.com/users/cursoragent/following{/other_user}",
+      "gists_url": "https://api.github.com/users/cursoragent/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/cursoragent/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/cursoragent/subscriptions",
+      "organizations_url": "https://api.github.com/users/cursoragent/orgs",
+      "repos_url": "https://api.github.com/users/cursoragent/repos",
+      "events_url": "https://api.github.com/users/cursoragent/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/cursoragent/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "committer": {
+      "login": "cursoragent",
+      "id": 199161495,
+      "node_id": "U_kgDOC972lw",
+      "avatar_url": "https://avatars.githubusercontent.com/u/199161495?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/cursoragent",
+      "html_url": "https://github.com/cursoragent",
+      "followers_url": "https://api.github.com/users/cursoragent/followers",
+      "following_url": "https://api.github.com/users/cursoragent/following{/other_user}",
+      "gists_url": "https://api.github.com/users/cursoragent/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/cursoragent/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/cursoragent/subscriptions",
+      "organizations_url": "https://api.github.com/users/cursoragent/orgs",
+      "repos_url": "https://api.github.com/users/cursoragent/repos",
+      "events_url": "https://api.github.com/users/cursoragent/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/cursoragent/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "parents": [
+      {
+        "sha": "b971e8fda0b14559d6cda1e9291b02bdb9ba2141",
+        "url": "https://api.github.com/repos/naruto-aii/AYG/commits/b971e8fda0b14559d6cda1e9291b02bdb9ba2141",
+        "html_url": "https://github.com/naruto-aii/AYG/commit/b971e8fda0b14559d6cda1e9291b02bdb9ba2141"
+      }
+    ]
+  },
+  {
+    "sha": "8c901c7085651a570affc434d88ee8597f26ab6d",
+    "node_id": "C_kwDOTeJwqdoAKDhjOTAxYzcwODU2NTFhNTcwYWZmYzQzNGQ4OGVlODU5N2YyNmFiNmQ",
+    "commit": {
+      "author": {
+        "name": "Cursor Agent",
+        "email": "cursoragent@cursor.com",
+        "date": "2026-09-20T01:48:08Z"
+      },
+      "committer": {
+        "name": "Cursor Agent",
+        "email": "cursoragent@cursor.com",
+        "date": "2026-09-20T01:48:08Z"
+      },
+      "message": "docs: order remaining App Store launch tasks\n\nRecord the current leftover work in launch order: Apple login, production delete SQL, Calonavi+ products, device QA, then TestFlight.\n\nCo-authored-by: naruto.futuree <naruto.futuree@gmail.com>",
+      "tree": {
+        "sha": "c5252017f4ad9761134b97bf6ebd884a714709a9",
+        "url": "https://api.github.com/repos/naruto-aii/AYG/git/trees/c5252017f4ad9761134b97bf6ebd884a714709a9"
+      },
+      "url": "https://api.github.com/repos/naruto-aii/AYG/git/commits/8c901c7085651a570affc434d88ee8597f26ab6d",
+      "comment_count": 0,
+      "verification": {
+        "verified": true,
+        "reason": "valid",
+        "signature": "-----BEGIN SSH SIGNATURE-----\nU1NIU0lHAAAAAQAAADMAAAALc3NoLWVkMjU1MTkAAAAg+qImwGMCy/grKZ50VxRHz3VfWW\nAL3QNbzIy2Nwcn+nQAAAADZ2l0AAAAAAAAAAZzaGE1MTIAAABTAAAAC3NzaC1lZDI1NTE5\nAAAAQJDXvHkyOZtJ7iAy9sYH5k/pKh7cceNsvKTW0z/jhxox2r0bbv9sKOdjZ22ViD22yG\nsEqdbLoGKiLivVKFhZSgw=\n-----END SSH SIGNATURE-----",
+        "payload": "tree c5252017f4ad9761134b97bf6ebd884a714709a9\nparent 83a961a50452832deccd21761df1f658fdffd995\nauthor Cursor Agent <cursoragent@cursor.com> 1789868888 +0000\ncommitter Cursor Agent <cursoragent@cursor.com> 1789868888 +0000\n\ndocs: order remaining App Store launch tasks\n\nRecord the current leftover work in launch order: Apple login, production delete SQL, Calonavi+ products, device QA, then TestFlight.\n\nCo-authored-by: naruto.futuree <naruto.futuree@gmail.com>\n",
+        "verified_at": "2026-09-20T01:48:10Z"
+      }
+    },
+    "url": "https://api.github.com/repos/naruto-aii/AYG/commits/8c901c7085651a570affc434d88ee8597f26ab6d",
+    "html_url": "https://github.com/naruto-aii/AYG/commit/8c901c7085651a570affc434d88ee8597f26ab6d",
+    "comments_url": "https://api.github.com/repos/naruto-aii/AYG/commits/8c901c7085651a570affc434d88ee8597f26ab6d/comments",
+    "author": {
+      "login": "cursoragent",
+      "id": 199161495,
+      "node_id": "U_kgDOC972lw",
+      "avatar_url": "https://avatars.githubusercontent.com/u/199161495?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/cursoragent",
+      "html_url": "https://github.com/cursoragent",
+      "followers_url": "https://api.github.com/users/cursoragent/followers",
+      "following_url": "https://api.github.com/users/cursoragent/following{/other_user}",
+      "gists_url": "https://api.github.com/users/cursoragent/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/cursoragent/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/cursoragent/subscriptions",
+      "organizations_url": "https://api.github.com/users/cursoragent/orgs",
+      "repos_url": "https://api.github.com/users/cursoragent/repos",
+      "events_url": "https://api.github.com/users/cursoragent/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/cursoragent/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "committer": {
+      "login": "cursoragent",
+      "id": 199161495,
+      "node_id": "U_kgDOC972lw",
+      "avatar_url": "https://avatars.githubusercontent.com/u/199161495?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/cursoragent",
+      "html_url": "https://github.com/cursoragent",
+      "followers_url": "https://api.github.com/users/cursoragent/followers",
+      "following_url": "https://api.github.com/users/cursoragent/following{/other_user}",
+      "gists_url": "https://api.github.com/users/cursoragent/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/cursoragent/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/cursoragent/subscriptions",
+      "organizations_url": "https://api.github.com/users/cursoragent/orgs",
+      "repos_url": "https://api.github.com/users/cursoragent/repos",
+      "events_url": "https://api.github.com/users/cursoragent/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/cursoragent/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "parents": [
+      {
+        "sha": "83a961a50452832deccd21761df1f658fdffd995",
+        "url": "https://api.github.com/repos/naruto-aii/AYG/commits/83a961a50452832deccd21761df1f658fdffd995",
+        "html_url": "https://github.com/naruto-aii/AYG/commit/83a961a50452832deccd21761df1f658fdffd995"
+      }
+    ]
+  },
+  {
+    "sha": "5f9229a17eb25566ad69e752637b88006d42de4f",
+    "node_id": "C_kwDOTeJwqdoAKDVmOTIyOWExN2ViMjU1NjZhZDY5ZTc1MjYzN2I4ODAwNmQ0MmRlNGY",
+    "commit": {
+      "author": {
+        "name": "Cursor Agent",
+        "email": "cursoragent@cursor.com",
+        "date": "2026-09-20T01:54:23Z"
+      },
+      "committer": {
+        "name": "Cursor Agent",
+        "email": "cursoragent@cursor.com",
+        "date": "2026-09-20T01:54:23Z"
+      },
+      "message": "feat: implement Sign in with Apple on iOS\n\nWire loginWithApple() to the native Apple ID token and Supabase, add the iOS entitlement, and keep Web preview unavailable.\n\nCo-authored-by: naruto.futuree <naruto.futuree@gmail.com>",
+      "tree": {
+        "sha": "47e2ac2044d27d4a1edcecde09fa421e2c10abd6",
+        "url": "https://api.github.com/repos/naruto-aii/AYG/git/trees/47e2ac2044d27d4a1edcecde09fa421e2c10abd6"
+      },
+      "url": "https://api.github.com/repos/naruto-aii/AYG/git/commits/5f9229a17eb25566ad69e752637b88006d42de4f",
+      "comment_count": 0,
+      "verification": {
+        "verified": true,
+        "reason": "valid",
+        "signature": "-----BEGIN SSH SIGNATURE-----\nU1NIU0lHAAAAAQAAADMAAAALc3NoLWVkMjU1MTkAAAAg+qImwGMCy/grKZ50VxRHz3VfWW\nAL3QNbzIy2Nwcn+nQAAAADZ2l0AAAAAAAAAAZzaGE1MTIAAABTAAAAC3NzaC1lZDI1NTE5\nAAAAQKlK9oU8eqWY89/ZIVGukd/nryLdKUNN7Hg1l7TSGM1MwSjxJLuVxkvXCqsV+ZlO6z\nDqx67eaurE4kPBOSYGxgQ=\n-----END SSH SIGNATURE-----",
+        "payload": "tree 47e2ac2044d27d4a1edcecde09fa421e2c10abd6\nparent 8c901c7085651a570affc434d88ee8597f26ab6d\nauthor Cursor Agent <cursoragent@cursor.com> 1789869263 +0000\ncommitter Cursor Agent <cursoragent@cursor.com> 1789869263 +0000\n\nfeat: implement Sign in with Apple on iOS\n\nWire loginWithApple() to the native Apple ID token and Supabase, add the iOS entitlement, and keep Web preview unavailable.\n\nCo-authored-by: naruto.futuree <naruto.futuree@gmail.com>\n",
+        "verified_at": "2026-09-20T01:54:27Z"
+      }
+    },
+    "url": "https://api.github.com/repos/naruto-aii/AYG/commits/5f9229a17eb25566ad69e752637b88006d42de4f",
+    "html_url": "https://github.com/naruto-aii/AYG/commit/5f9229a17eb25566ad69e752637b88006d42de4f",
+    "comments_url": "https://api.github.com/repos/naruto-aii/AYG/commits/5f9229a17eb25566ad69e752637b88006d42de4f/comments",
+    "author": {
+      "login": "cursoragent",
+      "id": 199161495,
+      "node_id": "U_kgDOC972lw",
+      "avatar_url": "https://avatars.githubusercontent.com/u/199161495?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/cursoragent",
+      "html_url": "https://github.com/cursoragent",
+      "followers_url": "https://api.github.com/users/cursoragent/followers",
+      "following_url": "https://api.github.com/users/cursoragent/following{/other_user}",
+      "gists_url": "https://api.github.com/users/cursoragent/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/cursoragent/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/cursoragent/subscriptions",
+      "organizations_url": "https://api.github.com/users/cursoragent/orgs",
+      "repos_url": "https://api.github.com/users/cursoragent/repos",
+      "events_url": "https://api.github.com/users/cursoragent/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/cursoragent/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "committer": {
+      "login": "cursoragent",
+      "id": 199161495,
+      "node_id": "U_kgDOC972lw",
+      "avatar_url": "https://avatars.githubusercontent.com/u/199161495?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/cursoragent",
+      "html_url": "https://github.com/cursoragent",
+      "followers_url": "https://api.github.com/users/cursoragent/followers",
+      "following_url": "https://api.github.com/users/cursoragent/following{/other_user}",
+      "gists_url": "https://api.github.com/users/cursoragent/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/cursoragent/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/cursoragent/subscriptions",
+      "organizations_url": "https://api.github.com/users/cursoragent/orgs",
+      "repos_url": "https://api.github.com/users/cursoragent/repos",
+      "events_url": "https://api.github.com/users/cursoragent/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/cursoragent/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "parents": [
+      {
+        "sha": "8c901c7085651a570affc434d88ee8597f26ab6d",
+        "url": "https://api.github.com/repos/naruto-aii/AYG/commits/8c901c7085651a570affc434d88ee8597f26ab6d",
+        "html_url": "https://github.com/naruto-aii/AYG/commit/8c901c7085651a570affc434d88ee8597f26ab6d"
+      }
+    ]
+  },
+  {
+    "sha": "55df9704f7af6a836a614483d63ade74c695a86d",
+    "node_id": "C_kwDOTeJwqdoAKDU1ZGY5NzA0ZjdhZjZhODM2YTYxNDQ4M2Q2M2FkZTc0YzY5NWE4NmQ",
+    "commit": {
+      "author": {
+        "name": "Cursor Agent",
+        "email": "cursoragent@cursor.com",
+        "date": "2026-09-20T01:56:56Z"
+      },
+      "committer": {
+        "name": "Cursor Agent",
+        "email": "cursoragent@cursor.com",
+        "date": "2026-09-20T01:56:56Z"
+      },
+      "message": "docs: treat Apple Supabase setup as already done\n\nOwner confirmed the .p8 and Apple provider are in place. Remaining Apple work is device QA.\n\nCo-authored-by: naruto.futuree <naruto.futuree@gmail.com>",
+      "tree": {
+        "sha": "468136303f459bf8785bc9bad6d4feb1e82fedaf",
+        "url": "https://api.github.com/repos/naruto-aii/AYG/git/trees/468136303f459bf8785bc9bad6d4feb1e82fedaf"
+      },
+      "url": "https://api.github.com/repos/naruto-aii/AYG/git/commits/55df9704f7af6a836a614483d63ade74c695a86d",
+      "comment_count": 0,
+      "verification": {
+        "verified": true,
+        "reason": "valid",
+        "signature": "-----BEGIN SSH SIGNATURE-----\nU1NIU0lHAAAAAQAAADMAAAALc3NoLWVkMjU1MTkAAAAg+qImwGMCy/grKZ50VxRHz3VfWW\nAL3QNbzIy2Nwcn+nQAAAADZ2l0AAAAAAAAAAZzaGE1MTIAAABTAAAAC3NzaC1lZDI1NTE5\nAAAAQJZVtA/lOodlcaLfHg8KrfoPUe4eGPB2QLcXry1BnSr2CxEL4FnptOpyTJLMMmNNht\nQ5tKAvLodHUrPD/Hr+gwM=\n-----END SSH SIGNATURE-----",
+        "payload": "tree 468136303f459bf8785bc9bad6d4feb1e82fedaf\nparent 5f9229a17eb25566ad69e752637b88006d42de4f\nauthor Cursor Agent <cursoragent@cursor.com> 1789869416 +0000\ncommitter Cursor Agent <cursoragent@cursor.com> 1789869416 +0000\n\ndocs: treat Apple Supabase setup as already done\n\nOwner confirmed the .p8 and Apple provider are in place. Remaining Apple work is device QA.\n\nCo-authored-by: naruto.futuree <naruto.futuree@gmail.com>\n",
+        "verified_at": "2026-09-20T01:56:58Z"
+      }
+    },
+    "url": "https://api.github.com/repos/naruto-aii/AYG/commits/55df9704f7af6a836a614483d63ade74c695a86d",
+    "html_url": "https://github.com/naruto-aii/AYG/commit/55df9704f7af6a836a614483d63ade74c695a86d",
+    "comments_url": "https://api.github.com/repos/naruto-aii/AYG/commits/55df9704f7af6a836a614483d63ade74c695a86d/comments",
+    "author": {
+      "login": "cursoragent",
+      "id": 199161495,
+      "node_id": "U_kgDOC972lw",
+      "avatar_url": "https://avatars.githubusercontent.com/u/199161495?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/cursoragent",
+      "html_url": "https://github.com/cursoragent",
+      "followers_url": "https://api.github.com/users/cursoragent/followers",
+      "following_url": "https://api.github.com/users/cursoragent/following{/other_user}",
+      "gists_url": "https://api.github.com/users/cursoragent/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/cursoragent/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/cursoragent/subscriptions",
+      "organizations_url": "https://api.github.com/users/cursoragent/orgs",
+      "repos_url": "https://api.github.com/users/cursoragent/repos",
+      "events_url": "https://api.github.com/users/cursoragent/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/cursoragent/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "committer": {
+      "login": "cursoragent",
+      "id": 199161495,
+      "node_id": "U_kgDOC972lw",
+      "avatar_url": "https://avatars.githubusercontent.com/u/199161495?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/cursoragent",
+      "html_url": "https://github.com/cursoragent",
+      "followers_url": "https://api.github.com/users/cursoragent/followers",
+      "following_url": "https://api.github.com/users/cursoragent/following{/other_user}",
+      "gists_url": "https://api.github.com/users/cursoragent/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/cursoragent/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/cursoragent/subscriptions",
+      "organizations_url": "https://api.github.com/users/cursoragent/orgs",
+      "repos_url": "https://api.github.com/users/cursoragent/repos",
+      "events_url": "https://api.github.com/users/cursoragent/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/cursoragent/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "parents": [
+      {
+        "sha": "5f9229a17eb25566ad69e752637b88006d42de4f",
+        "url": "https://api.github.com/repos/naruto-aii/AYG/commits/5f9229a17eb25566ad69e752637b88006d42de4f",
+        "html_url": "https://github.com/naruto-aii/AYG/commit/5f9229a17eb25566ad69e752637b88006d42de4f"
+      }
+    ]
+  },
+  {
+    "sha": "f215f4895fdaa1352be3b2f292c343eb610d0197",
+    "node_id": "C_kwDOTeJwqdoAKGYyMTVmNDg5NWZkYWExMzUyYmUzYjJmMjkyYzM0M2ViNjEwZDAxOTc",
+    "commit": {
+      "author": {
+        "name": "Cursor Agent",
+        "email": "cursoragent@cursor.com",
+        "date": "2026-09-20T01:59:40Z"
+      },
+      "committer": {
+        "name": "Cursor Agent",
+        "email": "cursoragent@cursor.com",
+        "date": "2026-09-20T01:59:40Z"
+      },
+      "message": "docs: refresh remaining launch tasks after Apple sign-in\n\nMark console and app Apple work as done. Next is the production delete SQL, then store products, then device QA.\n\nCo-authored-by: naruto.futuree <naruto.futuree@gmail.com>",
+      "tree": {
+        "sha": "5782d1014ead3f0bd904b8bd326f5f61f1490e03",
+        "url": "https://api.github.com/repos/naruto-aii/AYG/git/trees/5782d1014ead3f0bd904b8bd326f5f61f1490e03"
+      },
+      "url": "https://api.github.com/repos/naruto-aii/AYG/git/commits/f215f4895fdaa1352be3b2f292c343eb610d0197",
+      "comment_count": 0,
+      "verification": {
+        "verified": true,
+        "reason": "valid",
+        "signature": "-----BEGIN SSH SIGNATURE-----\nU1NIU0lHAAAAAQAAADMAAAALc3NoLWVkMjU1MTkAAAAg+qImwGMCy/grKZ50VxRHz3VfWW\nAL3QNbzIy2Nwcn+nQAAAADZ2l0AAAAAAAAAAZzaGE1MTIAAABTAAAAC3NzaC1lZDI1NTE5\nAAAAQCFajuq/Ey5MRmZfwiLHlfqtfiuz3LMiu3x/RX0d9T02dqumJA3pv2SVzC/HyJrcKL\nU8YSmw9z5Y+lR+ETTz/A4=\n-----END SSH SIGNATURE-----",
+        "payload": "tree 5782d1014ead3f0bd904b8bd326f5f61f1490e03\nparent 55df9704f7af6a836a614483d63ade74c695a86d\nauthor Cursor Agent <cursoragent@cursor.com> 1789869580 +0000\ncommitter Cursor Agent <cursoragent@cursor.com> 1789869580 +0000\n\ndocs: refresh remaining launch tasks after Apple sign-in\n\nMark console and app Apple work as done. Next is the production delete SQL, then store products, then device QA.\n\nCo-authored-by: naruto.futuree <naruto.futuree@gmail.com>\n",
+        "verified_at": "2026-09-20T01:59:42Z"
+      }
+    },
+    "url": "https://api.github.com/repos/naruto-aii/AYG/commits/f215f4895fdaa1352be3b2f292c343eb610d0197",
+    "html_url": "https://github.com/naruto-aii/AYG/commit/f215f4895fdaa1352be3b2f292c343eb610d0197",
+    "comments_url": "https://api.github.com/repos/naruto-aii/AYG/commits/f215f4895fdaa1352be3b2f292c343eb610d0197/comments",
+    "author": {
+      "login": "cursoragent",
+      "id": 199161495,
+      "node_id": "U_kgDOC972lw",
+      "avatar_url": "https://avatars.githubusercontent.com/u/199161495?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/cursoragent",
+      "html_url": "https://github.com/cursoragent",
+      "followers_url": "https://api.github.com/users/cursoragent/followers",
+      "following_url": "https://api.github.com/users/cursoragent/following{/other_user}",
+      "gists_url": "https://api.github.com/users/cursoragent/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/cursoragent/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/cursoragent/subscriptions",
+      "organizations_url": "https://api.github.com/users/cursoragent/orgs",
+      "repos_url": "https://api.github.com/users/cursoragent/repos",
+      "events_url": "https://api.github.com/users/cursoragent/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/cursoragent/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "committer": {
+      "login": "cursoragent",
+      "id": 199161495,
+      "node_id": "U_kgDOC972lw",
+      "avatar_url": "https://avatars.githubusercontent.com/u/199161495?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/cursoragent",
+      "html_url": "https://github.com/cursoragent",
+      "followers_url": "https://api.github.com/users/cursoragent/followers",
+      "following_url": "https://api.github.com/users/cursoragent/following{/other_user}",
+      "gists_url": "https://api.github.com/users/cursoragent/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/cursoragent/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/cursoragent/subscriptions",
+      "organizations_url": "https://api.github.com/users/cursoragent/orgs",
+      "repos_url": "https://api.github.com/users/cursoragent/repos",
+      "events_url": "https://api.github.com/users/cursoragent/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/cursoragent/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "parents": [
+      {
+        "sha": "55df9704f7af6a836a614483d63ade74c695a86d",
+        "url": "https://api.github.com/repos/naruto-aii/AYG/commits/55df9704f7af6a836a614483d63ade74c695a86d",
+        "html_url": "https://github.com/naruto-aii/AYG/commit/55df9704f7af6a836a614483d63ade74c695a86d"
+      }
+    ]
+  },
+  {
+    "sha": "61aedc014274540feba23f9abe7b13d60bfe5ae8",
+    "node_id": "C_kwDOTeJwqdoAKDYxYWVkYzAxNDI3NDU0MGZlYmEyM2Y5YWJlN2IxM2Q2MGJmZTVhZTg",
+    "commit": {
+      "author": {
+        "name": "Cursor Agent",
+        "email": "cursoragent@cursor.com",
+        "date": "2026-09-20T02:02:17Z"
+      },
+      "committer": {
+        "name": "Cursor Agent",
+        "email": "cursoragent@cursor.com",
+        "date": "2026-09-20T02:02:17Z"
+      },
+      "message": "docs: mark production delete_own_account as applied\n\nOwner verified the function exists and authenticated can execute it.\n\nCo-authored-by: naruto.futuree <naruto.futuree@gmail.com>",
+      "tree": {
+        "sha": "35145009d7aef3c4ec643a06d11a9e3b58b9d619",
+        "url": "https://api.github.com/repos/naruto-aii/AYG/git/trees/35145009d7aef3c4ec643a06d11a9e3b58b9d619"
+      },
+      "url": "https://api.github.com/repos/naruto-aii/AYG/git/commits/61aedc014274540feba23f9abe7b13d60bfe5ae8",
+      "comment_count": 0,
+      "verification": {
+        "verified": true,
+        "reason": "valid",
+        "signature": "-----BEGIN SSH SIGNATURE-----\nU1NIU0lHAAAAAQAAADMAAAALc3NoLWVkMjU1MTkAAAAg+qImwGMCy/grKZ50VxRHz3VfWW\nAL3QNbzIy2Nwcn+nQAAAADZ2l0AAAAAAAAAAZzaGE1MTIAAABTAAAAC3NzaC1lZDI1NTE5\nAAAAQDlK25SogG4F/JeeQYyIkZFWiBs0AOXV5g0Qwgj5pB5CqUDgkQDX28C6cMg79kvUaF\n529QhWVEEV0g9knzLtSwU=\n-----END SSH SIGNATURE-----",
+        "payload": "tree 35145009d7aef3c4ec643a06d11a9e3b58b9d619\nparent f215f4895fdaa1352be3b2f292c343eb610d0197\nauthor Cursor Agent <cursoragent@cursor.com> 1789869737 +0000\ncommitter Cursor Agent <cursoragent@cursor.com> 1789869737 +0000\n\ndocs: mark production delete_own_account as applied\n\nOwner verified the function exists and authenticated can execute it.\n\nCo-authored-by: naruto.futuree <naruto.futuree@gmail.com>\n",
+        "verified_at": "2026-09-20T02:02:19Z"
+      }
+    },
+    "url": "https://api.github.com/repos/naruto-aii/AYG/commits/61aedc014274540feba23f9abe7b13d60bfe5ae8",
+    "html_url": "https://github.com/naruto-aii/AYG/commit/61aedc014274540feba23f9abe7b13d60bfe5ae8",
+    "comments_url": "https://api.github.com/repos/naruto-aii/AYG/commits/61aedc014274540feba23f9abe7b13d60bfe5ae8/comments",
+    "author": {
+      "login": "cursoragent",
+      "id": 199161495,
+      "node_id": "U_kgDOC972lw",
+      "avatar_url": "https://avatars.githubusercontent.com/u/199161495?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/cursoragent",
+      "html_url": "https://github.com/cursoragent",
+      "followers_url": "https://api.github.com/users/cursoragent/followers",
+      "following_url": "https://api.github.com/users/cursoragent/following{/other_user}",
+      "gists_url": "https://api.github.com/users/cursoragent/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/cursoragent/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/cursoragent/subscriptions",
+      "organizations_url": "https://api.github.com/users/cursoragent/orgs",
+      "repos_url": "https://api.github.com/users/cursoragent/repos",
+      "events_url": "https://api.github.com/users/cursoragent/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/cursoragent/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "committer": {
+      "login": "cursoragent",
+      "id": 199161495,
+      "node_id": "U_kgDOC972lw",
+      "avatar_url": "https://avatars.githubusercontent.com/u/199161495?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/cursoragent",
+      "html_url": "https://github.com/cursoragent",
+      "followers_url": "https://api.github.com/users/cursoragent/followers",
+      "following_url": "https://api.github.com/users/cursoragent/following{/other_user}",
+      "gists_url": "https://api.github.com/users/cursoragent/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/cursoragent/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/cursoragent/subscriptions",
+      "organizations_url": "https://api.github.com/users/cursoragent/orgs",
+      "repos_url": "https://api.github.com/users/cursoragent/repos",
+      "events_url": "https://api.github.com/users/cursoragent/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/cursoragent/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "parents": [
+      {
+        "sha": "f215f4895fdaa1352be3b2f292c343eb610d0197",
+        "url": "https://api.github.com/repos/naruto-aii/AYG/commits/f215f4895fdaa1352be3b2f292c343eb610d0197",
+        "html_url": "https://github.com/naruto-aii/AYG/commit/f215f4895fdaa1352be3b2f292c343eb610d0197"
+      }
+    ]
+  },
+  {
+    "sha": "df01db14db860c0f18a5845972f8070164184df9",
+    "node_id": "C_kwDOTeJwqdoAKGRmMDFkYjE0ZGI4NjBjMGYxOGE1ODQ1OTcyZjgwNzAxNjQxODRkZjk",
+    "commit": {
+      "author": {
+        "name": "Cursor Agent",
+        "email": "cursoragent@cursor.com",
+        "date": "2026-09-20T02:05:19Z"
+      },
+      "committer": {
+        "name": "Cursor Agent",
+        "email": "cursoragent@cursor.com",
+        "date": "2026-09-20T02:05:19Z"
+      },
+      "message": "docs: split remaining tasks into now vs after design\n\nKeep console and functional QA moving while the designer is out. Visual work waits for Figma, icon, splash, and store screenshots.\n\nCo-authored-by: naruto.futuree <naruto.futuree@gmail.com>",
+      "tree": {
+        "sha": "2125c870197c6ce2905da2e4f948383f4d2a7a45",
+        "url": "https://api.github.com/repos/naruto-aii/AYG/git/trees/2125c870197c6ce2905da2e4f948383f4d2a7a45"
+      },
+      "url": "https://api.github.com/repos/naruto-aii/AYG/git/commits/df01db14db860c0f18a5845972f8070164184df9",
+      "comment_count": 0,
+      "verification": {
+        "verified": true,
+        "reason": "valid",
+        "signature": "-----BEGIN SSH SIGNATURE-----\nU1NIU0lHAAAAAQAAADMAAAALc3NoLWVkMjU1MTkAAAAg+qImwGMCy/grKZ50VxRHz3VfWW\nAL3QNbzIy2Nwcn+nQAAAADZ2l0AAAAAAAAAAZzaGE1MTIAAABTAAAAC3NzaC1lZDI1NTE5\nAAAAQIZxWc4lXmUZeVz50/T9TXKPmU/Rfmkvev4JlrzQJZNhPrVUsnJUy+hkF/8azXiNPY\nAv4KzME9vQsZY4I/lV1wc=\n-----END SSH SIGNATURE-----",
+        "payload": "tree 2125c870197c6ce2905da2e4f948383f4d2a7a45\nparent 61aedc014274540feba23f9abe7b13d60bfe5ae8\nauthor Cursor Agent <cursoragent@cursor.com> 1789869919 +0000\ncommitter Cursor Agent <cursoragent@cursor.com> 1789869919 +0000\n\ndocs: split remaining tasks into now vs after design\n\nKeep console and functional QA moving while the designer is out. Visual work waits for Figma, icon, splash, and store screenshots.\n\nCo-authored-by: naruto.futuree <naruto.futuree@gmail.com>\n",
+        "verified_at": "2026-09-20T02:05:21Z"
+      }
+    },
+    "url": "https://api.github.com/repos/naruto-aii/AYG/commits/df01db14db860c0f18a5845972f8070164184df9",
+    "html_url": "https://github.com/naruto-aii/AYG/commit/df01db14db860c0f18a5845972f8070164184df9",
+    "comments_url": "https://api.github.com/repos/naruto-aii/AYG/commits/df01db14db860c0f18a5845972f8070164184df9/comments",
+    "author": {
+      "login": "cursoragent",
+      "id": 199161495,
+      "node_id": "U_kgDOC972lw",
+      "avatar_url": "https://avatars.githubusercontent.com/u/199161495?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/cursoragent",
+      "html_url": "https://github.com/cursoragent",
+      "followers_url": "https://api.github.com/users/cursoragent/followers",
+      "following_url": "https://api.github.com/users/cursoragent/following{/other_user}",
+      "gists_url": "https://api.github.com/users/cursoragent/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/cursoragent/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/cursoragent/subscriptions",
+      "organizations_url": "https://api.github.com/users/cursoragent/orgs",
+      "repos_url": "https://api.github.com/users/cursoragent/repos",
+      "events_url": "https://api.github.com/users/cursoragent/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/cursoragent/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "committer": {
+      "login": "cursoragent",
+      "id": 199161495,
+      "node_id": "U_kgDOC972lw",
+      "avatar_url": "https://avatars.githubusercontent.com/u/199161495?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/cursoragent",
+      "html_url": "https://github.com/cursoragent",
+      "followers_url": "https://api.github.com/users/cursoragent/followers",
+      "following_url": "https://api.github.com/users/cursoragent/following{/other_user}",
+      "gists_url": "https://api.github.com/users/cursoragent/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/cursoragent/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/cursoragent/subscriptions",
+      "organizations_url": "https://api.github.com/users/cursoragent/orgs",
+      "repos_url": "https://api.github.com/users/cursoragent/repos",
+      "events_url": "https://api.github.com/users/cursoragent/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/cursoragent/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "parents": [
+      {
+        "sha": "61aedc014274540feba23f9abe7b13d60bfe5ae8",
+        "url": "https://api.github.com/repos/naruto-aii/AYG/commits/61aedc014274540feba23f9abe7b13d60bfe5ae8",
+        "html_url": "https://github.com/naruto-aii/AYG/commit/61aedc014274540feba23f9abe7b13d60bfe5ae8"
+      }
+    ]
+  },
+  {
+    "sha": "9d3808c4c128b974c552c62c1d24213017760add",
+    "node_id": "C_kwDOTeJwqdoAKDlkMzgwOGM0YzEyOGI5NzRjNTUyYzYyYzFkMjQyMTMwMTc3NjBhZGQ",
+    "commit": {
+      "author": {
+        "name": "Cursor Agent",
+        "email": "cursoragent@cursor.com",
+        "date": "2026-09-20T02:08:03Z"
+      },
+      "committer": {
+        "name": "Cursor Agent",
+        "email": "cursoragent@cursor.com",
+        "date": "2026-09-20T02:08:03Z"
+      },
+      "message": "docs: treat support email as inbox watch, not a build task\n\nCo-authored-by: naruto.futuree <naruto.futuree@gmail.com>",
+      "tree": {
+        "sha": "ef88cbcb4bc347333110b3beb0631f6f45fc440a",
+        "url": "https://api.github.com/repos/naruto-aii/AYG/git/trees/ef88cbcb4bc347333110b3beb0631f6f45fc440a"
+      },
+      "url": "https://api.github.com/repos/naruto-aii/AYG/git/commits/9d3808c4c128b974c552c62c1d24213017760add",
+      "comment_count": 0,
+      "verification": {
+        "verified": true,
+        "reason": "valid",
+        "signature": "-----BEGIN SSH SIGNATURE-----\nU1NIU0lHAAAAAQAAADMAAAALc3NoLWVkMjU1MTkAAAAg+qImwGMCy/grKZ50VxRHz3VfWW\nAL3QNbzIy2Nwcn+nQAAAADZ2l0AAAAAAAAAAZzaGE1MTIAAABTAAAAC3NzaC1lZDI1NTE5\nAAAAQLl8VC9VKsILexaHjdjJvbtQygiKvx2jJZP/nM5YI3pHbY6TZVmMCva0y/sCKMSTxn\nMRIsJs1PLUOnul3E6ElAU=\n-----END SSH SIGNATURE-----",
+        "payload": "tree ef88cbcb4bc347333110b3beb0631f6f45fc440a\nparent df01db14db860c0f18a5845972f8070164184df9\nauthor Cursor Agent <cursoragent@cursor.com> 1789870083 +0000\ncommitter Cursor Agent <cursoragent@cursor.com> 1789870083 +0000\n\ndocs: treat support email as inbox watch, not a build task\n\nCo-authored-by: naruto.futuree <naruto.futuree@gmail.com>\n",
+        "verified_at": "2026-09-20T02:08:05Z"
+      }
+    },
+    "url": "https://api.github.com/repos/naruto-aii/AYG/commits/9d3808c4c128b974c552c62c1d24213017760add",
+    "html_url": "https://github.com/naruto-aii/AYG/commit/9d3808c4c128b974c552c62c1d24213017760add",
+    "comments_url": "https://api.github.com/repos/naruto-aii/AYG/commits/9d3808c4c128b974c552c62c1d24213017760add/comments",
+    "author": {
+      "login": "cursoragent",
+      "id": 199161495,
+      "node_id": "U_kgDOC972lw",
+      "avatar_url": "https://avatars.githubusercontent.com/u/199161495?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/cursoragent",
+      "html_url": "https://github.com/cursoragent",
+      "followers_url": "https://api.github.com/users/cursoragent/followers",
+      "following_url": "https://api.github.com/users/cursoragent/following{/other_user}",
+      "gists_url": "https://api.github.com/users/cursoragent/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/cursoragent/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/cursoragent/subscriptions",
+      "organizations_url": "https://api.github.com/users/cursoragent/orgs",
+      "repos_url": "https://api.github.com/users/cursoragent/repos",
+      "events_url": "https://api.github.com/users/cursoragent/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/cursoragent/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "committer": {
+      "login": "cursoragent",
+      "id": 199161495,
+      "node_id": "U_kgDOC972lw",
+      "avatar_url": "https://avatars.githubusercontent.com/u/199161495?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/cursoragent",
+      "html_url": "https://github.com/cursoragent",
+      "followers_url": "https://api.github.com/users/cursoragent/followers",
+      "following_url": "https://api.github.com/users/cursoragent/following{/other_user}",
+      "gists_url": "https://api.github.com/users/cursoragent/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/cursoragent/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/cursoragent/subscriptions",
+      "organizations_url": "https://api.github.com/users/cursoragent/orgs",
+      "repos_url": "https://api.github.com/users/cursoragent/repos",
+      "events_url": "https://api.github.com/users/cursoragent/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/cursoragent/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "parents": [
+      {
+        "sha": "df01db14db860c0f18a5845972f8070164184df9",
+        "url": "https://api.github.com/repos/naruto-aii/AYG/commits/df01db14db860c0f18a5845972f8070164184df9",
+        "html_url": "https://github.com/naruto-aii/AYG/commit/df01db14db860c0f18a5845972f8070164184df9"
+      }
+    ]
+  },
+  {
+    "sha": "93e595c466ff567fe52b19b5100276c157ec804c",
+    "node_id": "C_kwDOTeJwqdoAKDkzZTU5NWM0NjZmZjU2N2ZlNTJiMTliNTEwMDI3NmMxNTdlYzgwNGM",
+    "commit": {
+      "author": {
+        "name": "Cursor Agent",
+        "email": "cursoragent@cursor.com",
+        "date": "2026-09-20T03:38:26Z"
+      },
+      "committer": {
+        "name": "Cursor Agent",
+        "email": "cursoragent@cursor.com",
+        "date": "2026-09-20T03:38:26Z"
+      },
+      "message": "docs: mark Calonavi+ App Store products as created\n\nStore listing name is カロナビ - 食事と運動. Next is device QA including Sandbox purchase.\n\nCo-authored-by: naruto.futuree <naruto.futuree@gmail.com>",
+      "tree": {
+        "sha": "5efe155a7f7f886536e34ff5aaebece9d84d0dc9",
+        "url": "https://api.github.com/repos/naruto-aii/AYG/git/trees/5efe155a7f7f886536e34ff5aaebece9d84d0dc9"
+      },
+      "url": "https://api.github.com/repos/naruto-aii/AYG/git/commits/93e595c466ff567fe52b19b5100276c157ec804c",
+      "comment_count": 0,
+      "verification": {
+        "verified": true,
+        "reason": "valid",
+        "signature": "-----BEGIN SSH SIGNATURE-----\nU1NIU0lHAAAAAQAAADMAAAALc3NoLWVkMjU1MTkAAAAg+qImwGMCy/grKZ50VxRHz3VfWW\nAL3QNbzIy2Nwcn+nQAAAADZ2l0AAAAAAAAAAZzaGE1MTIAAABTAAAAC3NzaC1lZDI1NTE5\nAAAAQOMo1lKI0JJyKOHNmLvc1PUtvRqsnkHKzpsB0jEIvkPflIERDi6GXRsS30ss676j9y\nOKcBflHJDywNta4+PkdQw=\n-----END SSH SIGNATURE-----",
+        "payload": "tree 5efe155a7f7f886536e34ff5aaebece9d84d0dc9\nparent 9d3808c4c128b974c552c62c1d24213017760add\nauthor Cursor Agent <cursoragent@cursor.com> 1789875506 +0000\ncommitter Cursor Agent <cursoragent@cursor.com> 1789875506 +0000\n\ndocs: mark Calonavi+ App Store products as created\n\nStore listing name is カロナビ - 食事と運動. Next is device QA including Sandbox purchase.\n\nCo-authored-by: naruto.futuree <naruto.futuree@gmail.com>\n",
+        "verified_at": "2026-09-20T03:38:28Z"
+      }
+    },
+    "url": "https://api.github.com/repos/naruto-aii/AYG/commits/93e595c466ff567fe52b19b5100276c157ec804c",
+    "html_url": "https://github.com/naruto-aii/AYG/commit/93e595c466ff567fe52b19b5100276c157ec804c",
+    "comments_url": "https://api.github.com/repos/naruto-aii/AYG/commits/93e595c466ff567fe52b19b5100276c157ec804c/comments",
+    "author": {
+      "login": "cursoragent",
+      "id": 199161495,
+      "node_id": "U_kgDOC972lw",
+      "avatar_url": "https://avatars.githubusercontent.com/u/199161495?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/cursoragent",
+      "html_url": "https://github.com/cursoragent",
+      "followers_url": "https://api.github.com/users/cursoragent/followers",
+      "following_url": "https://api.github.com/users/cursoragent/following{/other_user}",
+      "gists_url": "https://api.github.com/users/cursoragent/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/cursoragent/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/cursoragent/subscriptions",
+      "organizations_url": "https://api.github.com/users/cursoragent/orgs",
+      "repos_url": "https://api.github.com/users/cursoragent/repos",
+      "events_url": "https://api.github.com/users/cursoragent/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/cursoragent/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "committer": {
+      "login": "cursoragent",
+      "id": 199161495,
+      "node_id": "U_kgDOC972lw",
+      "avatar_url": "https://avatars.githubusercontent.com/u/199161495?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/cursoragent",
+      "html_url": "https://github.com/cursoragent",
+      "followers_url": "https://api.github.com/users/cursoragent/followers",
+      "following_url": "https://api.github.com/users/cursoragent/following{/other_user}",
+      "gists_url": "https://api.github.com/users/cursoragent/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/cursoragent/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/cursoragent/subscriptions",
+      "organizations_url": "https://api.github.com/users/cursoragent/orgs",
+      "repos_url": "https://api.github.com/users/cursoragent/repos",
+      "events_url": "https://api.github.com/users/cursoragent/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/cursoragent/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "parents": [
+      {
+        "sha": "9d3808c4c128b974c552c62c1d24213017760add",
+        "url": "https://api.github.com/repos/naruto-aii/AYG/commits/9d3808c4c128b974c552c62c1d24213017760add",
+        "html_url": "https://github.com/naruto-aii/AYG/commit/9d3808c4c128b974c552c62c1d24213017760add"
+      }
+    ]
+  },
+  {
+    "sha": "c8056f9af30e60b66c8d031e1318100758cb369b",
+    "node_id": "C_kwDOTeJwqdoAKGM4MDU2ZjlhZjMwZTYwYjY2YzhkMDMxZTEzMTgxMDA3NThjYjM2OWI",
+    "commit": {
+      "author": {
+        "name": "Cursor Agent",
+        "email": "cursoragent@cursor.com",
+        "date": "2026-09-20T15:14:18Z"
+      },
+      "committer": {
+        "name": "Cursor Agent",
+        "email": "cursoragent@cursor.com",
+        "date": "2026-09-20T15:14:18Z"
+      },
+      "message": "chore: add a double-click helper for local dart defines\n\nCreates a gitignored local config with the known URL and support email filled in. Keys stay off the Mac until Owner pastes them locally.\n\nCo-authored-by: naruto.futuree <naruto.futuree@gmail.com>",
+      "tree": {
+        "sha": "3a91b634aad9e6d2d794caeda477b540f1c88e05",
+        "url": "https://api.github.com/repos/naruto-aii/AYG/git/trees/3a91b634aad9e6d2d794caeda477b540f1c88e05"
+      },
+      "url": "https://api.github.com/repos/naruto-aii/AYG/git/commits/c8056f9af30e60b66c8d031e1318100758cb369b",
+      "comment_count": 0,
+      "verification": {
+        "verified": true,
+        "reason": "valid",
+        "signature": "-----BEGIN SSH SIGNATURE-----\nU1NIU0lHAAAAAQAAADMAAAALc3NoLWVkMjU1MTkAAAAg+qImwGMCy/grKZ50VxRHz3VfWW\nAL3QNbzIy2Nwcn+nQAAAADZ2l0AAAAAAAAAAZzaGE1MTIAAABTAAAAC3NzaC1lZDI1NTE5\nAAAAQFz97mqekg+N8K6Axz9BpxUT7g9CHpqgruAvc1kHPzLOeiR13TT35MiC9PdiUCydTA\ntJKaVBvZ1UletAHKo6cgA=\n-----END SSH SIGNATURE-----",
+        "payload": "tree 3a91b634aad9e6d2d794caeda477b540f1c88e05\nparent 93e595c466ff567fe52b19b5100276c157ec804c\nauthor Cursor Agent <cursoragent@cursor.com> 1789917258 +0000\ncommitter Cursor Agent <cursoragent@cursor.com> 1789917258 +0000\n\nchore: add a double-click helper for local dart defines\n\nCreates a gitignored local config with the known URL and support email filled in. Keys stay off the Mac until Owner pastes them locally.\n\nCo-authored-by: naruto.futuree <naruto.futuree@gmail.com>\n",
+        "verified_at": "2026-09-20T15:14:20Z"
+      }
+    },
+    "url": "https://api.github.com/repos/naruto-aii/AYG/commits/c8056f9af30e60b66c8d031e1318100758cb369b",
+    "html_url": "https://github.com/naruto-aii/AYG/commit/c8056f9af30e60b66c8d031e1318100758cb369b",
+    "comments_url": "https://api.github.com/repos/naruto-aii/AYG/commits/c8056f9af30e60b66c8d031e1318100758cb369b/comments",
+    "author": {
+      "login": "cursoragent",
+      "id": 199161495,
+      "node_id": "U_kgDOC972lw",
+      "avatar_url": "https://avatars.githubusercontent.com/u/199161495?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/cursoragent",
+      "html_url": "https://github.com/cursoragent",
+      "followers_url": "https://api.github.com/users/cursoragent/followers",
+      "following_url": "https://api.github.com/users/cursoragent/following{/other_user}",
+      "gists_url": "https://api.github.com/users/cursoragent/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/cursoragent/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/cursoragent/subscriptions",
+      "organizations_url": "https://api.github.com/users/cursoragent/orgs",
+      "repos_url": "https://api.github.com/users/cursoragent/repos",
+      "events_url": "https://api.github.com/users/cursoragent/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/cursoragent/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "committer": {
+      "login": "cursoragent",
+      "id": 199161495,
+      "node_id": "U_kgDOC972lw",
+      "avatar_url": "https://avatars.githubusercontent.com/u/199161495?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/cursoragent",
+      "html_url": "https://github.com/cursoragent",
+      "followers_url": "https://api.github.com/users/cursoragent/followers",
+      "following_url": "https://api.github.com/users/cursoragent/following{/other_user}",
+      "gists_url": "https://api.github.com/users/cursoragent/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/cursoragent/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/cursoragent/subscriptions",
+      "organizations_url": "https://api.github.com/users/cursoragent/orgs",
+      "repos_url": "https://api.github.com/users/cursoragent/repos",
+      "events_url": "https://api.github.com/users/cursoragent/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/cursoragent/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "parents": [
+      {
+        "sha": "93e595c466ff567fe52b19b5100276c157ec804c",
+        "url": "https://api.github.com/repos/naruto-aii/AYG/commits/93e595c466ff567fe52b19b5100276c157ec804c",
+        "html_url": "https://github.com/naruto-aii/AYG/commit/93e595c466ff567fe52b19b5100276c157ec804c"
+      }
+    ]
+  },
+  {
+    "sha": "83d1320819ff07395c7af6e1c33284e39e149540",
+    "node_id": "C_kwDOTeJwqdoAKDgzZDEzMjA4MTlmZjA3Mzk1YzdhZjZlMWMzMzI4NGUzOWUxNDk1NDA",
+    "commit": {
+      "author": {
+        "name": "Cursor Agent",
+        "email": "cursoragent@cursor.com",
+        "date": "2026-09-20T15:42:27Z"
+      },
+      "committer": {
+        "name": "Cursor Agent",
+        "email": "cursoragent@cursor.com",
+        "date": "2026-09-20T15:42:27Z"
+      },
+      "message": "fix: repair malformed local dart_defines JSON before iOS run\n\nThe device QA path was dying on a missing comma in dart_defines.local.json.\nValidate first, rewrite the file from extracted keys, and leave the iOS Google client empty so Apple Sign-In can be tested first.\n\nCo-authored-by: naruto.futuree <naruto.futuree@gmail.com>",
+      "tree": {
+        "sha": "6deda1bd773e5a69f69228d92033ae1efd69cdf3",
+        "url": "https://api.github.com/repos/naruto-aii/AYG/git/trees/6deda1bd773e5a69f69228d92033ae1efd69cdf3"
+      },
+      "url": "https://api.github.com/repos/naruto-aii/AYG/git/commits/83d1320819ff07395c7af6e1c33284e39e149540",
+      "comment_count": 0,
+      "verification": {
+        "verified": true,
+        "reason": "valid",
+        "signature": "-----BEGIN SSH SIGNATURE-----\nU1NIU0lHAAAAAQAAADMAAAALc3NoLWVkMjU1MTkAAAAg+qImwGMCy/grKZ50VxRHz3VfWW\nAL3QNbzIy2Nwcn+nQAAAADZ2l0AAAAAAAAAAZzaGE1MTIAAABTAAAAC3NzaC1lZDI1NTE5\nAAAAQAHs0MSOOPyfyFgXvLsrSdmnmtuj+YKo/I/R57hRVTTPPN4Lfmgz3q7yQoHZbjHZor\nzLB4zxS/xQdk24SQ6F8g4=\n-----END SSH SIGNATURE-----",
+        "payload": "tree 6deda1bd773e5a69f69228d92033ae1efd69cdf3\nparent c8056f9af30e60b66c8d031e1318100758cb369b\nauthor Cursor Agent <cursoragent@cursor.com> 1789918947 +0000\ncommitter Cursor Agent <cursoragent@cursor.com> 1789918947 +0000\n\nfix: repair malformed local dart_defines JSON before iOS run\n\nThe device QA path was dying on a missing comma in dart_defines.local.json.\nValidate first, rewrite the file from extracted keys, and leave the iOS Google client empty so Apple Sign-In can be tested first.\n\nCo-authored-by: naruto.futuree <naruto.futuree@gmail.com>\n",
+        "verified_at": "2026-09-20T15:42:29Z"
+      }
+    },
+    "url": "https://api.github.com/repos/naruto-aii/AYG/commits/83d1320819ff07395c7af6e1c33284e39e149540",
+    "html_url": "https://github.com/naruto-aii/AYG/commit/83d1320819ff07395c7af6e1c33284e39e149540",
+    "comments_url": "https://api.github.com/repos/naruto-aii/AYG/commits/83d1320819ff07395c7af6e1c33284e39e149540/comments",
+    "author": {
+      "login": "cursoragent",
+      "id": 199161495,
+      "node_id": "U_kgDOC972lw",
+      "avatar_url": "https://avatars.githubusercontent.com/u/199161495?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/cursoragent",
+      "html_url": "https://github.com/cursoragent",
+      "followers_url": "https://api.github.com/users/cursoragent/followers",
+      "following_url": "https://api.github.com/users/cursoragent/following{/other_user}",
+      "gists_url": "https://api.github.com/users/cursoragent/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/cursoragent/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/cursoragent/subscriptions",
+      "organizations_url": "https://api.github.com/users/cursoragent/orgs",
+      "repos_url": "https://api.github.com/users/cursoragent/repos",
+      "events_url": "https://api.github.com/users/cursoragent/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/cursoragent/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "committer": {
+      "login": "cursoragent",
+      "id": 199161495,
+      "node_id": "U_kgDOC972lw",
+      "avatar_url": "https://avatars.githubusercontent.com/u/199161495?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/cursoragent",
+      "html_url": "https://github.com/cursoragent",
+      "followers_url": "https://api.github.com/users/cursoragent/followers",
+      "following_url": "https://api.github.com/users/cursoragent/following{/other_user}",
+      "gists_url": "https://api.github.com/users/cursoragent/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/cursoragent/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/cursoragent/subscriptions",
+      "organizations_url": "https://api.github.com/users/cursoragent/orgs",
+      "repos_url": "https://api.github.com/users/cursoragent/repos",
+      "events_url": "https://api.github.com/users/cursoragent/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/cursoragent/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "parents": [
+      {
+        "sha": "c8056f9af30e60b66c8d031e1318100758cb369b",
+        "url": "https://api.github.com/repos/naruto-aii/AYG/commits/c8056f9af30e60b66c8d031e1318100758cb369b",
+        "html_url": "https://github.com/naruto-aii/AYG/commit/c8056f9af30e60b66c8d031e1318100758cb369b"
+      }
+    ]
+  },
+  {
+    "sha": "688758ede45b68adf0f497a2b580e6de3dafff5c",
+    "node_id": "C_kwDOTeJwqdoAKDY4ODc1OGVkZTQ1YjY4YWRmMGY0OTdhMmI1ODBlNmRlM2RhZmZmNWM",
+    "commit": {
+      "author": {
+        "name": "Cursor Agent",
+        "email": "cursoragent@cursor.com",
+        "date": "2026-09-20T16:42:55Z"
+      },
+      "committer": {
+        "name": "Cursor Agent",
+        "email": "cursoragent@cursor.com",
+        "date": "2026-09-20T16:42:55Z"
+      },
+      "message": "fix: skip native Google Sign-In when iOS client ID is empty\n\nEmpty GIDClientID crashed device launch with GIDConfiguration.\nApple Sign-In can start without a Google iOS OAuth client.\n\nCo-authored-by: naruto.futuree <naruto.futuree@gmail.com>",
+      "tree": {
+        "sha": "cff934c2b574223e2d71812da85a2e2795b14259",
+        "url": "https://api.github.com/repos/naruto-aii/AYG/git/trees/cff934c2b574223e2d71812da85a2e2795b14259"
+      },
+      "url": "https://api.github.com/repos/naruto-aii/AYG/git/commits/688758ede45b68adf0f497a2b580e6de3dafff5c",
+      "comment_count": 0,
+      "verification": {
+        "verified": true,
+        "reason": "valid",
+        "signature": "-----BEGIN SSH SIGNATURE-----\nU1NIU0lHAAAAAQAAADMAAAALc3NoLWVkMjU1MTkAAAAg+qImwGMCy/grKZ50VxRHz3VfWW\nAL3QNbzIy2Nwcn+nQAAAADZ2l0AAAAAAAAAAZzaGE1MTIAAABTAAAAC3NzaC1lZDI1NTE5\nAAAAQEQzuzpbV3bh1zSuPKrNzycaWXyCZieV8RB8va86ORzm9dlCaZbnZBARsR6zJeBPBq\n9RJmXKBdhn1aJkF1tLYw4=\n-----END SSH SIGNATURE-----",
+        "payload": "tree cff934c2b574223e2d71812da85a2e2795b14259\nparent 83d1320819ff07395c7af6e1c33284e39e149540\nauthor Cursor Agent <cursoragent@cursor.com> 1789922575 +0000\ncommitter Cursor Agent <cursoragent@cursor.com> 1789922575 +0000\n\nfix: skip native Google Sign-In when iOS client ID is empty\n\nEmpty GIDClientID crashed device launch with GIDConfiguration.\nApple Sign-In can start without a Google iOS OAuth client.\n\nCo-authored-by: naruto.futuree <naruto.futuree@gmail.com>\n",
+        "verified_at": "2026-09-20T16:42:57Z"
+      }
+    },
+    "url": "https://api.github.com/repos/naruto-aii/AYG/commits/688758ede45b68adf0f497a2b580e6de3dafff5c",
+    "html_url": "https://github.com/naruto-aii/AYG/commit/688758ede45b68adf0f497a2b580e6de3dafff5c",
+    "comments_url": "https://api.github.com/repos/naruto-aii/AYG/commits/688758ede45b68adf0f497a2b580e6de3dafff5c/comments",
+    "author": {
+      "login": "cursoragent",
+      "id": 199161495,
+      "node_id": "U_kgDOC972lw",
+      "avatar_url": "https://avatars.githubusercontent.com/u/199161495?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/cursoragent",
+      "html_url": "https://github.com/cursoragent",
+      "followers_url": "https://api.github.com/users/cursoragent/followers",
+      "following_url": "https://api.github.com/users/cursoragent/following{/other_user}",
+      "gists_url": "https://api.github.com/users/cursoragent/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/cursoragent/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/cursoragent/subscriptions",
+      "organizations_url": "https://api.github.com/users/cursoragent/orgs",
+      "repos_url": "https://api.github.com/users/cursoragent/repos",
+      "events_url": "https://api.github.com/users/cursoragent/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/cursoragent/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "committer": {
+      "login": "cursoragent",
+      "id": 199161495,
+      "node_id": "U_kgDOC972lw",
+      "avatar_url": "https://avatars.githubusercontent.com/u/199161495?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/cursoragent",
+      "html_url": "https://github.com/cursoragent",
+      "followers_url": "https://api.github.com/users/cursoragent/followers",
+      "following_url": "https://api.github.com/users/cursoragent/following{/other_user}",
+      "gists_url": "https://api.github.com/users/cursoragent/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/cursoragent/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/cursoragent/subscriptions",
+      "organizations_url": "https://api.github.com/users/cursoragent/orgs",
+      "repos_url": "https://api.github.com/users/cursoragent/repos",
+      "events_url": "https://api.github.com/users/cursoragent/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/cursoragent/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "parents": [
+      {
+        "sha": "83d1320819ff07395c7af6e1c33284e39e149540",
+        "url": "https://api.github.com/repos/naruto-aii/AYG/commits/83d1320819ff07395c7af6e1c33284e39e149540",
+        "html_url": "https://github.com/naruto-aii/AYG/commit/83d1320819ff07395c7af6e1c33284e39e149540"
+      }
+    ]
+  },
+  {
+    "sha": "696bb70744e6020ad35792772b35a8d648109fd9",
+    "node_id": "C_kwDOTeJwqdoAKDY5NmJiNzA3NDRlNjAyMGFkMzU3OTI3NzJiMzVhOGQ2NDgxMDlmZDk",
+    "commit": {
+      "author": {
+        "name": "Cursor Agent",
+        "email": "cursoragent@cursor.com",
+        "date": "2026-09-20T16:53:04Z"
+      },
+      "committer": {
+        "name": "Cursor Agent",
+        "email": "cursoragent@cursor.com",
+        "date": "2026-09-20T16:53:04Z"
+      },
+      "message": "fix: use the live Supabase project URL in local dart defines\n\nThe helper default host did not resolve, so Apple Sign-In failed after\nthe native sheet with Failed host lookup.\n\nCo-authored-by: naruto.futuree <naruto.futuree@gmail.com>",
+      "tree": {
+        "sha": "1541fb10b1eb49d22913a302e96a8939e11442dc",
+        "url": "https://api.github.com/repos/naruto-aii/AYG/git/trees/1541fb10b1eb49d22913a302e96a8939e11442dc"
+      },
+      "url": "https://api.github.com/repos/naruto-aii/AYG/git/commits/696bb70744e6020ad35792772b35a8d648109fd9",
+      "comment_count": 0,
+      "verification": {
+        "verified": true,
+        "reason": "valid",
+        "signature": "-----BEGIN SSH SIGNATURE-----\nU1NIU0lHAAAAAQAAADMAAAALc3NoLWVkMjU1MTkAAAAg+qImwGMCy/grKZ50VxRHz3VfWW\nAL3QNbzIy2Nwcn+nQAAAADZ2l0AAAAAAAAAAZzaGE1MTIAAABTAAAAC3NzaC1lZDI1NTE5\nAAAAQPpAodIrUWz+s3osXwSFg+EOfwHIcIxlWclxdI8huPOSgka1nrpT9qCteOMUq3FTHG\neO9F4w9DXwJzJKzPRZtA0=\n-----END SSH SIGNATURE-----",
+        "payload": "tree 1541fb10b1eb49d22913a302e96a8939e11442dc\nparent 688758ede45b68adf0f497a2b580e6de3dafff5c\nauthor Cursor Agent <cursoragent@cursor.com> 1789923184 +0000\ncommitter Cursor Agent <cursoragent@cursor.com> 1789923184 +0000\n\nfix: use the live Supabase project URL in local dart defines\n\nThe helper default host did not resolve, so Apple Sign-In failed after\nthe native sheet with Failed host lookup.\n\nCo-authored-by: naruto.futuree <naruto.futuree@gmail.com>\n",
+        "verified_at": "2026-09-20T16:53:06Z"
+      }
+    },
+    "url": "https://api.github.com/repos/naruto-aii/AYG/commits/696bb70744e6020ad35792772b35a8d648109fd9",
+    "html_url": "https://github.com/naruto-aii/AYG/commit/696bb70744e6020ad35792772b35a8d648109fd9",
+    "comments_url": "https://api.github.com/repos/naruto-aii/AYG/commits/696bb70744e6020ad35792772b35a8d648109fd9/comments",
+    "author": {
+      "login": "cursoragent",
+      "id": 199161495,
+      "node_id": "U_kgDOC972lw",
+      "avatar_url": "https://avatars.githubusercontent.com/u/199161495?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/cursoragent",
+      "html_url": "https://github.com/cursoragent",
+      "followers_url": "https://api.github.com/users/cursoragent/followers",
+      "following_url": "https://api.github.com/users/cursoragent/following{/other_user}",
+      "gists_url": "https://api.github.com/users/cursoragent/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/cursoragent/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/cursoragent/subscriptions",
+      "organizations_url": "https://api.github.com/users/cursoragent/orgs",
+      "repos_url": "https://api.github.com/users/cursoragent/repos",
+      "events_url": "https://api.github.com/users/cursoragent/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/cursoragent/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "committer": {
+      "login": "cursoragent",
+      "id": 199161495,
+      "node_id": "U_kgDOC972lw",
+      "avatar_url": "https://avatars.githubusercontent.com/u/199161495?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/cursoragent",
+      "html_url": "https://github.com/cursoragent",
+      "followers_url": "https://api.github.com/users/cursoragent/followers",
+      "following_url": "https://api.github.com/users/cursoragent/following{/other_user}",
+      "gists_url": "https://api.github.com/users/cursoragent/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/cursoragent/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/cursoragent/subscriptions",
+      "organizations_url": "https://api.github.com/users/cursoragent/orgs",
+      "repos_url": "https://api.github.com/users/cursoragent/repos",
+      "events_url": "https://api.github.com/users/cursoragent/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/cursoragent/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "parents": [
+      {
+        "sha": "688758ede45b68adf0f497a2b580e6de3dafff5c",
+        "url": "https://api.github.com/repos/naruto-aii/AYG/commits/688758ede45b68adf0f497a2b580e6de3dafff5c",
+        "html_url": "https://github.com/naruto-aii/AYG/commit/688758ede45b68adf0f497a2b580e6de3dafff5c"
+      }
+    ]
+  },
+  {
+    "sha": "1810c27c4cd506d689c0eb4f4db93d4c82ed9fb7",
+    "node_id": "C_kwDOTeJwqdoAKDE4MTBjMjdjNGNkNTA2ZDY4OWMwZWI0ZjRkYjkzZDRjODJlZDlmYjc",
+    "commit": {
+      "author": {
+        "name": "Cursor Agent",
+        "email": "cursoragent@cursor.com",
+        "date": "2026-09-20T16:56:48Z"
+      },
+      "committer": {
+        "name": "Cursor Agent",
+        "email": "cursoragent@cursor.com",
+        "date": "2026-09-20T16:56:48Z"
+      },
+      "message": "fix: auto-repair local dart_defines JSON before flutter run\n\nOwner edits were dropping the comma after SUPABASE_URL and blocking\ndevice QA. Rewrite the file from extracted keys first.\n\nCo-authored-by: naruto.futuree <naruto.futuree@gmail.com>",
+      "tree": {
+        "sha": "17a5a1c2d0b3ad286534683bd5adc82ca3af9347",
+        "url": "https://api.github.com/repos/naruto-aii/AYG/git/trees/17a5a1c2d0b3ad286534683bd5adc82ca3af9347"
+      },
+      "url": "https://api.github.com/repos/naruto-aii/AYG/git/commits/1810c27c4cd506d689c0eb4f4db93d4c82ed9fb7",
+      "comment_count": 0,
+      "verification": {
+        "verified": true,
+        "reason": "valid",
+        "signature": "-----BEGIN SSH SIGNATURE-----\nU1NIU0lHAAAAAQAAADMAAAALc3NoLWVkMjU1MTkAAAAg+qImwGMCy/grKZ50VxRHz3VfWW\nAL3QNbzIy2Nwcn+nQAAAADZ2l0AAAAAAAAAAZzaGE1MTIAAABTAAAAC3NzaC1lZDI1NTE5\nAAAAQFvy586RJhdUGR/I0i6eMncfN2Keru6Kojtf0bpmdvHJZSe+cQsDMtP5uz+f5i5l2z\nXiiOs5yE3oEpnpiAly8gM=\n-----END SSH SIGNATURE-----",
+        "payload": "tree 17a5a1c2d0b3ad286534683bd5adc82ca3af9347\nparent 696bb70744e6020ad35792772b35a8d648109fd9\nauthor Cursor Agent <cursoragent@cursor.com> 1789923408 +0000\ncommitter Cursor Agent <cursoragent@cursor.com> 1789923408 +0000\n\nfix: auto-repair local dart_defines JSON before flutter run\n\nOwner edits were dropping the comma after SUPABASE_URL and blocking\ndevice QA. Rewrite the file from extracted keys first.\n\nCo-authored-by: naruto.futuree <naruto.futuree@gmail.com>\n",
+        "verified_at": "2026-09-20T16:56:50Z"
+      }
+    },
+    "url": "https://api.github.com/repos/naruto-aii/AYG/commits/1810c27c4cd506d689c0eb4f4db93d4c82ed9fb7",
+    "html_url": "https://github.com/naruto-aii/AYG/commit/1810c27c4cd506d689c0eb4f4db93d4c82ed9fb7",
+    "comments_url": "https://api.github.com/repos/naruto-aii/AYG/commits/1810c27c4cd506d689c0eb4f4db93d4c82ed9fb7/comments",
+    "author": {
+      "login": "cursoragent",
+      "id": 199161495,
+      "node_id": "U_kgDOC972lw",
+      "avatar_url": "https://avatars.githubusercontent.com/u/199161495?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/cursoragent",
+      "html_url": "https://github.com/cursoragent",
+      "followers_url": "https://api.github.com/users/cursoragent/followers",
+      "following_url": "https://api.github.com/users/cursoragent/following{/other_user}",
+      "gists_url": "https://api.github.com/users/cursoragent/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/cursoragent/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/cursoragent/subscriptions",
+      "organizations_url": "https://api.github.com/users/cursoragent/orgs",
+      "repos_url": "https://api.github.com/users/cursoragent/repos",
+      "events_url": "https://api.github.com/users/cursoragent/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/cursoragent/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "committer": {
+      "login": "cursoragent",
+      "id": 199161495,
+      "node_id": "U_kgDOC972lw",
+      "avatar_url": "https://avatars.githubusercontent.com/u/199161495?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/cursoragent",
+      "html_url": "https://github.com/cursoragent",
+      "followers_url": "https://api.github.com/users/cursoragent/followers",
+      "following_url": "https://api.github.com/users/cursoragent/following{/other_user}",
+      "gists_url": "https://api.github.com/users/cursoragent/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/cursoragent/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/cursoragent/subscriptions",
+      "organizations_url": "https://api.github.com/users/cursoragent/orgs",
+      "repos_url": "https://api.github.com/users/cursoragent/repos",
+      "events_url": "https://api.github.com/users/cursoragent/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/cursoragent/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "parents": [
+      {
+        "sha": "696bb70744e6020ad35792772b35a8d648109fd9",
+        "url": "https://api.github.com/repos/naruto-aii/AYG/commits/696bb70744e6020ad35792772b35a8d648109fd9",
+        "html_url": "https://github.com/naruto-aii/AYG/commit/696bb70744e6020ad35792772b35a8d648109fd9"
+      }
+    ]
+  },
+  {
+    "sha": "4fac6584d8ec1f1887d491ad4ea3805b358cc1f3",
+    "node_id": "C_kwDOTeJwqdoAKDRmYWM2NTg0ZDhlYzFmMTg4N2Q0OTFhZDRlYTM4MDViMzU4Y2MxZjM",
+    "commit": {
+      "author": {
+        "name": "Cursor Agent",
+        "email": "cursoragent@cursor.com",
+        "date": "2026-09-20T17:00:31Z"
+      },
+      "committer": {
+        "name": "Cursor Agent",
+        "email": "cursoragent@cursor.com",
+        "date": "2026-09-20T17:00:31Z"
+      },
+      "message": "fix: add HealthKit entitlement for device Health reads\n\nDevice QA logged a missing com.apple.developer.healthkit entitlement.\nApple Sign-In and the rest of the app are unaffected; Health fetch is not.\n\nCo-authored-by: naruto.futuree <naruto.futuree@gmail.com>",
+      "tree": {
+        "sha": "deddaad9dedaf6059216cd84ad52bb814f96b670",
+        "url": "https://api.github.com/repos/naruto-aii/AYG/git/trees/deddaad9dedaf6059216cd84ad52bb814f96b670"
+      },
+      "url": "https://api.github.com/repos/naruto-aii/AYG/git/commits/4fac6584d8ec1f1887d491ad4ea3805b358cc1f3",
+      "comment_count": 0,
+      "verification": {
+        "verified": true,
+        "reason": "valid",
+        "signature": "-----BEGIN SSH SIGNATURE-----\nU1NIU0lHAAAAAQAAADMAAAALc3NoLWVkMjU1MTkAAAAg+qImwGMCy/grKZ50VxRHz3VfWW\nAL3QNbzIy2Nwcn+nQAAAADZ2l0AAAAAAAAAAZzaGE1MTIAAABTAAAAC3NzaC1lZDI1NTE5\nAAAAQMmqmH1Wd2bcb6reBGASxFn6NrbuA7i1DAuIu6fwh4BChBlAIHRhcItE2uhl2xXQ5T\ntgz2OQr6FCH2zAXyW5+Qg=\n-----END SSH SIGNATURE-----",
+        "payload": "tree deddaad9dedaf6059216cd84ad52bb814f96b670\nparent 1810c27c4cd506d689c0eb4f4db93d4c82ed9fb7\nauthor Cursor Agent <cursoragent@cursor.com> 1789923631 +0000\ncommitter Cursor Agent <cursoragent@cursor.com> 1789923631 +0000\n\nfix: add HealthKit entitlement for device Health reads\n\nDevice QA logged a missing com.apple.developer.healthkit entitlement.\nApple Sign-In and the rest of the app are unaffected; Health fetch is not.\n\nCo-authored-by: naruto.futuree <naruto.futuree@gmail.com>\n",
+        "verified_at": "2026-09-20T17:00:33Z"
+      }
+    },
+    "url": "https://api.github.com/repos/naruto-aii/AYG/commits/4fac6584d8ec1f1887d491ad4ea3805b358cc1f3",
+    "html_url": "https://github.com/naruto-aii/AYG/commit/4fac6584d8ec1f1887d491ad4ea3805b358cc1f3",
+    "comments_url": "https://api.github.com/repos/naruto-aii/AYG/commits/4fac6584d8ec1f1887d491ad4ea3805b358cc1f3/comments",
+    "author": {
+      "login": "cursoragent",
+      "id": 199161495,
+      "node_id": "U_kgDOC972lw",
+      "avatar_url": "https://avatars.githubusercontent.com/u/199161495?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/cursoragent",
+      "html_url": "https://github.com/cursoragent",
+      "followers_url": "https://api.github.com/users/cursoragent/followers",
+      "following_url": "https://api.github.com/users/cursoragent/following{/other_user}",
+      "gists_url": "https://api.github.com/users/cursoragent/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/cursoragent/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/cursoragent/subscriptions",
+      "organizations_url": "https://api.github.com/users/cursoragent/orgs",
+      "repos_url": "https://api.github.com/users/cursoragent/repos",
+      "events_url": "https://api.github.com/users/cursoragent/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/cursoragent/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "committer": {
+      "login": "cursoragent",
+      "id": 199161495,
+      "node_id": "U_kgDOC972lw",
+      "avatar_url": "https://avatars.githubusercontent.com/u/199161495?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/cursoragent",
+      "html_url": "https://github.com/cursoragent",
+      "followers_url": "https://api.github.com/users/cursoragent/followers",
+      "following_url": "https://api.github.com/users/cursoragent/following{/other_user}",
+      "gists_url": "https://api.github.com/users/cursoragent/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/cursoragent/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/cursoragent/subscriptions",
+      "organizations_url": "https://api.github.com/users/cursoragent/orgs",
+      "repos_url": "https://api.github.com/users/cursoragent/repos",
+      "events_url": "https://api.github.com/users/cursoragent/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/cursoragent/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "parents": [
+      {
+        "sha": "1810c27c4cd506d689c0eb4f4db93d4c82ed9fb7",
+        "url": "https://api.github.com/repos/naruto-aii/AYG/commits/1810c27c4cd506d689c0eb4f4db93d4c82ed9fb7",
+        "html_url": "https://github.com/naruto-aii/AYG/commit/1810c27c4cd506d689c0eb4f4db93d4c82ed9fb7"
+      }
+    ]
+  },
+  {
+    "sha": "1a19eb695b0b0a1fb8e86b2594661d740e08f0d5",
+    "node_id": "C_kwDOTeJwqdoAKDFhMTllYjY5NWIwYjBhMWZiOGU4NmIyNTk0NjYxZDc0MGUwOGYwZDU",
+    "commit": {
+      "author": {
+        "name": "Cursor Agent",
+        "email": "cursoragent@cursor.com",
+        "date": "2026-09-20T17:04:33Z"
+      },
+      "committer": {
+        "name": "Cursor Agent",
+        "email": "cursoragent@cursor.com",
+        "date": "2026-09-20T17:04:33Z"
+      },
+      "message": "merge: bring approved workout input from web-preview\n\nDevice QA was still on the old exercise form. Slack-approved search-less\n3-question input (PRs #12/#13) lives on web-preview.\n\nCo-authored-by: naruto.futuree <naruto.futuree@gmail.com>",
+      "tree": {
+        "sha": "bfd04c350a62fd00b6efe7100abae3f124f081b3",
+        "url": "https://api.github.com/repos/naruto-aii/AYG/git/trees/bfd04c350a62fd00b6efe7100abae3f124f081b3"
+      },
+      "url": "https://api.github.com/repos/naruto-aii/AYG/git/commits/1a19eb695b0b0a1fb8e86b2594661d740e08f0d5",
+      "comment_count": 0,
+      "verification": {
+        "verified": true,
+        "reason": "valid",
+        "signature": "-----BEGIN SSH SIGNATURE-----\nU1NIU0lHAAAAAQAAADMAAAALc3NoLWVkMjU1MTkAAAAg+qImwGMCy/grKZ50VxRHz3VfWW\nAL3QNbzIy2Nwcn+nQAAAADZ2l0AAAAAAAAAAZzaGE1MTIAAABTAAAAC3NzaC1lZDI1NTE5\nAAAAQGjdnU68MAAyvY5dUKI6LzO5QfrDPVYSXF+nhIVKGtJKjDkLVPQI52IqLDPqYctxhh\ntJ2vKwkrptumrjfCs5+Q8=\n-----END SSH SIGNATURE-----",
+        "payload": "tree bfd04c350a62fd00b6efe7100abae3f124f081b3\nparent 4fac6584d8ec1f1887d491ad4ea3805b358cc1f3\nparent 170e44bbbb29b2a5837556289264cc1ff969c80d\nauthor Cursor Agent <cursoragent@cursor.com> 1789923873 +0000\ncommitter Cursor Agent <cursoragent@cursor.com> 1789923873 +0000\n\nmerge: bring approved workout input from web-preview\n\nDevice QA was still on the old exercise form. Slack-approved search-less\n3-question input (PRs #12/#13) lives on web-preview.\n\nCo-authored-by: naruto.futuree <naruto.futuree@gmail.com>\n",
+        "verified_at": "2026-09-20T17:05:11Z"
+      }
+    },
+    "url": "https://api.github.com/repos/naruto-aii/AYG/commits/1a19eb695b0b0a1fb8e86b2594661d740e08f0d5",
+    "html_url": "https://github.com/naruto-aii/AYG/commit/1a19eb695b0b0a1fb8e86b2594661d740e08f0d5",
+    "comments_url": "https://api.github.com/repos/naruto-aii/AYG/commits/1a19eb695b0b0a1fb8e86b2594661d740e08f0d5/comments",
+    "author": {
+      "login": "cursoragent",
+      "id": 199161495,
+      "node_id": "U_kgDOC972lw",
+      "avatar_url": "https://avatars.githubusercontent.com/u/199161495?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/cursoragent",
+      "html_url": "https://github.com/cursoragent",
+      "followers_url": "https://api.github.com/users/cursoragent/followers",
+      "following_url": "https://api.github.com/users/cursoragent/following{/other_user}",
+      "gists_url": "https://api.github.com/users/cursoragent/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/cursoragent/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/cursoragent/subscriptions",
+      "organizations_url": "https://api.github.com/users/cursoragent/orgs",
+      "repos_url": "https://api.github.com/users/cursoragent/repos",
+      "events_url": "https://api.github.com/users/cursoragent/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/cursoragent/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "committer": {
+      "login": "cursoragent",
+      "id": 199161495,
+      "node_id": "U_kgDOC972lw",
+      "avatar_url": "https://avatars.githubusercontent.com/u/199161495?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/cursoragent",
+      "html_url": "https://github.com/cursoragent",
+      "followers_url": "https://api.github.com/users/cursoragent/followers",
+      "following_url": "https://api.github.com/users/cursoragent/following{/other_user}",
+      "gists_url": "https://api.github.com/users/cursoragent/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/cursoragent/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/cursoragent/subscriptions",
+      "organizations_url": "https://api.github.com/users/cursoragent/orgs",
+      "repos_url": "https://api.github.com/users/cursoragent/repos",
+      "events_url": "https://api.github.com/users/cursoragent/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/cursoragent/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "parents": [
+      {
+        "sha": "4fac6584d8ec1f1887d491ad4ea3805b358cc1f3",
+        "url": "https://api.github.com/repos/naruto-aii/AYG/commits/4fac6584d8ec1f1887d491ad4ea3805b358cc1f3",
+        "html_url": "https://github.com/naruto-aii/AYG/commit/4fac6584d8ec1f1887d491ad4ea3805b358cc1f3"
+      },
+      {
+        "sha": "170e44bbbb29b2a5837556289264cc1ff969c80d",
+        "url": "https://api.github.com/repos/naruto-aii/AYG/commits/170e44bbbb29b2a5837556289264cc1ff969c80d",
+        "html_url": "https://github.com/naruto-aii/AYG/commit/170e44bbbb29b2a5837556289264cc1ff969c80d"
+      }
+    ]
+  },
+  {
+    "sha": "47c5c137df9330bd5038a0dbf79a37985027c771",
+    "node_id": "C_kwDOTeJwqdoAKDQ3YzVjMTM3ZGY5MzMwYmQ1MDM4YTBkYmY3OWEzNzk4NTAyN2M3NzE",
+    "commit": {
+      "author": {
+        "name": "Cursor Agent",
+        "email": "cursoragent@cursor.com",
+        "date": "2026-09-20T23:35:10Z"
+      },
+      "committer": {
+        "name": "Cursor Agent",
+        "email": "cursoragent@cursor.com",
+        "date": "2026-09-20T23:35:10Z"
+      },
+      "message": "fix: dismiss all keyboards, log multi-exercise sets, show food camera\n\nAdd a global keyboard host so number pads can close by tapping outside\nor by ×/完了. Strength workouts now store multiple exercises with\nper-set weight and reps. The food form shows a camera scan action\nimmediately instead of hiding it behind an expand row.\n\nCo-authored-by: naruto.futuree <naruto.futuree@gmail.com>",
+      "tree": {
+        "sha": "b1ae2d097581f9d17e1eb84423f9b2955c62d266",
+        "url": "https://api.github.com/repos/naruto-aii/AYG/git/trees/b1ae2d097581f9d17e1eb84423f9b2955c62d266"
+      },
+      "url": "https://api.github.com/repos/naruto-aii/AYG/git/commits/47c5c137df9330bd5038a0dbf79a37985027c771",
+      "comment_count": 0,
+      "verification": {
+        "verified": true,
+        "reason": "valid",
+        "signature": "-----BEGIN SSH SIGNATURE-----\nU1NIU0lHAAAAAQAAADMAAAALc3NoLWVkMjU1MTkAAAAg+qImwGMCy/grKZ50VxRHz3VfWW\nAL3QNbzIy2Nwcn+nQAAAADZ2l0AAAAAAAAAAZzaGE1MTIAAABTAAAAC3NzaC1lZDI1NTE5\nAAAAQCzS8xICEX6ymrVwb6PciZEzWjvfrYZGlbUMEuA6hW7C1Cl1iBzsrWcfQZnMxu/hw2\njXInOO0sHE6tA8jzPxygY=\n-----END SSH SIGNATURE-----",
+        "payload": "tree b1ae2d097581f9d17e1eb84423f9b2955c62d266\nparent 1a19eb695b0b0a1fb8e86b2594661d740e08f0d5\nauthor Cursor Agent <cursoragent@cursor.com> 1789947310 +0000\ncommitter Cursor Agent <cursoragent@cursor.com> 1789947310 +0000\n\nfix: dismiss all keyboards, log multi-exercise sets, show food camera\n\nAdd a global keyboard host so number pads can close by tapping outside\nor by ×/完了. Strength workouts now store multiple exercises with\nper-set weight and reps. The food form shows a camera scan action\nimmediately instead of hiding it behind an expand row.\n\nCo-authored-by: naruto.futuree <naruto.futuree@gmail.com>\n",
+        "verified_at": "2026-09-20T23:35:15Z"
+      }
+    },
+    "url": "https://api.github.com/repos/naruto-aii/AYG/commits/47c5c137df9330bd5038a0dbf79a37985027c771",
+    "html_url": "https://github.com/naruto-aii/AYG/commit/47c5c137df9330bd5038a0dbf79a37985027c771",
+    "comments_url": "https://api.github.com/repos/naruto-aii/AYG/commits/47c5c137df9330bd5038a0dbf79a37985027c771/comments",
+    "author": {
+      "login": "cursoragent",
+      "id": 199161495,
+      "node_id": "U_kgDOC972lw",
+      "avatar_url": "https://avatars.githubusercontent.com/u/199161495?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/cursoragent",
+      "html_url": "https://github.com/cursoragent",
+      "followers_url": "https://api.github.com/users/cursoragent/followers",
+      "following_url": "https://api.github.com/users/cursoragent/following{/other_user}",
+      "gists_url": "https://api.github.com/users/cursoragent/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/cursoragent/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/cursoragent/subscriptions",
+      "organizations_url": "https://api.github.com/users/cursoragent/orgs",
+      "repos_url": "https://api.github.com/users/cursoragent/repos",
+      "events_url": "https://api.github.com/users/cursoragent/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/cursoragent/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "committer": {
+      "login": "cursoragent",
+      "id": 199161495,
+      "node_id": "U_kgDOC972lw",
+      "avatar_url": "https://avatars.githubusercontent.com/u/199161495?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/cursoragent",
+      "html_url": "https://github.com/cursoragent",
+      "followers_url": "https://api.github.com/users/cursoragent/followers",
+      "following_url": "https://api.github.com/users/cursoragent/following{/other_user}",
+      "gists_url": "https://api.github.com/users/cursoragent/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/cursoragent/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/cursoragent/subscriptions",
+      "organizations_url": "https://api.github.com/users/cursoragent/orgs",
+      "repos_url": "https://api.github.com/users/cursoragent/repos",
+      "events_url": "https://api.github.com/users/cursoragent/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/cursoragent/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "parents": [
+      {
+        "sha": "1a19eb695b0b0a1fb8e86b2594661d740e08f0d5",
+        "url": "https://api.github.com/repos/naruto-aii/AYG/commits/1a19eb695b0b0a1fb8e86b2594661d740e08f0d5",
+        "html_url": "https://github.com/naruto-aii/AYG/commit/1a19eb695b0b0a1fb8e86b2594661d740e08f0d5"
+      }
+    ]
+  },
+  {
+    "sha": "5f6e87ab3113ee0064299fb6b15884031992e21a",
+    "node_id": "C_kwDOTeJwqdoAKDVmNmU4N2FiMzExM2VlMDA2NDI5OWZiNmIxNTg4NDAzMTk5MmUyMWE",
+    "commit": {
+      "author": {
+        "name": "Cursor Agent",
+        "email": "cursoragent@cursor.com",
+        "date": "2026-09-20T23:50:43Z"
+      },
+      "committer": {
+        "name": "Cursor Agent",
+        "email": "cursoragent@cursor.com",
+        "date": "2026-09-20T23:50:43Z"
+      },
+      "message": "fix: unblock Google login and Health reads on iOS\n\nGoogle no longer dies when the iOS client ID is empty: it falls back\nto the existing Web client via com.narutoaii.ayg://login-callback.\nHealth now configures the plugin, requests read-only access, and\nkeeps partial data instead of swallowing every error.\n\nCo-authored-by: naruto.futuree <naruto.futuree@gmail.com>",
+      "tree": {
+        "sha": "e607a54a9957c585e2e6b9bbe4beb367fa5e923f",
+        "url": "https://api.github.com/repos/naruto-aii/AYG/git/trees/e607a54a9957c585e2e6b9bbe4beb367fa5e923f"
+      },
+      "url": "https://api.github.com/repos/naruto-aii/AYG/git/commits/5f6e87ab3113ee0064299fb6b15884031992e21a",
+      "comment_count": 0,
+      "verification": {
+        "verified": true,
+        "reason": "valid",
+        "signature": "-----BEGIN SSH SIGNATURE-----\nU1NIU0lHAAAAAQAAADMAAAALc3NoLWVkMjU1MTkAAAAg+qImwGMCy/grKZ50VxRHz3VfWW\nAL3QNbzIy2Nwcn+nQAAAADZ2l0AAAAAAAAAAZzaGE1MTIAAABTAAAAC3NzaC1lZDI1NTE5\nAAAAQEiX9OjuP2BugJW19x+9efeK8e34my9u/pnHGZXdqNK1cmZjXl0HOzr/Lt3gg6qqbL\nuEfnA77igbseKulSm+OAM=\n-----END SSH SIGNATURE-----",
+        "payload": "tree e607a54a9957c585e2e6b9bbe4beb367fa5e923f\nparent 47c5c137df9330bd5038a0dbf79a37985027c771\nauthor Cursor Agent <cursoragent@cursor.com> 1789948243 +0000\ncommitter Cursor Agent <cursoragent@cursor.com> 1789948243 +0000\n\nfix: unblock Google login and Health reads on iOS\n\nGoogle no longer dies when the iOS client ID is empty: it falls back\nto the existing Web client via com.narutoaii.ayg://login-callback.\nHealth now configures the plugin, requests read-only access, and\nkeeps partial data instead of swallowing every error.\n\nCo-authored-by: naruto.futuree <naruto.futuree@gmail.com>\n",
+        "verified_at": "2026-09-20T23:50:46Z"
+      }
+    },
+    "url": "https://api.github.com/repos/naruto-aii/AYG/commits/5f6e87ab3113ee0064299fb6b15884031992e21a",
+    "html_url": "https://github.com/naruto-aii/AYG/commit/5f6e87ab3113ee0064299fb6b15884031992e21a",
+    "comments_url": "https://api.github.com/repos/naruto-aii/AYG/commits/5f6e87ab3113ee0064299fb6b15884031992e21a/comments",
+    "author": {
+      "login": "cursoragent",
+      "id": 199161495,
+      "node_id": "U_kgDOC972lw",
+      "avatar_url": "https://avatars.githubusercontent.com/u/199161495?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/cursoragent",
+      "html_url": "https://github.com/cursoragent",
+      "followers_url": "https://api.github.com/users/cursoragent/followers",
+      "following_url": "https://api.github.com/users/cursoragent/following{/other_user}",
+      "gists_url": "https://api.github.com/users/cursoragent/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/cursoragent/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/cursoragent/subscriptions",
+      "organizations_url": "https://api.github.com/users/cursoragent/orgs",
+      "repos_url": "https://api.github.com/users/cursoragent/repos",
+      "events_url": "https://api.github.com/users/cursoragent/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/cursoragent/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "committer": {
+      "login": "cursoragent",
+      "id": 199161495,
+      "node_id": "U_kgDOC972lw",
+      "avatar_url": "https://avatars.githubusercontent.com/u/199161495?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/cursoragent",
+      "html_url": "https://github.com/cursoragent",
+      "followers_url": "https://api.github.com/users/cursoragent/followers",
+      "following_url": "https://api.github.com/users/cursoragent/following{/other_user}",
+      "gists_url": "https://api.github.com/users/cursoragent/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/cursoragent/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/cursoragent/subscriptions",
+      "organizations_url": "https://api.github.com/users/cursoragent/orgs",
+      "repos_url": "https://api.github.com/users/cursoragent/repos",
+      "events_url": "https://api.github.com/users/cursoragent/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/cursoragent/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "parents": [
+      {
+        "sha": "47c5c137df9330bd5038a0dbf79a37985027c771",
+        "url": "https://api.github.com/repos/naruto-aii/AYG/commits/47c5c137df9330bd5038a0dbf79a37985027c771",
+        "html_url": "https://github.com/naruto-aii/AYG/commit/47c5c137df9330bd5038a0dbf79a37985027c771"
+      }
+    ]
+  },
+  {
+    "sha": "e0f62f48019274da177da490ec1d75b5b117d6ec",
+    "node_id": "C_kwDOTeJwqdoAKGUwZjYyZjQ4MDE5Mjc0ZGExNzdkYTQ5MGVjMWQ3NWI1YjExN2Q2ZWM",
+    "commit": {
+      "author": {
+        "name": "Cursor Agent",
+        "email": "cursoragent@cursor.com",
+        "date": "2026-09-27T08:02:23Z"
+      },
+      "committer": {
+        "name": "Cursor Agent",
+        "email": "cursoragent@cursor.com",
+        "date": "2026-09-27T08:02:23Z"
+      },
+      "message": "feat: bring Calonavi+ and account deletion onto the web-preview design\n\nMerge the billing, account deletion, HealthKit, keyboard dismiss, and\nmulti-exercise strength work onto the Figma refresh. Keep one Sign in\nwith Apple path: the web-preview implementation on sign_in_with_apple 8.2.0.\nDrop the committed Supabase CLI cache.\n\nCo-authored-by: naruto-aii <naruto-aii@users.noreply.github.com>",
+      "tree": {
+        "sha": "09ce8bdf41a752085e9898b3cef22946729c6e5c",
+        "url": "https://api.github.com/repos/naruto-aii/AYG/git/trees/09ce8bdf41a752085e9898b3cef22946729c6e5c"
+      },
+      "url": "https://api.github.com/repos/naruto-aii/AYG/git/commits/e0f62f48019274da177da490ec1d75b5b117d6ec",
+      "comment_count": 0,
+      "verification": {
+        "verified": true,
+        "reason": "valid",
+        "signature": "-----BEGIN SSH SIGNATURE-----\nU1NIU0lHAAAAAQAAADMAAAALc3NoLWVkMjU1MTkAAAAg+qImwGMCy/grKZ50VxRHz3VfWW\nAL3QNbzIy2Nwcn+nQAAAADZ2l0AAAAAAAAAAZzaGE1MTIAAABTAAAAC3NzaC1lZDI1NTE5\nAAAAQKoJWsnYFNQ08hK8m3d7nDUHEBefrVYrpH+OWi9q/2XkZCA7EwbfIpyjgV8Vack1yd\n4A3zC+zKis7F2EG9Kn4Q0=\n-----END SSH SIGNATURE-----",
+        "payload": "tree 09ce8bdf41a752085e9898b3cef22946729c6e5c\nparent 9b4c9619e9bba2834075aa1ce73300474e41e3f6\nparent 5f6e87ab3113ee0064299fb6b15884031992e21a\nauthor Cursor Agent <cursoragent@cursor.com> 1790496143 +0000\ncommitter Cursor Agent <cursoragent@cursor.com> 1790496143 +0000\n\nfeat: bring Calonavi+ and account deletion onto the web-preview design\n\nMerge the billing, account deletion, HealthKit, keyboard dismiss, and\nmulti-exercise strength work onto the Figma refresh. Keep one Sign in\nwith Apple path: the web-preview implementation on sign_in_with_apple 8.2.0.\nDrop the committed Supabase CLI cache.\n\nCo-authored-by: naruto-aii <naruto-aii@users.noreply.github.com>\n",
+        "verified_at": "2026-09-27T08:02:46Z"
+      }
+    },
+    "url": "https://api.github.com/repos/naruto-aii/AYG/commits/e0f62f48019274da177da490ec1d75b5b117d6ec",
+    "html_url": "https://github.com/naruto-aii/AYG/commit/e0f62f48019274da177da490ec1d75b5b117d6ec",
+    "comments_url": "https://api.github.com/repos/naruto-aii/AYG/commits/e0f62f48019274da177da490ec1d75b5b117d6ec/comments",
+    "author": {
+      "login": "cursoragent",
+      "id": 199161495,
+      "node_id": "U_kgDOC972lw",
+      "avatar_url": "https://avatars.githubusercontent.com/u/199161495?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/cursoragent",
+      "html_url": "https://github.com/cursoragent",
+      "followers_url": "https://api.github.com/users/cursoragent/followers",
+      "following_url": "https://api.github.com/users/cursoragent/following{/other_user}",
+      "gists_url": "https://api.github.com/users/cursoragent/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/cursoragent/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/cursoragent/subscriptions",
+      "organizations_url": "https://api.github.com/users/cursoragent/orgs",
+      "repos_url": "https://api.github.com/users/cursoragent/repos",
+      "events_url": "https://api.github.com/users/cursoragent/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/cursoragent/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "committer": {
+      "login": "cursoragent",
+      "id": 199161495,
+      "node_id": "U_kgDOC972lw",
+      "avatar_url": "https://avatars.githubusercontent.com/u/199161495?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/cursoragent",
+      "html_url": "https://github.com/cursoragent",
+      "followers_url": "https://api.github.com/users/cursoragent/followers",
+      "following_url": "https://api.github.com/users/cursoragent/following{/other_user}",
+      "gists_url": "https://api.github.com/users/cursoragent/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/cursoragent/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/cursoragent/subscriptions",
+      "organizations_url": "https://api.github.com/users/cursoragent/orgs",
+      "repos_url": "https://api.github.com/users/cursoragent/repos",
+      "events_url": "https://api.github.com/users/cursoragent/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/cursoragent/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "parents": [
+      {
+        "sha": "9b4c9619e9bba2834075aa1ce73300474e41e3f6",
+        "url": "https://api.github.com/repos/naruto-aii/AYG/commits/9b4c9619e9bba2834075aa1ce73300474e41e3f6",
+        "html_url": "https://github.com/naruto-aii/AYG/commit/9b4c9619e9bba2834075aa1ce73300474e41e3f6"
+      },
+      {
+        "sha": "5f6e87ab3113ee0064299fb6b15884031992e21a",
+        "url": "https://api.github.com/repos/naruto-aii/AYG/commits/5f6e87ab3113ee0064299fb6b15884031992e21a",
+        "html_url": "https://github.com/naruto-aii/AYG/commit/5f6e87ab3113ee0064299fb6b15884031992e21a"
+      }
+    ]
+  },
+  {
+    "sha": "317bfafeba45153ce8d7e9119f6122acd6ce4201",
+    "node_id": "C_kwDOTeJwqdoAKDMxN2JmYWZlYmE0NTE1M2NlOGQ3ZTkxMTlmNjEyMmFjZDZjZTQyMDE",
+    "commit": {
+      "author": {
+        "name": "Cursor Agent",
+        "email": "cursoragent@cursor.com",
+        "date": "2026-09-27T08:16:31Z"
+      },
+      "committer": {
+        "name": "Cursor Agent",
+        "email": "cursoragent@cursor.com",
+        "date": "2026-09-27T08:16:31Z"
+      },
+      "message": "fix: make the merged suite pass on current Flutter\n\nReturn immediately after markTestSkipped so tests that need a local\nSupabase skip instead of failing when port 54321 is closed. Format\nwhole-kilogram strength summaries as 80kg, clear the account-deletion\nspinner before the unavailable dialog, and treat keyboard dismiss as\nthe text field losing focus.\n\nCo-authored-by: naruto-aii <naruto-aii@users.noreply.github.com>",
+      "tree": {
+        "sha": "2a268c00c936b6cae03c39ee7bcbf7344a5e117f",
+        "url": "https://api.github.com/repos/naruto-aii/AYG/git/trees/2a268c00c936b6cae03c39ee7bcbf7344a5e117f"
+      },
+      "url": "https://api.github.com/repos/naruto-aii/AYG/git/commits/317bfafeba45153ce8d7e9119f6122acd6ce4201",
+      "comment_count": 0,
+      "verification": {
+        "verified": true,
+        "reason": "valid",
+        "signature": "-----BEGIN SSH SIGNATURE-----\nU1NIU0lHAAAAAQAAADMAAAALc3NoLWVkMjU1MTkAAAAg+qImwGMCy/grKZ50VxRHz3VfWW\nAL3QNbzIy2Nwcn+nQAAAADZ2l0AAAAAAAAAAZzaGE1MTIAAABTAAAAC3NzaC1lZDI1NTE5\nAAAAQPYwq95/xLfzX4+o1aJit5ETCYNYxdfqEQoTrnDo4EiJFzQPpMiJrqeqbxFYuQADtj\nQPBlzhvVprZ5qvedw5rAc=\n-----END SSH SIGNATURE-----",
+        "payload": "tree 2a268c00c936b6cae03c39ee7bcbf7344a5e117f\nparent e0f62f48019274da177da490ec1d75b5b117d6ec\nauthor Cursor Agent <cursoragent@cursor.com> 1790496991 +0000\ncommitter Cursor Agent <cursoragent@cursor.com> 1790496991 +0000\n\nfix: make the merged suite pass on current Flutter\n\nReturn immediately after markTestSkipped so tests that need a local\nSupabase skip instead of failing when port 54321 is closed. Format\nwhole-kilogram strength summaries as 80kg, clear the account-deletion\nspinner before the unavailable dialog, and treat keyboard dismiss as\nthe text field losing focus.\n\nCo-authored-by: naruto-aii <naruto-aii@users.noreply.github.com>\n",
+        "verified_at": "2026-09-27T08:16:33Z"
+      }
+    },
+    "url": "https://api.github.com/repos/naruto-aii/AYG/commits/317bfafeba45153ce8d7e9119f6122acd6ce4201",
+    "html_url": "https://github.com/naruto-aii/AYG/commit/317bfafeba45153ce8d7e9119f6122acd6ce4201",
+    "comments_url": "https://api.github.com/repos/naruto-aii/AYG/commits/317bfafeba45153ce8d7e9119f6122acd6ce4201/comments",
+    "author": {
+      "login": "cursoragent",
+      "id": 199161495,
+      "node_id": "U_kgDOC972lw",
+      "avatar_url": "https://avatars.githubusercontent.com/u/199161495?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/cursoragent",
+      "html_url": "https://github.com/cursoragent",
+      "followers_url": "https://api.github.com/users/cursoragent/followers",
+      "following_url": "https://api.github.com/users/cursoragent/following{/other_user}",
+      "gists_url": "https://api.github.com/users/cursoragent/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/cursoragent/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/cursoragent/subscriptions",
+      "organizations_url": "https://api.github.com/users/cursoragent/orgs",
+      "repos_url": "https://api.github.com/users/cursoragent/repos",
+      "events_url": "https://api.github.com/users/cursoragent/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/cursoragent/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "committer": {
+      "login": "cursoragent",
+      "id": 199161495,
+      "node_id": "U_kgDOC972lw",
+      "avatar_url": "https://avatars.githubusercontent.com/u/199161495?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/cursoragent",
+      "html_url": "https://github.com/cursoragent",
+      "followers_url": "https://api.github.com/users/cursoragent/followers",
+      "following_url": "https://api.github.com/users/cursoragent/following{/other_user}",
+      "gists_url": "https://api.github.com/users/cursoragent/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/cursoragent/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/cursoragent/subscriptions",
+      "organizations_url": "https://api.github.com/users/cursoragent/orgs",
+      "repos_url": "https://api.github.com/users/cursoragent/repos",
+      "events_url": "https://api.github.com/users/cursoragent/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/cursoragent/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "parents": [
+      {
+        "sha": "e0f62f48019274da177da490ec1d75b5b117d6ec",
+        "url": "https://api.github.com/repos/naruto-aii/AYG/commits/e0f62f48019274da177da490ec1d75b5b117d6ec",
+        "html_url": "https://github.com/naruto-aii/AYG/commit/e0f62f48019274da177da490ec1d75b5b117d6ec"
+      }
+    ]
+  },
+  {
+    "sha": "2b60aa7d473bd382efa022bbdf0edf690bb91198",
+    "node_id": "C_kwDOTeJwqdoAKDJiNjBhYTdkNDczYmQzODJlZmEwMjJiYmRmMGVkZjY5MGJiOTExOTg",
+    "commit": {
+      "author": {
+        "name": "Cursor Agent",
+        "email": "cursoragent@cursor.com",
+        "date": "2026-09-27T08:20:53Z"
+      },
+      "committer": {
+        "name": "Cursor Agent",
+        "email": "cursoragent@cursor.com",
+        "date": "2026-09-27T08:20:53Z"
+      },
+      "message": "fix: drop the unused Health write usage string\n\nHealthKit authorization is read-only, so Info.plist keeps\nNSHealthShareUsageDescription and no longer declares a write purpose.\n\nCo-authored-by: naruto-aii <naruto-aii@users.noreply.github.com>",
+      "tree": {
+        "sha": "bfb25171907c4cbbecfaafe9f3acf3e8101b4dd1",
+        "url": "https://api.github.com/repos/naruto-aii/AYG/git/trees/bfb25171907c4cbbecfaafe9f3acf3e8101b4dd1"
+      },
+      "url": "https://api.github.com/repos/naruto-aii/AYG/git/commits/2b60aa7d473bd382efa022bbdf0edf690bb91198",
+      "comment_count": 0,
+      "verification": {
+        "verified": true,
+        "reason": "valid",
+        "signature": "-----BEGIN SSH SIGNATURE-----\nU1NIU0lHAAAAAQAAADMAAAALc3NoLWVkMjU1MTkAAAAg+qImwGMCy/grKZ50VxRHz3VfWW\nAL3QNbzIy2Nwcn+nQAAAADZ2l0AAAAAAAAAAZzaGE1MTIAAABTAAAAC3NzaC1lZDI1NTE5\nAAAAQEoZ/dJn2a2oTt3AS5sXSC1QR6E42V1R7VoUeViqVGNik6FCYcKezUCY/I+QFt4wjy\nd1lvf1gTMswX1oZdHgcQ0=\n-----END SSH SIGNATURE-----",
+        "payload": "tree bfb25171907c4cbbecfaafe9f3acf3e8101b4dd1\nparent 317bfafeba45153ce8d7e9119f6122acd6ce4201\nauthor Cursor Agent <cursoragent@cursor.com> 1790497253 +0000\ncommitter Cursor Agent <cursoragent@cursor.com> 1790497253 +0000\n\nfix: drop the unused Health write usage string\n\nHealthKit authorization is read-only, so Info.plist keeps\nNSHealthShareUsageDescription and no longer declares a write purpose.\n\nCo-authored-by: naruto-aii <naruto-aii@users.noreply.github.com>\n",
+        "verified_at": "2026-09-27T08:20:55Z"
+      }
+    },
+    "url": "https://api.github.com/repos/naruto-aii/AYG/commits/2b60aa7d473bd382efa022bbdf0edf690bb91198",
+    "html_url": "https://github.com/naruto-aii/AYG/commit/2b60aa7d473bd382efa022bbdf0edf690bb91198",
+    "comments_url": "https://api.github.com/repos/naruto-aii/AYG/commits/2b60aa7d473bd382efa022bbdf0edf690bb91198/comments",
+    "author": {
+      "login": "cursoragent",
+      "id": 199161495,
+      "node_id": "U_kgDOC972lw",
+      "avatar_url": "https://avatars.githubusercontent.com/u/199161495?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/cursoragent",
+      "html_url": "https://github.com/cursoragent",
+      "followers_url": "https://api.github.com/users/cursoragent/followers",
+      "following_url": "https://api.github.com/users/cursoragent/following{/other_user}",
+      "gists_url": "https://api.github.com/users/cursoragent/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/cursoragent/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/cursoragent/subscriptions",
+      "organizations_url": "https://api.github.com/users/cursoragent/orgs",
+      "repos_url": "https://api.github.com/users/cursoragent/repos",
+      "events_url": "https://api.github.com/users/cursoragent/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/cursoragent/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "committer": {
+      "login": "cursoragent",
+      "id": 199161495,
+      "node_id": "U_kgDOC972lw",
+      "avatar_url": "https://avatars.githubusercontent.com/u/199161495?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/cursoragent",
+      "html_url": "https://github.com/cursoragent",
+      "followers_url": "https://api.github.com/users/cursoragent/followers",
+      "following_url": "https://api.github.com/users/cursoragent/following{/other_user}",
+      "gists_url": "https://api.github.com/users/cursoragent/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/cursoragent/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/cursoragent/subscriptions",
+      "organizations_url": "https://api.github.com/users/cursoragent/orgs",
+      "repos_url": "https://api.github.com/users/cursoragent/repos",
+      "events_url": "https://api.github.com/users/cursoragent/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/cursoragent/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "parents": [
+      {
+        "sha": "317bfafeba45153ce8d7e9119f6122acd6ce4201",
+        "url": "https://api.github.com/repos/naruto-aii/AYG/commits/317bfafeba45153ce8d7e9119f6122acd6ce4201",
+        "html_url": "https://github.com/naruto-aii/AYG/commit/317bfafeba45153ce8d7e9119f6122acd6ce4201"
+      }
+    ]
+  }
+]

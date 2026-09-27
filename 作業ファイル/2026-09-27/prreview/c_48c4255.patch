@@ -1,0 +1,1886 @@
+### FILE lib/repositories/account_deletion_rpc.dart (modified)
+@@ -1,27 +1,49 @@
+ import 'package:supabase_flutter/supabase_flutter.dart';
+ 
++import 'apple_refresh_token.dart';
+ import 'auth_exceptions.dart';
+ 
+-/// `public.delete_own_account()` を呼ぶ。関数が無いときは unavailable。
+-Future<void> deleteOwnAccountWithClient(SupabaseClient client) async {
++/// Edge Function that revokes the Apple refresh token, then deletes the account.
++const deleteAccountFunction = 'delete-account';
++
++/// Shown if anything stringifies this exception. The screen uses its own copy.
++const accountDeletionGenericFailure = 'account deletion failed';
++
++/// `delete-account` revokes the Sign in with Apple token, then calls
++/// `delete_own_account` as the signed-in user. A missing function is
++/// unavailable. Other failures use a fixed message and drop the response body.
++Future<void> deleteOwnAccountWithClient(SupabaseClient client) {
++  return deleteOwnAccountWithInvoker(
++    (functionName, {body}) => client.functions.invoke(functionName, body: body),
++  );
++}
++
++Future<void> deleteOwnAccountWithInvoker(EdgeFunctionInvoke invoke) async {
+   try {
+-    await client.rpc('delete_own_account');
+-  } on PostgrestException catch (error) {
+-    if (_isMissingFunction(error)) {
++    final response = await invoke(deleteAccountFunction);
++    _throwIfDeleteFailed(response.status, response.data);
++  } on FunctionException catch (error) {
++    if (error.status == 404) {
+       throw AccountDeletionUnavailableException();
+     }
+-    throw AccountDeletionFailedException(error.message);
++    throw const AccountDeletionFailedException(accountDeletionGenericFailure);
++  } on AccountDeletionUnavailableException {
++    rethrow;
++  } on AccountDeletionFailedException {
++    rethrow;
++  } catch (_) {
++    throw const AccountDeletionFailedException(accountDeletionGenericFailure);
+   }
+ }
+ 
+-bool _isMissingFunction(PostgrestException error) {
+-  final code = error.code ?? '';
+-  final message = error.message.toLowerCase();
+-  if (code == 'PGRST202' || code == '42883') {
+-    return true;
++void _throwIfDeleteFailed(int status, Object? data) {
++  if (status == 404) {
++    throw AccountDeletionUnavailableException();
++  }
++  if (status < 200 || status >= 300) {
++    throw const AccountDeletionFailedException(accountDeletionGenericFailure);
++  }
++  if (data is Map && data['ok'] == false) {
++    throw const AccountDeletionFailedException(accountDeletionGenericFailure);
+   }
+-  return message.contains('delete_own_account') &&
+-      (message.contains('does not exist') ||
+-          message.contains('not find') ||
+-          message.contains('could not find'));
+ }
+### FILE lib/repositories/apple_refresh_token.dart (added)
+@@ -0,0 +1,45 @@
++import 'package:flutter/foundation.dart';
++import 'package:supabase_flutter/supabase_flutter.dart';
++
++/// Edge Function that exchanges a Sign in with Apple authorization code.
++const storeAppleRefreshTokenFunction = 'store-apple-refresh-token';
++
++typedef EdgeFunctionInvoke =
++    Future<FunctionResponse> Function(String functionName, {Object? body});
++
++/// Sends [authorizationCode] to the Edge Function. The function exchanges it
++/// and stores the refresh token. A failure here must not undo a sign-in that
++/// already succeeded, and the raw response is not shown.
++Future<void> storeAppleAuthorizationCode({
++  required EdgeFunctionInvoke invoke,
++  required String authorizationCode,
++}) async {
++  final code = authorizationCode.trim();
++  if (code.isEmpty) {
++    return;
++  }
++  try {
++    await invoke(
++      storeAppleRefreshTokenFunction,
++      body: {'authorization_code': code},
++    );
++  } catch (_) {
++    debugPrint('Sign in with Apple refresh token was not stored.');
++  }
++}
++
++/// Completes native Apple sign-in, then stores the authorization code.
++/// [signIn] runs first so the function call has a user session. Storage
++/// errors are swallowed.
++Future<void> finishNativeAppleSignIn({
++  required Future<void> Function() signIn,
++  required String authorizationCode,
++  required Future<void> Function(String authorizationCode) storeCode,
++}) async {
++  await signIn();
++  try {
++    await storeCode(authorizationCode);
++  } catch (_) {
++    debugPrint('Sign in with Apple refresh token was not stored.');
++  }
++}
+### FILE lib/repositories/auth_exceptions.dart (modified)
+@@ -55,7 +55,7 @@ class AccountDeletionUnavailableException implements Exception {
+ 
+ /// アカウント削除に失敗した。
+ class AccountDeletionFailedException implements Exception {
+-  AccountDeletionFailedException(this.message);
++  const AccountDeletionFailedException(this.message);
+ 
+   final String message;
+ 
+### FILE lib/repositories/supabase_authentication_repository.dart (modified)
+@@ -10,6 +10,7 @@ import 'package:supabase_flutter/supabase_flutter.dart' hide AuthUser;
+ import '../config/supabase_config.dart';
+ import '../config/web_auth_config.dart';
+ import 'account_deletion_rpc.dart';
++import 'apple_refresh_token.dart';
+ import 'auth_exceptions.dart';
+ import 'authentication_repository.dart';
+ import 'google_sign_in_factory.dart';
+@@ -153,9 +154,10 @@ class SupabaseAuthenticationRepository extends AuthenticationRepository {
+   /// Apple ID でログインする。
+   ///
+   /// - iOS / macOS: OS 標準のシートを出し、受け取った ID トークンで Supabase に
+-  ///   サインインする。Xcode で "Sign in with Apple" の Capability が必要。
++  ///   サインインする。成功したあと、authorization code だけを Edge Function に
++  ///   渡す。交換に失敗してもログインは取り消さない。
+   /// - それ以外（Web / Android）: Supabase の OAuth リダイレクトを使う。
+-  ///   Supabase 側で Apple プロバイダの設定が必要。
++  ///   この経路は authorization code をアプリに返さない。
+   @override
+   Future<void> loginWithApple() async {
+     if (kIsWeb || !_supportsNativeApple) {
+@@ -201,10 +203,18 @@ class SupabaseAuthenticationRepository extends AuthenticationRepository {
+     }
+ 
+     try {
+-      await _client.auth.signInWithIdToken(
+-        provider: OAuthProvider.apple,
+-        idToken: idToken,
+-        nonce: rawNonce,
++      await finishNativeAppleSignIn(
++        signIn: () => _client.auth.signInWithIdToken(
++          provider: OAuthProvider.apple,
++          idToken: idToken,
++          nonce: rawNonce,
++        ),
++        authorizationCode: credential.authorizationCode,
++        storeCode: (code) => storeAppleAuthorizationCode(
++          invoke: (functionName, {body}) =>
++              _client.functions.invoke(functionName, body: body),
++          authorizationCode: code,
++        ),
+       );
+     } on AuthException catch (error) {
+       throw AppleSignInFailedException(error.message);
+### FILE supabase/config.toml (modified)
+@@ -382,6 +382,15 @@ inspector_port = 8083
+ # The Deno major version to use.
+ deno_version = 2
+ 
++# Sign in with Apple key material stays out of this file.
++# Names and the owner setup are in supabase/functions/README.md.
++
++[functions.store-apple-refresh-token]
++verify_jwt = true
++
++[functions.delete-account]
++verify_jwt = true
++
+ # [edge_runtime.secrets]
+ # secret_key = "env(SECRET_VALUE)"
+ 
+### FILE supabase/functions/README.md (added)
+@@ -0,0 +1,80 @@
++# Sign in with Apple token revocation
++
++Native Sign in with Apple (iOS / macOS) sends the authorization code to the
++`store-apple-refresh-token` Edge Function. The function exchanges it at Apple
++for a refresh token and stores that token in Supabase Vault. The app never
++sees the refresh token.
++
++`delete-account` reads the token, calls `https://appleid.apple.com/auth/revoke`,
++then calls `public.delete_own_account()` with the user's JWT. A failed revoke
++is logged and does not stop deletion. Responses to the app are `{ stored: true|false }`
++or `{ ok: true|false }` with no Apple or database error text.
++
++Web and Android Apple OAuth do not give the app an authorization code, so those
++sessions have nothing to revoke. Deletion still runs.
++
++This change does not deploy functions and does not apply the migration.
++
++## Secrets
++
++Set these in the Supabase project with the CLI. Put the values only in that
++command, never in git, `supabase/config.toml`, or a committed env file.
++
++- `APPLE_TEAM_ID` — Apple Developer Team ID
++- `APPLE_KEY_ID` — Sign in with Apple key id
++- `APPLE_PRIVATE_KEY` — contents of the Apple `.p8` key (PKCS#8). Literal `\n`
++  sequences are accepted.
++- `APPLE_CLIENT_ID` — native app bundle id `com.narutoaii.ayg`
++
++```sh
++supabase secrets set \
++  APPLE_TEAM_ID=... \
++  APPLE_KEY_ID=... \
++  APPLE_PRIVATE_KEY=... \
++  APPLE_CLIENT_ID=...
++```
++
++`APPLE_CLIENT_ID` must be the bundle id above. The other three values stay with
++the account owner. The function reads the names from the environment; it does
++not fall back to a committed client id.
++
++`SUPABASE_URL`, `SUPABASE_ANON_KEY`, and `SUPABASE_SERVICE_ROLE_KEY` are injected
++by the platform. Do not commit those either.
++
++Keep `verify_jwt = true` for both functions.
++
++Deploy is a separate owner step after the migration is applied:
++
++```sh
++supabase functions deploy store-apple-refresh-token
++supabase functions deploy delete-account
++```
++
++Until those functions exist, account deletion in the app shows the existing
++unavailable message and does not print the server response.
++
++## Rollback
++
++1. Revert this change. The app calls `delete_own_account` directly again.
++2. If `supabase/migrations/20260927170000_store_apple_refresh_tokens.sql` was
++   applied, run `supabase/rollback/20260927170000_store_apple_refresh_tokens_down.sql`
++   by hand. It drops `store_apple_refresh_token`, `read_apple_refresh_token`,
++   and `delete_apple_refresh_token`, and deletes Vault rows whose names start
++   with `apple_refresh_token:`. It does not drop the Vault extension and does
++   not change `delete_own_account`. The down file is outside `supabase/migrations`,
++   so `supabase db push` will not run it. A git revert does not delete secrets
++   already stored.
++3. If the functions were deployed, delete them:
++
++```sh
++supabase functions delete store-apple-refresh-token
++supabase functions delete delete-account
++```
++
++4. Optional: `supabase secrets unset APPLE_TEAM_ID APPLE_KEY_ID APPLE_PRIVATE_KEY APPLE_CLIENT_ID`.
++
++## Tests
++
++```sh
++deno test supabase/functions/_shared/apple_account_test.ts
++```
+### FILE supabase/functions/_shared/apple_account.ts (added)
+@@ -0,0 +1,665 @@
++// Sign in with Apple refresh-token exchange and account-deletion revoke.
++// Key material comes from Edge Function secrets. Nothing in this file is a
++// credential. Do not log authorization codes, refresh tokens, client secrets,
++// or the private key.
++
++export const appleAuthTokenUrl = "https://appleid.apple.com/auth/token";
++export const appleAuthRevokeUrl = "https://appleid.apple.com/auth/revoke";
++
++export const appleSecretEnvNames = [
++  "APPLE_TEAM_ID",
++  "APPLE_KEY_ID",
++  "APPLE_PRIVATE_KEY",
++  "APPLE_CLIENT_ID",
++] as const;
++
++const clientSecretLifetimeSeconds = 150 * 24 * 60 * 60;
++const uuidPattern =
++  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
++
++export type AppleSecrets = {
++  teamId: string;
++  keyId: string;
++  privateKeyPem: string;
++  clientId: string;
++};
++
++export type EnvMap = {
++  SUPABASE_URL?: string;
++  SUPABASE_ANON_KEY?: string;
++  SUPABASE_SERVICE_ROLE_KEY?: string;
++  APPLE_TEAM_ID?: string;
++  APPLE_KEY_ID?: string;
++  APPLE_PRIVATE_KEY?: string;
++  APPLE_CLIENT_ID?: string;
++};
++
++export type FetchLike = (
++  input: string,
++  init?: RequestInit,
++) => Promise<Response>;
++
++export type LogFn = (message: string) => void;
++
++export function isUuid(value: string): boolean {
++  return uuidPattern.test(value);
++}
++
++export function normalizePrivateKey(raw: string): string {
++  let value = raw.trim();
++  if (
++    (value.startsWith('"') && value.endsWith('"')) ||
++    (value.startsWith("'") && value.endsWith("'"))
++  ) {
++    value = value.slice(1, -1);
++  }
++  return value.replaceAll("\\n", "\n").trim();
++}
++
++export function appleSecretsFromEnv(env: EnvMap): AppleSecrets | null {
++  const teamId = env.APPLE_TEAM_ID?.trim() ?? "";
++  const keyId = env.APPLE_KEY_ID?.trim() ?? "";
++  const clientId = env.APPLE_CLIENT_ID?.trim() ?? "";
++  const privateKeyPem = normalizePrivateKey(env.APPLE_PRIVATE_KEY ?? "");
++  if (!teamId || !keyId || !clientId || !privateKeyPem) {
++    return null;
++  }
++  return { teamId, keyId, privateKeyPem, clientId };
++}
++
++export function logWithoutSecrets(
++  log: LogFn,
++  message: string,
++  secrets: Array<string | null | undefined>,
++): void {
++  for (const secret of secrets) {
++    if (secret && secret.length >= 6 && message.includes(secret)) {
++      log("apple log suppressed");
++      return;
++    }
++  }
++  log(message);
++}
++
++function bytesToBase64Url(bytes: Uint8Array): string {
++  let binary = "";
++  for (const byte of bytes) {
++    binary += String.fromCharCode(byte);
++  }
++  return btoa(binary).replaceAll("+", "-").replaceAll("/", "_").replaceAll(
++    "=",
++    "",
++  );
++}
++
++function textToBase64Url(value: string): string {
++  return bytesToBase64Url(new TextEncoder().encode(value));
++}
++
++export function decodeBase64Url(input: string): Uint8Array {
++  const padded = input.replaceAll("-", "+").replaceAll("_", "/") +
++    "=".repeat((4 - (input.length % 4)) % 4);
++  const binary = atob(padded);
++  const bytes = new Uint8Array(binary.length);
++  for (let i = 0; i < binary.length; i++) {
++    bytes[i] = binary.charCodeAt(i);
++  }
++  return bytes;
++}
++
++function pemToPkcs8(pem: string): Uint8Array {
++  const body = pem
++    .replaceAll("-----BEGIN PRIVATE KEY-----", "")
++    .replaceAll("-----END PRIVATE KEY-----", "")
++    .replace(/\s+/g, "");
++  if (!body) {
++    throw new Error("apple private key is empty");
++  }
++  const binary = atob(body);
++  const bytes = new Uint8Array(binary.length);
++  for (let i = 0; i < binary.length; i++) {
++    bytes[i] = binary.charCodeAt(i);
++  }
++  return bytes;
++}
++
++export async function appleClientSecret(
++  secrets: AppleSecrets,
++  nowSeconds: number,
++): Promise<string> {
++  const pkcs8 = pemToPkcs8(secrets.privateKeyPem);
++  const keyBytes = new Uint8Array(pkcs8.byteLength);
++  keyBytes.set(pkcs8);
++  const key = await crypto.subtle.importKey(
++    "pkcs8",
++    keyBytes,
++    { name: "ECDSA", namedCurve: "P-256" },
++    false,
++    ["sign"],
++  );
++  const header = textToBase64Url(JSON.stringify({
++    alg: "ES256",
++    kid: secrets.keyId,
++  }));
++  const payload = textToBase64Url(JSON.stringify({
++    iss: secrets.teamId,
++    iat: nowSeconds,
++    exp: nowSeconds + clientSecretLifetimeSeconds,
++    aud: "https://appleid.apple.com",
++    sub: secrets.clientId,
++  }));
++  const signingInput = `${header}.${payload}`;
++  const signature = await crypto.subtle.sign(
++    { name: "ECDSA", hash: "SHA-256" },
++    key,
++    new TextEncoder().encode(signingInput),
++  );
++  return `${signingInput}.${bytesToBase64Url(new Uint8Array(signature))}`;
++}
++
++export function appleErrorCode(json: unknown): string {
++  if (!json || typeof json !== "object") {
++    return "";
++  }
++  const code = (json as { error?: unknown }).error;
++  if (typeof code !== "string" || !/^[a-z0-9_]{1,64}$/i.test(code)) {
++    return "";
++  }
++  return code;
++}
++
++export function refreshTokenFromAppleJson(json: unknown): string | null {
++  if (!json || typeof json !== "object") {
++    return null;
++  }
++  const token = (json as { refresh_token?: unknown }).refresh_token;
++  if (typeof token !== "string" || token.length === 0 || token.length > 4096) {
++    return null;
++  }
++  return token;
++}
++
++export function refreshTokenFromRpcText(text: string): string | null {
++  const trimmed = text.trim();
++  if (!trimmed || trimmed === "null") {
++    return null;
++  }
++  try {
++    const parsed = JSON.parse(trimmed);
++    if (typeof parsed !== "string" || parsed.length === 0 || parsed.length > 4096) {
++      return null;
++    }
++    return parsed;
++  } catch {
++    return null;
++  }
++}
++
++function bearer(value: string): string {
++  return /^Bearer\s+/i.test(value) ? value : `Bearer ${value}`;
++}
++
++export function rpcRequest(args: {
++  supabaseUrl: string;
++  apiKey: string;
++  authorization: string;
++  fn: string;
++  body: Record<string, string>;
++  minimal: boolean;
++}): { url: string; init: RequestInit } {
++  const headers: Record<string, string> = {
++    apikey: args.apiKey,
++    Authorization: bearer(args.authorization),
++    "Content-Type": "application/json",
++  };
++  if (args.minimal) {
++    headers.Prefer = "return=minimal";
++  }
++  return {
++    url: `${args.supabaseUrl.replace(/\/$/, "")}/rest/v1/rpc/${args.fn}`,
++    init: {
++      method: "POST",
++      headers,
++      body: JSON.stringify(args.body),
++    },
++  };
++}
++
++export function jsonResponse(
++  body: { ok?: boolean; stored?: boolean },
++  status: number,
++): Response {
++  return new Response(JSON.stringify(body), {
++    status,
++    headers: { "Content-Type": "application/json" },
++  });
++}
++
++async function appleFormRequest(args: {
++  url: string;
++  fields: Record<string, string>;
++  fetchImpl: FetchLike;
++}): Promise<{ ok: boolean; status: number; json: unknown }> {
++  try {
++    const response = await args.fetchImpl(args.url, {
++      method: "POST",
++      headers: { "Content-Type": "application/x-www-form-urlencoded" },
++      body: new URLSearchParams(args.fields).toString(),
++      signal: AbortSignal.timeout(10_000),
++    });
++    const text = await response.text();
++    let json: unknown = null;
++    if (text) {
++      try {
++        json = JSON.parse(text);
++      } catch {
++        json = null;
++      }
++    }
++    return { ok: response.ok, status: response.status, json };
++  } catch {
++    return { ok: false, status: 0, json: null };
++  }
++}
++
++export async function exchangeAuthorizationCode(args: {
++  authorizationCode: string;
++  secrets: AppleSecrets;
++  fetchImpl: FetchLike;
++  nowSeconds?: number;
++}): Promise<{ refreshToken: string | null; status: number; errorCode: string }> {
++  const now = args.nowSeconds ?? Math.floor(Date.now() / 1000);
++  let clientSecret: string;
++  try {
++    clientSecret = await appleClientSecret(args.secrets, now);
++  } catch {
++    return { refreshToken: null, status: 0, errorCode: "client_secret" };
++  }
++  const result = await appleFormRequest({
++    url: appleAuthTokenUrl,
++    fetchImpl: args.fetchImpl,
++    fields: {
++      grant_type: "authorization_code",
++      code: args.authorizationCode,
++      client_id: args.secrets.clientId,
++      client_secret: clientSecret,
++    },
++  });
++  return {
++    refreshToken: result.ok ? refreshTokenFromAppleJson(result.json) : null,
++    status: result.status,
++    errorCode: result.ok ? "" : appleErrorCode(result.json),
++  };
++}
++
++export async function revokeRefreshToken(args: {
++  refreshToken: string;
++  secrets: AppleSecrets;
++  fetchImpl: FetchLike;
++  nowSeconds?: number;
++}): Promise<{ ok: boolean; status: number; errorCode: string }> {
++  const now = args.nowSeconds ?? Math.floor(Date.now() / 1000);
++  let clientSecret: string;
++  try {
++    clientSecret = await appleClientSecret(args.secrets, now);
++  } catch {
++    return { ok: false, status: 0, errorCode: "client_secret" };
++  }
++  const result = await appleFormRequest({
++    url: appleAuthRevokeUrl,
++    fetchImpl: args.fetchImpl,
++    fields: {
++      client_id: args.secrets.clientId,
++      client_secret: clientSecret,
++      token: args.refreshToken,
++      token_type_hint: "refresh_token",
++    },
++  });
++  return {
++    ok: result.ok,
++    status: result.status,
++    errorCode: result.ok ? "" : appleErrorCode(result.json),
++  };
++}
++
++export async function resolveSupabaseUserId(args: {
++  supabaseUrl: string;
++  anonKey: string;
++  authorization: string | null;
++  fetchImpl: FetchLike;
++}): Promise<string | null> {
++  const authorization = args.authorization?.trim() ?? "";
++  if (!/^Bearer\s+\S+$/i.test(authorization)) {
++    return null;
++  }
++  if (!args.supabaseUrl || !args.anonKey) {
++    return null;
++  }
++  const response = await args.fetchImpl(
++    `${args.supabaseUrl.replace(/\/$/, "")}/auth/v1/user`,
++    {
++      headers: {
++        apikey: args.anonKey,
++        Authorization: authorization,
++      },
++    },
++  );
++  if (!response.ok) {
++    return null;
++  }
++  try {
++    const body = await response.json();
++    const id = body && typeof body === "object"
++      ? (body as { id?: unknown }).id
++      : null;
++    return typeof id === "string" && isUuid(id) ? id : null;
++  } catch {
++    return null;
++  }
++}
++
++export type ExchangeResult = {
++  refreshToken: string | null;
++  status: number;
++  errorCode: string;
++};
++
++export type StoreDeps = {
++  resolveUserId(authorization: string | null): Promise<string | null>;
++  exchange(authorizationCode: string): Promise<ExchangeResult>;
++  storeToken(userId: string, refreshToken: string): Promise<void>;
++  log: LogFn;
++};
++
++export type DeleteDeps = {
++  resolveUserId(authorization: string | null): Promise<string | null>;
++  readToken(userId: string): Promise<string | null>;
++  revoke(refreshToken: string): Promise<{ ok: boolean; status: number; errorCode: string }>;
++  deleteAccount(authorization: string): Promise<void>;
++  deleteStoredToken(userId: string): Promise<void>;
++  log: LogFn;
++};
++
++async function authorizationCodeFromRequest(req: Request): Promise<string | null> {
++  try {
++    const body = await req.json();
++    const code = body && typeof body === "object"
++      ? (body as { authorization_code?: unknown }).authorization_code
++      : null;
++    if (typeof code !== "string") {
++      return null;
++    }
++    const trimmed = code.trim();
++    if (!trimmed || trimmed.length > 2048) {
++      return null;
++    }
++    return trimmed;
++  } catch {
++    return null;
++  }
++}
++
++export async function handleStoreAppleRefreshToken(
++  req: Request,
++  deps: StoreDeps,
++): Promise<Response> {
++  if (req.method !== "POST") {
++    return jsonResponse({ stored: false }, 405);
++  }
++  let userId: string | null;
++  try {
++    userId = await deps.resolveUserId(req.headers.get("Authorization"));
++  } catch {
++    deps.log("apple refresh token user lookup failed");
++    return jsonResponse({ stored: false }, 200);
++  }
++  if (!userId) {
++    return jsonResponse({ stored: false }, 401);
++  }
++
++  const code = await authorizationCodeFromRequest(req);
++  if (!code) {
++    deps.log("apple authorization code missing");
++    return jsonResponse({ stored: false }, 200);
++  }
++
++  let exchanged: ExchangeResult;
++  try {
++    exchanged = await deps.exchange(code);
++  } catch {
++    deps.log("apple token exchange failed");
++    return jsonResponse({ stored: false }, 200);
++  }
++  if (!exchanged.refreshToken) {
++    const codePart = exchanged.errorCode ? ` code=${exchanged.errorCode}` : "";
++    logWithoutSecrets(
++      deps.log,
++      `apple token exchange failed status=${exchanged.status}${codePart}`,
++      [code, exchanged.refreshToken],
++    );
++    return jsonResponse({ stored: false }, 200);
++  }
++  try {
++    await deps.storeToken(userId, exchanged.refreshToken);
++  } catch {
++    deps.log("apple refresh token store failed");
++    return jsonResponse({ stored: false }, 200);
++  }
++  return jsonResponse({ stored: true }, 200);
++}
++
++export async function revokeThenDeleteAccount(args: {
++  authorization: string;
++  userId: string;
++  deps: DeleteDeps;
++}): Promise<"deleted" | "delete_failed"> {
++  let token: string | null = null;
++  try {
++    token = await args.deps.readToken(args.userId);
++  } catch {
++    args.deps.log("apple refresh token read failed");
++  }
++
++  if (token) {
++    try {
++      const revoked = await args.deps.revoke(token);
++      if (!revoked.ok) {
++        const codePart = revoked.errorCode ? ` code=${revoked.errorCode}` : "";
++        logWithoutSecrets(
++          args.deps.log,
++          `apple token revoke failed status=${revoked.status}${codePart}`,
++          [token],
++        );
++      }
++    } catch {
++      args.deps.log("apple token revoke failed");
++    }
++  } else {
++    args.deps.log("apple token revoke skipped");
++  }
++
++  try {
++    await args.deps.deleteAccount(args.authorization);
++  } catch {
++    args.deps.log("delete_own_account failed");
++    return "delete_failed";
++  }
++
++  try {
++    await args.deps.deleteStoredToken(args.userId);
++  } catch {
++    args.deps.log("apple refresh token delete failed");
++  }
++  return "deleted";
++}
++
++export async function handleDeleteAccount(
++  req: Request,
++  deps: DeleteDeps,
++): Promise<Response> {
++  if (req.method !== "POST") {
++    return jsonResponse({ ok: false }, 405);
++  }
++  const authorization = req.headers.get("Authorization");
++  let userId: string | null;
++  try {
++    userId = await deps.resolveUserId(authorization);
++  } catch {
++    deps.log("delete account user lookup failed");
++    return jsonResponse({ ok: false }, 500);
++  }
++  if (!userId || !authorization) {
++    return jsonResponse({ ok: false }, 401);
++  }
++  const result = await revokeThenDeleteAccount({
++    authorization,
++    userId,
++    deps,
++  });
++  if (result === "deleted") {
++    return jsonResponse({ ok: true }, 200);
++  }
++  return jsonResponse({ ok: false }, 500);
++}
++
++function platform(env: EnvMap): {
++  supabaseUrl: string;
++  anonKey: string;
++  serviceRoleKey: string;
++} {
++  return {
++    supabaseUrl: env.SUPABASE_URL?.trim() ?? "",
++    anonKey: env.SUPABASE_ANON_KEY?.trim() ?? "",
++    serviceRoleKey: env.SUPABASE_SERVICE_ROLE_KEY?.trim() ?? "",
++  };
++}
++
++async function rpcOk(
++  fetchImpl: FetchLike,
++  call: { url: string; init: RequestInit },
++): Promise<Response> {
++  const response = await fetchImpl(call.url, call.init);
++  if (!response.ok) {
++    throw new Error("rpc failed");
++  }
++  return response;
++}
++
++export function storeDepsFrom(env: EnvMap, fetchImpl: FetchLike): StoreDeps {
++  const { supabaseUrl, anonKey, serviceRoleKey } = platform(env);
++  return {
++    log: (message) => console.error(message),
++    resolveUserId: (authorization) =>
++      resolveSupabaseUserId({
++        supabaseUrl,
++        anonKey,
++        authorization,
++        fetchImpl,
++      }),
++    exchange: async (authorizationCode) => {
++      const secrets = appleSecretsFromEnv(env);
++      if (!secrets) {
++        return { refreshToken: null, status: 0, errorCode: "secrets_missing" };
++      }
++      return exchangeAuthorizationCode({
++        authorizationCode,
++        secrets,
++        fetchImpl,
++      });
++    },
++    storeToken: async (userId, refreshToken) => {
++      if (!supabaseUrl || !serviceRoleKey || !isUuid(userId)) {
++        throw new Error("store unconfigured");
++      }
++      await rpcOk(
++        fetchImpl,
++        rpcRequest({
++          supabaseUrl,
++          apiKey: serviceRoleKey,
++          authorization: serviceRoleKey,
++          fn: "store_apple_refresh_token",
++          body: { p_user_id: userId, p_refresh_token: refreshToken },
++          minimal: true,
++        }),
++      );
++    },
++  };
++}
++
++export function deleteDepsFrom(env: EnvMap, fetchImpl: FetchLike): DeleteDeps {
++  const { supabaseUrl, anonKey, serviceRoleKey } = platform(env);
++  return {
++    log: (message) => console.error(message),
++    resolveUserId: (authorization) =>
++      resolveSupabaseUserId({
++        supabaseUrl,
++        anonKey,
++        authorization,
++        fetchImpl,
++      }),
++    readToken: async (userId) => {
++      if (!supabaseUrl || !serviceRoleKey || !isUuid(userId)) {
++        throw new Error("read unconfigured");
++      }
++      const response = await rpcOk(
++        fetchImpl,
++        rpcRequest({
++          supabaseUrl,
++          apiKey: serviceRoleKey,
++          authorization: serviceRoleKey,
++          fn: "read_apple_refresh_token",
++          body: { p_user_id: userId },
++          minimal: false,
++        }),
++      );
++      return refreshTokenFromRpcText(await response.text());
++    },
++    revoke: async (refreshToken) => {
++      const secrets = appleSecretsFromEnv(env);
++      if (!secrets) {
++        return { ok: false, status: 0, errorCode: "secrets_missing" };
++      }
++      return revokeRefreshToken({ refreshToken, secrets, fetchImpl });
++    },
++    deleteAccount: async (authorization) => {
++      if (!supabaseUrl || !anonKey) {
++        throw new Error("delete unconfigured");
++      }
++      await rpcOk(
++        fetchImpl,
++        rpcRequest({
++          supabaseUrl,
++          apiKey: anonKey,
++          authorization,
++          fn: "delete_own_account",
++          body: {},
++          minimal: true,
++        }),
++      );
++    },
++    deleteStoredToken: async (userId) => {
++      if (!supabaseUrl || !serviceRoleKey || !isUuid(userId)) {
++        throw new Error("delete token unconfigured");
++      }
++      await rpcOk(
++        fetchImpl,
++        rpcRequest({
++          supabaseUrl,
++          apiKey: serviceRoleKey,
++          authorization: serviceRoleKey,
++          fn: "delete_apple_refresh_token",
++          body: { p_user_id: userId },
++          minimal: true,
++        }),
++      );
++    },
++  };
++}
++
++export function liveStoreDeps(): StoreDeps {
++  return storeDepsFrom(Deno.env.toObject(), fetch);
++}
++
++export function liveDeleteDeps(): DeleteDeps {
++  return deleteDepsFrom(Deno.env.toObject(), fetch);
++}
+### FILE supabase/functions/_shared/apple_account_test.ts (added)
+@@ -0,0 +1,361 @@
++import {
++  appleClientSecret,
++  appleSecretsFromEnv,
++  deleteDepsFrom,
++  handleDeleteAccount,
++  handleStoreAppleRefreshToken,
++  logWithoutSecrets,
++  revokeThenDeleteAccount,
++  storeDepsFrom,
++  type AppleSecrets,
++  type DeleteDeps,
++  type FetchLike,
++} from "./apple_account.ts";
++
++const userId = "11111111-1111-4111-8111-111111111111";
++const refreshToken = "refresh-token-value";
++const authorizationCode = "auth-code-value";
++
++function assert(condition: unknown, message: string): asserts condition {
++  if (!condition) {
++    throw new Error(message);
++  }
++}
++
++function b64url(value: string): string {
++  return btoa(value).replaceAll("+", "-").replaceAll("/", "_").replaceAll(
++    "=",
++    "",
++  );
++}
++
++function userAuthorization(): string {
++  const header = b64url(JSON.stringify({ alg: "ES256", typ: "JWT" }));
++  const payload = b64url(JSON.stringify({ sub: userId }));
++  return `Bearer ${header}.${payload}.sig`;
++}
++
++function derToPem(der: ArrayBuffer): string {
++  const bytes = new Uint8Array(der);
++  let binary = "";
++  for (const byte of bytes) {
++    binary += String.fromCharCode(byte);
++  }
++  const lines = btoa(binary).match(/.{1,64}/g) ?? [];
++  return `-----BEGIN PRIVATE KEY-----\n${lines.join("\n")}\n-----END PRIVATE KEY-----\n`;
++}
++
++const keyPair = await crypto.subtle.generateKey(
++  { name: "ECDSA", namedCurve: "P-256" },
++  true,
++  ["sign", "verify"],
++);
++const pem = derToPem(await crypto.subtle.exportKey("pkcs8", keyPair.privateKey));
++
++function sampleSecrets(privateKeyPem = pem): AppleSecrets {
++  return {
++    teamId: "TEAMID1234",
++    keyId: "KEYID12345",
++    privateKeyPem,
++    clientId: "com.example.app",
++  };
++}
++
++function platformEnv(extra: Record<string, string> = {}) {
++  return {
++    SUPABASE_URL: "https://example.supabase.co",
++    SUPABASE_ANON_KEY: "anon-key",
++    SUPABASE_SERVICE_ROLE_KEY: "service-key",
++    APPLE_TEAM_ID: "TEAMID1234",
++    APPLE_KEY_ID: "KEYID12345",
++    APPLE_PRIVATE_KEY: pem,
++    APPLE_CLIENT_ID: "com.example.app",
++    ...extra,
++  };
++}
++
++type Call = {
++  url: string;
++  authorization: string;
++  apikey: string;
++  body: string;
++};
++
++function header(init: RequestInit | undefined, name: string): string {
++  const headers = init?.headers;
++  if (!headers || headers instanceof Headers || Array.isArray(headers)) {
++    return "";
++  }
++  const record = headers as Record<string, string>;
++  return record[name] ?? "";
++}
++
++Deno.test("client secret is an ES256 JWT signed by the p8 key", async () => {
++  const now = 1_700_000_000;
++  const jwt = await appleClientSecret(sampleSecrets(), now);
++  assert(!jwt.includes("PRIVATE"), "jwt contains key material");
++  const parts = jwt.split(".");
++  assert(parts.length === 3, "jwt parts");
++  const header = JSON.parse(new TextDecoder().decode(base64UrlBytes(parts[0])));
++  const payload = JSON.parse(new TextDecoder().decode(base64UrlBytes(parts[1])));
++  assert(header.alg === "ES256", "alg");
++  assert(header.kid === "KEYID12345", "kid");
++  assert(payload.iss === "TEAMID1234", "iss");
++  assert(payload.sub === "com.example.app", "sub");
++  assert(payload.aud === "https://appleid.apple.com", "aud");
++  assert(payload.iat === now, "iat");
++  assert(payload.exp === now + 150 * 24 * 60 * 60, "exp");
++  const verified = await crypto.subtle.verify(
++    { name: "ECDSA", hash: "SHA-256" },
++    keyPair.publicKey,
++    toArrayBuffer(base64UrlBytes(parts[2])),
++    new TextEncoder().encode(`${parts[0]}.${parts[1]}`),
++  );
++  assert(verified, "signature");
++});
++
++Deno.test("escaped newlines in the private key still sign", async () => {
++  const escaped = pem.replaceAll("\n", "\\n");
++  const fromEnv = appleSecretsFromEnv({ APPLE_TEAM_ID: "TEAMID1234", APPLE_KEY_ID: "KEYID12345", APPLE_PRIVATE_KEY: escaped, APPLE_CLIENT_ID: "com.example.app" });
++  assert(fromEnv, "secrets");
++  const jwt = await appleClientSecret(fromEnv, 1_700_000_000);
++  const parts = jwt.split(".");
++  const verified = await crypto.subtle.verify(
++    { name: "ECDSA", hash: "SHA-256" },
++    keyPair.publicKey,
++    toArrayBuffer(base64UrlBytes(parts[2])),
++    new TextEncoder().encode(`${parts[0]}.${parts[1]}`),
++  );
++  assert(verified, "escaped pem signature");
++});
++
++Deno.test("missing apple secret is not replaced with a client id", () => {
++  const secrets = appleSecretsFromEnv({
++    APPLE_TEAM_ID: "TEAMID1234",
++    APPLE_KEY_ID: "KEYID12345",
++    APPLE_PRIVATE_KEY: pem,
++  });
++  assert(secrets === null, "client id is required");
++});
++
++Deno.test("logs drop messages that include a token", () => {
++  const logs: string[] = [];
++  logWithoutSecrets((message) => logs.push(message), `status=${refreshToken}`, [
++    refreshToken,
++  ]);
++  logWithoutSecrets((message) => logs.push(message), "apple token revoke failed status=400", [
++    refreshToken,
++  ]);
++  assert(logs[0] === "apple log suppressed", "suppressed");
++  assert(logs[1] === "apple token revoke failed status=400", "kept");
++  assert(!logs.join("\n").includes(refreshToken), "token absent");
++});
++
++Deno.test("store sends the authorization code and hides exchange failure", async () => {
++  const calls: Call[] = [];
++  const fetchImpl = fakeFetch(calls, {
++    appleStatus: 400,
++    appleBody: { error: "invalid_grant" },
++  });
++  const logs: string[] = [];
++  const deps = storeDepsFrom(platformEnv(), fetchImpl);
++  deps.log = (message) => logs.push(message);
++  const response = await handleStoreAppleRefreshToken(jsonRequest({
++    authorization_code: authorizationCode,
++  }), deps);
++  assert(response.status === 200, "status");
++  const text = await response.text();
++  assert(text === '{"stored":false}', text);
++  assert(!text.includes(authorizationCode), "code echoed");
++  assert(!text.includes(refreshToken), "token echoed");
++  assert(calls.some((call) => call.url === "https://appleid.apple.com/auth/token"), "exchanged");
++  assert(!calls.some((call) => call.url.includes("store_apple_refresh_token")), "not stored");
++  const apple = calls.find((call) => call.url.includes("/auth/token"));
++  assert(apple?.body.includes("grant_type=authorization_code"), "grant");
++  assert(apple?.body.includes(`code=${authorizationCode}`), "code sent");
++  assert(apple?.body.includes("client_id=com.example.app"), "client id");
++  assert(!logs.join("\n").includes(authorizationCode), "code logged");
++  assert(logs.some((line) => line.includes("status=400")), "status logged");
++});
++
++Deno.test("store keeps the refresh token on the server", async () => {
++  const calls: Call[] = [];
++  const deps = storeDepsFrom(platformEnv(), fakeFetch(calls, {
++    appleStatus: 200,
++    appleBody: { refresh_token: refreshToken, access_token: "access-token-value" },
++  }));
++  const response = await handleStoreAppleRefreshToken(jsonRequest({
++    authorization_code: authorizationCode,
++  }), deps);
++  const text = await response.text();
++  assert(response.status === 200, "status");
++  assert(text === '{"stored":true}', text);
++  assert(!text.includes(refreshToken), "token in response");
++  assert(!text.includes("access-token-value"), "access token in response");
++  const stored = calls.find((call) => call.url.endsWith("/rpc/store_apple_refresh_token"));
++  assert(stored, "store rpc");
++  assert(stored.authorization === "Bearer service-key", "service role");
++  assert(stored.apikey === "service-key", "service apikey");
++  const body = JSON.parse(stored.body);
++  assert(body.p_user_id === userId, "user");
++  assert(body.p_refresh_token === refreshToken, "stored token");
++});
++
++Deno.test("unauthenticated store does not call Apple", async () => {
++  const calls: Call[] = [];
++  const deps = storeDepsFrom(platformEnv(), fakeFetch(calls, { userStatus: 401 }));
++  const response = await handleStoreAppleRefreshToken(jsonRequest({
++    authorization_code: authorizationCode,
++  }), deps);
++  assert(response.status === 401, "status");
++  assert(!calls.some((call) => call.url.includes("appleid.apple.com")), "no apple");
++});
++
++Deno.test("revoke failure still deletes the account and the stored token", async () => {
++  const calls: Call[] = [];
++  const logs: string[] = [];
++  const deps = deleteDepsFrom(platformEnv(), fakeFetch(calls, {
++    appleStatus: 400,
++    appleBody: { error: refreshToken },
++  }));
++  deps.log = (message) => logs.push(message);
++  const response = await handleDeleteAccount(jsonRequest({}), deps);
++  const text = await response.text();
++  assert(response.status === 200, "status");
++  assert(text === '{"ok":true}', text);
++  assert(!text.includes(refreshToken), "token in response");
++  assert(calls.some((call) => call.url === "https://appleid.apple.com/auth/revoke"), "revoke");
++  const revoke = calls.find((call) => call.url.includes("/auth/revoke"));
++  assert(revoke?.body.includes("token_type_hint=refresh_token"), "hint");
++  assert(revoke?.body.includes(`token=${encodeURIComponent(refreshToken)}`) ||
++    revoke?.body.includes(`token=${refreshToken}`), "revoke token");
++  const deleted = calls.find((call) => call.url.endsWith("/rpc/delete_own_account"));
++  assert(deleted, "delete account");
++  assert(deleted.authorization === userAuthorization(), "user jwt");
++  assert(deleted.apikey === "anon-key", "anon key");
++  assert(deleted.body === "{}", "empty body");
++  assert(!deleted.authorization.includes("service-key"), "not service role");
++  const removed = calls.find((call) => call.url.endsWith("/rpc/delete_apple_refresh_token"));
++  assert(removed, "delete token");
++  assert(removed.authorization === "Bearer service-key", "service role delete");
++  const revokeIndex = calls.findIndex((call) => call.url.includes("/auth/revoke"));
++  const deleteIndex = calls.findIndex((call) => call.url.endsWith("/rpc/delete_own_account"));
++  assert(revokeIndex >= 0 && deleteIndex > revokeIndex, "revoke then delete");
++  assert(!logs.join("\n").includes(refreshToken), "token logged");
++  assert(logs.some((line) => line.includes("status=400")), "failure logged");
++});
++
++Deno.test("account deletion failure keeps the stored token", async () => {
++  const calls: Call[] = [];
++  const deps = deleteDepsFrom(platformEnv(), fakeFetch(calls, { deleteAccountStatus: 400 }));
++  const response = await handleDeleteAccount(jsonRequest({}), deps);
++  assert(response.status === 500, "status");
++  assert(await response.text() === '{"ok":false}', "body");
++  assert(!calls.some((call) => call.url.endsWith("/rpc/delete_apple_refresh_token")), "token kept");
++});
++
++Deno.test("missing apple secrets do not block account deletion", async () => {
++  const calls: Call[] = [];
++  const env = platformEnv();
++  delete (env as { APPLE_PRIVATE_KEY?: string }).APPLE_PRIVATE_KEY;
++  const deps = deleteDepsFrom(env, fakeFetch(calls, {}));
++  const logs: string[] = [];
++  deps.log = (message) => logs.push(message);
++  const response = await handleDeleteAccount(jsonRequest({}), deps);
++  assert(response.status === 200, "status");
++  assert(!calls.some((call) => call.url.includes("appleid.apple.com")), "no apple");
++  assert(calls.some((call) => call.url.endsWith("/rpc/delete_own_account")), "deleted");
++  assert(logs.some((line) => line.includes("secrets_missing")), "logged");
++});
++
++Deno.test("direct revoke failure still reaches delete_own_account", async () => {
++  let deleted = false;
++  let tokenDeleted = false;
++  const deps: DeleteDeps = {
++    log: () => {},
++    resolveUserId: async () => userId,
++    readToken: async () => refreshToken,
++    revoke: async () => {
++      throw new Error("network");
++    },
++    deleteAccount: async () => {
++      deleted = true;
++    },
++    deleteStoredToken: async () => {
++      tokenDeleted = true;
++    },
++  };
++  const result = await revokeThenDeleteAccount({
++    authorization: userAuthorization(),
++    userId,
++    deps,
++  });
++  assert(result === "deleted", result);
++  assert(deleted, "account deleted");
++  assert(tokenDeleted, "token deleted");
++});
++
++function jsonRequest(body: unknown): Request {
++  return new Request("https://fn.local/fn", {
++    method: "POST",
++    headers: {
++      Authorization: userAuthorization(),
++      "Content-Type": "application/json",
++    },
++    body: JSON.stringify(body),
++  });
++}
++
++function fakeFetch(
++  calls: Call[],
++  options: {
++    userStatus?: number;
++    appleStatus?: number;
++    appleBody?: unknown;
++    deleteAccountStatus?: number;
++  },
++): FetchLike {
++  return async (input, init) => {
++    calls.push({
++      url: input,
++      authorization: header(init, "Authorization"),
++      apikey: header(init, "apikey"),
++      body: typeof init?.body === "string" ? init.body : "",
++    });
++    if (input.endsWith("/auth/v1/user")) {
++      if (options.userStatus && options.userStatus !== 200) {
++        return new Response("{}", { status: options.userStatus });
++      }
++      return new Response(JSON.stringify({ id: userId }), { status: 200 });
++    }
++    if (input.endsWith("/rpc/read_apple_refresh_token")) {
++      return new Response(JSON.stringify(refreshToken), { status: 200 });
++    }
++    if (input.includes("appleid.apple.com")) {
++      return new Response(JSON.stringify(options.appleBody ?? {}), {
++        status: options.appleStatus ?? 200,
++      });
++    }
++    if (input.endsWith("/rpc/delete_own_account")) {
++      return new Response(null, { status: options.deleteAccountStatus ?? 204 });
++    }
++    return new Response(null, { status: 204 });
++  };
++}
++
++function toArrayBuffer(bytes: Uint8Array): ArrayBuffer {
++  const copy = new ArrayBuffer(bytes.byteLength);
++  new Uint8Array(copy).set(bytes);
++  return copy;
++}
++
++function base64UrlBytes(input: string): Uint8Array {
++  const padded = input.replaceAll("-", "+").replaceAll("_", "/") +
++    "=".repeat((4 - (input.length % 4)) % 4);
++  const binary = atob(padded);
++  const bytes = new Uint8Array(binary.length);
++  for (let i = 0; i < binary.length; i++) {
++    bytes[i] = binary.charCodeAt(i);
++  }
++  return bytes;
++}
+### FILE supabase/functions/delete-account/index.ts (added)
+@@ -0,0 +1,14 @@
++import {
++  handleDeleteAccount,
++  jsonResponse,
++  liveDeleteDeps,
++} from "../_shared/apple_account.ts";
++
++Deno.serve(async (req) => {
++  try {
++    return await handleDeleteAccount(req, liveDeleteDeps());
++  } catch {
++    console.error("delete-account failed");
++    return jsonResponse({ ok: false }, 500);
++  }
++});
+### FILE supabase/functions/deno.json (added)
+@@ -0,0 +1,6 @@
++{
++  "compilerOptions": {
++    "strict": true,
++    "lib": ["deno.window"]
++  }
++}
+### FILE supabase/functions/store-apple-refresh-token/index.ts (added)
+@@ -0,0 +1,14 @@
++import {
++  handleStoreAppleRefreshToken,
++  jsonResponse,
++  liveStoreDeps,
++} from "../_shared/apple_account.ts";
++
++Deno.serve(async (req) => {
++  try {
++    return await handleStoreAppleRefreshToken(req, liveStoreDeps());
++  } catch {
++    console.error("store-apple-refresh-token failed");
++    return jsonResponse({ stored: false }, 200);
++  }
++});
+### FILE supabase/migrations/20260927170000_store_apple_refresh_tokens.sql (added)
+@@ -0,0 +1,144 @@
++-- Stores Sign in with Apple refresh tokens in Supabase Vault.
++-- Not applied to production by this change.
++--
++-- The ciphertext lives in vault.secrets. That schema is not in the Data API
++-- (public, graphql_public). These three functions are the only app access.
++-- They run as the owner so they can use Vault. EXECUTE is granted only to
++-- service_role. The Edge Function calls them with the service role key and
++-- never returns the token to the app.
++--
++-- Do not put Apple key material in this file. The Edge Function reads
++-- APPLE_TEAM_ID, APPLE_KEY_ID, APPLE_PRIVATE_KEY, and APPLE_CLIENT_ID from
++-- secrets.
++
++begin;
++
++do $$
++begin
++  if not exists (
++    select 1
++    from pg_catalog.pg_extension
++    where extname = 'supabase_vault'
++  ) then
++    create extension supabase_vault with schema vault;
++  end if;
++end
++$$;
++
++-- vault.create_secret(new_secret, new_name, new_description)
++-- vault.update_secret(secret_id, new_secret, new_name, new_description)
++create or replace function public.store_apple_refresh_token(
++  p_user_id uuid,
++  p_refresh_token text
++)
++returns void
++language plpgsql
++security definer
++set search_path = ''
++as $$
++declare
++  secret_name text := 'apple_refresh_token:' || p_user_id::text;
++  existing_id uuid;
++begin
++  if p_user_id is null
++    or p_refresh_token is null
++    or pg_catalog.length(pg_catalog.btrim(p_refresh_token)) = 0
++  then
++    raise exception 'apple refresh token payload is empty';
++  end if;
++
++  select s.id
++    into existing_id
++  from vault.secrets s
++  where s.name = secret_name;
++
++  if existing_id is not null then
++    perform vault.update_secret(
++      existing_id,
++      p_refresh_token,
++      secret_name,
++      'Sign in with Apple refresh token'
++    );
++    return;
++  end if;
++
++  begin
++    perform vault.create_secret(
++      p_refresh_token,
++      secret_name,
++      'Sign in with Apple refresh token'
++    );
++  exception
++    when unique_violation then
++      select s.id
++        into existing_id
++      from vault.secrets s
++      where s.name = secret_name;
++      if existing_id is null then
++        raise;
++      end if;
++      perform vault.update_secret(
++        existing_id,
++        p_refresh_token,
++        secret_name,
++        'Sign in with Apple refresh token'
++      );
++  end;
++end;
++$$;
++
++create or replace function public.read_apple_refresh_token(p_user_id uuid)
++returns text
++language plpgsql
++security definer
++set search_path = ''
++as $$
++declare
++  token text;
++begin
++  if p_user_id is null then
++    return null;
++  end if;
++
++  select d.decrypted_secret
++    into token
++  from vault.decrypted_secrets d
++  where d.name = 'apple_refresh_token:' || p_user_id::text
++  limit 1;
++
++  return token;
++end;
++$$;
++
++create or replace function public.delete_apple_refresh_token(p_user_id uuid)
++returns void
++language plpgsql
++security definer
++set search_path = ''
++as $$
++begin
++  if p_user_id is null then
++    return;
++  end if;
++
++  delete from vault.secrets as s
++  where s.name = 'apple_refresh_token:' || p_user_id::text;
++end;
++$$;
++
++revoke all on function public.store_apple_refresh_token(uuid, text) from public;
++revoke all on function public.store_apple_refresh_token(uuid, text) from anon;
++revoke all on function public.store_apple_refresh_token(uuid, text) from authenticated;
++grant execute on function public.store_apple_refresh_token(uuid, text) to service_role;
++
++revoke all on function public.read_apple_refresh_token(uuid) from public;
++revoke all on function public.read_apple_refresh_token(uuid) from anon;
++revoke all on function public.read_apple_refresh_token(uuid) from authenticated;
++grant execute on function public.read_apple_refresh_token(uuid) to service_role;
++
++revoke all on function public.delete_apple_refresh_token(uuid) from public;
++revoke all on function public.delete_apple_refresh_token(uuid) from anon;
++revoke all on function public.delete_apple_refresh_token(uuid) from authenticated;
++grant execute on function public.delete_apple_refresh_token(uuid) to service_role;
++
++commit;
+### FILE supabase/rollback/20260927170000_store_apple_refresh_tokens_down.sql (added)
+@@ -0,0 +1,18 @@
++-- Hand rollback for 20260927170000_store_apple_refresh_tokens.sql.
++-- Not picked up by supabase db push. Run it yourself in the SQL editor.
++--
++-- Drops the three Vault RPCs and deletes this app's Sign in with Apple
++-- secrets. Does not drop the supabase_vault extension and does not change
++-- public.delete_own_account(). Git revert does not remove secrets that were
++-- already stored; this file does.
++
++begin;
++
++drop function if exists public.store_apple_refresh_token(uuid, text);
++drop function if exists public.read_apple_refresh_token(uuid);
++drop function if exists public.delete_apple_refresh_token(uuid);
++
++delete from vault.secrets
++where pg_catalog.starts_with(name, 'apple_refresh_token:');
++
++commit;
+### FILE test/account_deletion_screen_test.dart (modified)
+@@ -139,4 +139,46 @@ void main() {
+ 
+     await authRepository.dispose();
+   });
++
++  testWidgets('deletion failure shows the fixed Japanese message', (
++    tester,
++  ) async {
++    const raw = 'invalid_grant raw-token-body';
++    final authRepository =
++        MockAuthenticationRepository(
++            currentUser: const AuthUser(
++              id: 'user-1',
++              email: 'test@example.com',
++            ),
++          )
++          ..simulateDeleteFailure = true
++          ..deleteFailureMessage = raw;
++    final controller = createController(authRepository: authRepository);
++
++    await tester.pumpWidget(
++      MaterialApp(
++        theme: AppTheme.light,
++        home: AccountDeletionScreen(
++          controller: controller,
++          authenticationRepository: authRepository,
++          supportEmail: 'calonavi.ayg.support@gmail.com',
++        ),
++      ),
++    );
++
++    await tester.tap(find.text(AppStrings.accountDeletionExecute));
++    await tester.pumpAndSettle();
++    await tester.tap(find.text(AppStrings.accountDeletionExecute).last);
++    await tester.pumpAndSettle();
++
++    expect(
++      find.text('${AppStrings.accountDeletionFailed}。時間をおいて再度お試しください。'),
++      findsOneWidget,
++    );
++    expect(find.textContaining(raw), findsNothing);
++    expect(find.textContaining('invalid_grant'), findsNothing);
++    expect(authRepository.logoutCalled, isFalse);
++
++    await authRepository.dispose();
++  });
+ }
+### FILE test/apple_refresh_token_migration_test.dart (added)
+@@ -0,0 +1,84 @@
++import 'dart:io';
++
++import 'package:flutter_test/flutter_test.dart';
++
++void main() {
++  const migrationName =
++      'supabase/migrations/20260927170000_store_apple_refresh_tokens.sql';
++  const downName =
++      'supabase/rollback/20260927170000_store_apple_refresh_tokens_down.sql';
++
++  late String sql;
++  late String downSql;
++
++  setUpAll(() {
++    sql = File(migrationName).readAsStringSync();
++    downSql = File(downName).readAsStringSync();
++  });
++
++  test('refresh tokens are stored in vault behind service_role functions', () {
++    expect(sql, contains('supabase_vault'));
++    expect(sql, contains('vault.create_secret'));
++    expect(sql, contains('vault.update_secret'));
++    expect(sql, contains('vault.decrypted_secrets'));
++    expect(sql, contains("apple_refresh_token:"));
++    expect('security definer'.allMatches(sql.toLowerCase()).length, 3);
++    expect("set search_path = ''".allMatches(sql).length, 3);
++
++    final grantLines = sql
++        .split('\n')
++        .where((line) => line.trimLeft().toLowerCase().startsWith('grant '))
++        .toList();
++    expect(grantLines, hasLength(3));
++    for (final line in grantLines) {
++      expect(line.toLowerCase().contains('authenticated'), isFalse);
++      expect(line.toLowerCase().contains(' anon'), isFalse);
++      expect(line, contains('service_role'));
++    }
++    expect(sql, contains('from public'));
++    expect(sql, contains('from anon'));
++    expect(sql, contains('from authenticated'));
++    expect(sql.contains('create policy'), isFalse);
++    expect(sql.contains('BEGIN PRIVATE KEY'), isFalse);
++    expect(sql.contains('delete_own_account'), isFalse);
++  });
++
++  test('down sql drops only the apple token functions', () {
++    expect(
++      File(
++        'supabase/migrations/20260927170000_store_apple_refresh_tokens_down.sql',
++      ).existsSync(),
++      isFalse,
++    );
++    expect(
++      downSql,
++      contains(
++        'drop function if exists public.store_apple_refresh_token(uuid, text)',
++      ),
++    );
++    expect(
++      downSql,
++      contains('drop function if exists public.read_apple_refresh_token(uuid)'),
++    );
++    expect(
++      downSql,
++      contains(
++        'drop function if exists public.delete_apple_refresh_token(uuid)',
++      ),
++    );
++    expect(
++      downSql,
++      contains("pg_catalog.starts_with(name, 'apple_refresh_token:')"),
++    );
++    expect(downSql.toLowerCase().contains('drop extension'), isFalse);
++    expect(
++      downSql.contains('create or replace function public.delete_own_account'),
++      isFalse,
++    );
++    expect(
++      downSql.contains('drop function if exists public.delete_own_account'),
++      isFalse,
++    );
++    expect(downSql.toLowerCase().contains('drop trigger'), isFalse);
++  });
++}
+### FILE test/apple_token_revocation_test.dart (added)
+@@ -0,0 +1,227 @@
++import 'dart:io';
++
++import 'package:flutter_test/flutter_test.dart';
++import 'package:supabase_flutter/supabase_flutter.dart';
++
++import 'package:ayg/repositories/account_deletion_rpc.dart';
++import 'package:ayg/repositories/apple_refresh_token.dart';
++import 'package:ayg/repositories/auth_exceptions.dart';
++
++void main() {
++  test('native Apple sign-in sends only the authorization code', () async {
++    final calls = <Map<String, Object?>>[];
++    var signedIn = false;
++
++    await finishNativeAppleSignIn(
++      signIn: () async {
++        signedIn = true;
++      },
++      authorizationCode: ' auth-code ',
++      storeCode: (code) => storeAppleAuthorizationCode(
++        invoke: (functionName, {body}) async {
++          calls.add({'function': functionName, 'body': body});
++          return const FunctionResponse(status: 200, data: {'stored': true});
++        },
++        authorizationCode: code,
++      ),
++    );
++
++    expect(signedIn, isTrue);
++    expect(calls, [
++      {
++        'function': storeAppleRefreshTokenFunction,
++        'body': {'authorization_code': 'auth-code'},
++      },
++    ]);
++  });
++
++  test('a failed token store does not fail Apple sign-in', () async {
++    var signedIn = false;
++
++    await finishNativeAppleSignIn(
++      signIn: () async {
++        signedIn = true;
++      },
++      authorizationCode: 'auth-code',
++      storeCode: (code) => storeAppleAuthorizationCode(
++        invoke: (functionName, {body}) async {
++          throw const FunctionException(
++            status: 500,
++            details: 'invalid_client raw apple error',
++          );
++        },
++        authorizationCode: code,
++      ),
++    );
++
++    expect(signedIn, isTrue);
++  });
++
++  test('sign-in is unchanged when the authorization code is empty', () async {
++    var invoked = false;
++
++    await finishNativeAppleSignIn(
++      signIn: () async {},
++      authorizationCode: '   ',
++      storeCode: (code) => storeAppleAuthorizationCode(
++        invoke: (functionName, {body}) async {
++          invoked = true;
++          return const FunctionResponse(status: 200);
++        },
++        authorizationCode: code,
++      ),
++    );
++
++    expect(invoked, isFalse);
++  });
++
++  test('a store error after sign-in is swallowed by the handoff', () async {
++    var signedIn = false;
++
++    await finishNativeAppleSignIn(
++      signIn: () async {
++        signedIn = true;
++      },
++      authorizationCode: 'auth-code',
++      storeCode: (_) async {
++        throw StateError('raw store failure');
++      },
++    );
++
++    expect(signedIn, isTrue);
++  });
++
++  test('sign-in failure does not store an authorization code', () async {
++    var invoked = false;
++
++    expect(
++      () => finishNativeAppleSignIn(
++        signIn: () async {
++          throw StateError('apple sign-in failed');
++        },
++        authorizationCode: 'auth-code',
++        storeCode: (_) async {
++          invoked = true;
++        },
++      ),
++      throwsStateError,
++    );
++    expect(invoked, isFalse);
++  });
++
++  test('delete account invokes the edge function', () async {
++    final calls = <String>[];
++
++    await deleteOwnAccountWithInvoker((functionName, {body}) async {
++      calls.add(functionName);
++      expect(body, isNull);
++      return const FunctionResponse(status: 200, data: {'ok': true});
++    });
++
++    expect(calls, [deleteAccountFunction]);
++  });
++
++  test('a missing delete function is unavailable', () {
++    expect(
++      () => deleteOwnAccountWithInvoker((functionName, {body}) async {
++        throw const FunctionException(status: 404, details: 'not found raw');
++      }),
++      throwsA(isA<AccountDeletionUnavailableException>()),
++    );
++  });
++
++  test('delete failures hide the function body', () {
++    const raw = 'invalid_grant refresh-token-value';
++
++    expect(
++      () => deleteOwnAccountWithInvoker((functionName, {body}) async {
++        throw FunctionException(status: 500, details: raw);
++      }),
++      throwsA(
++        isA<AccountDeletionFailedException>().having(
++          (error) => error.message,
++          'message',
++          accountDeletionGenericFailure,
++        ),
++      ),
++    );
++    expect(
++      () => deleteOwnAccountWithInvoker((functionName, {body}) async {
++        return const FunctionResponse(status: 200, data: {'ok': false});
++      }),
++      throwsA(
++        isA<AccountDeletionFailedException>().having(
++          (error) => error.toString(),
++          'toString',
++          isNot(contains(raw)),
++        ),
++      ),
++    );
++  });
++
++  test('the native sign-in path passes the authorization code', () {
++    final source = File(
++      'lib/repositories/supabase_authentication_repository.dart',
++    ).readAsStringSync();
++    expect(source, contains('finishNativeAppleSignIn'));
++    expect(source, contains('authorizationCode: credential.authorizationCode'));
++    expect(source.contains('identityToken: credential'), isFalse);
++  });
++
++  test(
++    'production functions read the four secret names and no key material',
++    () {
++      const names = [
++        'APPLE_TEAM_ID',
++        'APPLE_KEY_ID',
++        'APPLE_PRIVATE_KEY',
++        'APPLE_CLIENT_ID',
++      ];
++      final production = [
++        'supabase/functions/_shared/apple_account.ts',
++        'supabase/functions/store-apple-refresh-token/index.ts',
++        'supabase/functions/delete-account/index.ts',
++      ].map((path) => File(path).readAsStringSync()).join('\n');
++      final readme = File('supabase/functions/README.md').readAsStringSync();
++      final config = File('supabase/config.toml').readAsStringSync();
++
++      for (final name in names) {
++        expect(production, contains(name));
++        expect(readme, contains(name));
++        expect(readme, contains('supabase secrets set'));
++      }
++      expect(readme, contains('com.narutoaii.ayg'));
++      expect(production.contains('com.narutoaii.ayg'), isFalse);
++      expect(production.contains('BEGIN EC PRIVATE KEY'), isFalse);
++      expect(
++        RegExp(
++          'BEGIN PRIVATE KEY-----[\\r\\n]+[A-Za-z0-9+/=]',
++        ).hasMatch(production),
++        isFalse,
++      );
++      expect(production, contains('https://appleid.apple.com/auth/revoke'));
++      expect(production, contains('https://appleid.apple.com/auth/token'));
++      expect(production, contains('token_type_hint'));
++      expect(production, contains('revokeThenDeleteAccount'));
++      expect(production, contains('fn: "delete_own_account"'));
++      expect(
++        RegExp(
++          r'\[functions\.store-apple-refresh-token\]\s+verify_jwt = true',
++        ).hasMatch(config),
++        isTrue,
++      );
++      expect(
++        RegExp(
++          r'\[functions\.delete-account\]\s+verify_jwt = true',
++        ).hasMatch(config),
++        isTrue,
++      );
++      final schemas = RegExp(
++        r'^schemas = .*$',
++        multiLine: true,
++      ).firstMatch(config)!.group(0)!;
++      expect(schemas.contains('vault'), isFalse);
++      expect(RegExp(r'APPLE_PRIVATE_KEY\s*=\s*"').hasMatch(config), isFalse);
++    },
++  );
++}
+### FILE test/mocks/mock_authentication_repository.dart (modified)
+@@ -17,6 +17,8 @@ class MockAuthenticationRepository extends AuthenticationRepository {
+   bool logoutCalled = false;
+   bool deleteOwnAccountCalled = false;
+   bool simulateDeleteUnavailable = false;
++  bool simulateDeleteFailure = false;
++  String deleteFailureMessage = 'invalid_grant raw-token-body';
+   bool simulateGoogleSignInCancelled = false;
+   bool simulateGoogleSignInFailure = false;
+   String googleSignInFailureMessage = 'Google sign-in failed.';
+@@ -85,6 +87,9 @@ class MockAuthenticationRepository extends AuthenticationRepository {
+     if (simulateDeleteUnavailable) {
+       throw AccountDeletionUnavailableException();
+     }
++    if (simulateDeleteFailure) {
++      throw AccountDeletionFailedException(deleteFailureMessage);
++    }
+   }
+ 
+   Future<void> dispose() async {
