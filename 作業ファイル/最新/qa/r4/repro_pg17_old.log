@@ -1,0 +1,18 @@
+pg_ctl: another server might be running; trying to start server anyway
+waiting for server to start.... stopped waiting
+pg_ctl: could not start server
+Examine the log output.
+ERROR:  function pg_catalog.coalesce(text, unknown) does not exist
+LINE 1: select pg_catalog.coalesce(null::text,'x')
+               ^
+HINT:  No function matches the given name and argument types. You might need to add explicit type casts.
+ERROR:  function pg_catalog.greatest(integer, integer) does not exist
+LINE 1: select pg_catalog.greatest(1,2)
+               ^
+HINT:  No function matches the given name and argument types. You might need to add explicit type casts.
+ERROR:  missing FROM-clause entry for table "pg_catalog"
+LINE 1: select 'a'::text where pg_catalog.current_user = 'x'
+                               ^
+ERROR:  type "pg_catalog.normalization_form" does not exist
+LINE 1: select 'NFKC'::pg_catalog.normalization_form
+                       ^

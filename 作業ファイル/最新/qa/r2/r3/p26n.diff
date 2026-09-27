@@ -1,0 +1,2226 @@
+diff --git a/lib/models/saved_food_persistence_error.dart b/lib/models/saved_food_persistence_error.dart
+index be64fc0..cedb060 100644
+--- a/lib/models/saved_food_persistence_error.dart
++++ b/lib/models/saved_food_persistence_error.dart
+@@ -1,6 +1,7 @@
+ import 'package:flutter/foundation.dart';
+ import 'package:supabase_flutter/supabase_flutter.dart';
+ 
++import '../moderation/public_food_name_moderation.dart';
+ import '../repositories/exceptions/food_master_exceptions.dart';
+ 
+ /// 食品保存失敗のユーザー向けエラーコード。
+@@ -94,7 +95,11 @@ class SavedFoodPersistenceException implements Exception {
+             .toLowerCase();
+ 
+     SavedFoodErrorCode errorCode;
+-    if (combined.contains('jwt') ||
++    var message = error.message;
++    if (combined.contains('public food name is not allowed')) {
++      errorCode = SavedFoodErrorCode.validationFailed;
++      message = PublicFoodNameModeration.rejectionMessage;
++    } else if (combined.contains('jwt') ||
+         combined.contains('not authenticated') ||
+         error.code == 'PGRST301') {
+       errorCode = SavedFoodErrorCode.authRequired;
+@@ -124,7 +129,7 @@ class SavedFoodPersistenceException implements Exception {
+ 
+     return SavedFoodPersistenceException(
+       errorCode: errorCode,
+-      message: error.message,
++      message: message,
+       repositoryStep: repositoryStep,
+       tableName: tableName,
+       operation: operation,
+@@ -143,16 +148,21 @@ class SavedFoodPersistenceException implements Exception {
+     final errorCode = switch (error) {
+       FoodMasterAuthenticationException() => SavedFoodErrorCode.authRequired,
+       FoodMasterPermissionException() => SavedFoodErrorCode.permissionDenied,
+-      FoodMasterValidationException() => SavedFoodErrorCode.validationFailed,
++      FoodMasterValidationException() ||
++      PublicFoodNameRejectedException() => SavedFoodErrorCode.validationFailed,
+       FoodMasterConflictException() => SavedFoodErrorCode.conflict,
+       FoodMasterTableMissingException() => SavedFoodErrorCode.tableMissing,
+       FoodMasterNetworkException() => SavedFoodErrorCode.networkFailed,
+       _ => SavedFoodErrorCode.insertFailed,
+     };
+ 
++    final message = error is PublicFoodNameRejectedException
++        ? PublicFoodNameModeration.rejectionMessage
++        : error.message;
++
+     return SavedFoodPersistenceException(
+       errorCode: errorCode,
+-      message: error.message,
++      message: message,
+       repositoryStep: repositoryStep,
+       tableName: 'saved_foods',
+       operation: operation,
+diff --git a/lib/moderation/public_food_banned_words.dart b/lib/moderation/public_food_banned_words.dart
+new file mode 100644
+index 0000000..dd5e4ab
+--- /dev/null
++++ b/lib/moderation/public_food_banned_words.dart
+@@ -0,0 +1,104 @@
++/// Fixed banned words for public food names.
++///
++/// One list, checked at publish time and when a public row's name changes.
++/// There is no admin editor and no remote dictionary.
++const List<String> publicFoodBannedWords = <String>[
++  'fuck',
++  'fucking',
++  'motherfucker',
++  'shit',
++  'bullshit',
++  'asshole',
++  'bitch',
++  'bastard',
++  'cunt',
++  'dick',
++  'cock',
++  'pussy',
++  'whore',
++  'slut',
++  'nigger',
++  'nigga',
++  'faggot',
++  'retard',
++  'rape',
++  'くそ',
++  'くそったれ',
++  'ちくしょう',
++  'ちんこ',
++  'ちんぽ',
++  'まんこ',
++  'うんこ',
++  'きんたま',
++  'ファック',
++  'セックス',
++  'フェラ',
++  '中出し',
++  '死ね',
++  '殺す',
++  'きちがい',
++  '池沼',
++  'エロ',
++  // Full explicit compounds. Not boundary-only, so they match as substrings.
++  // The short fragments above stay boundary-only.
++  'おまんこ',
++  'フェラチオ',
++  'イラマチオ',
++  'クンニ',
++  'パイズリ',
++  '顔射',
++  'ぶっかけ',
++  'ごっくん',
++  'ザーメン',
++  'オナニー',
++  '潮吹き',
++  '素股',
++  '手コキ',
++  '手マン',
++  '肉便器',
++  'fellatio',
++  'cunnilingus',
++];
++
++/// Halfwidth katakana, mapped to hiragana. Both strings are the same length.
++const String publicFoodHalfwidthKatakanaFrom =
++    'ｦｧｨｩｪｫｬｭｮｯｰｱｲｳｴｵｶｷｸｹｺｻｼｽｾｿﾀﾁﾂﾃﾄﾅﾆﾇﾈﾉﾊﾋﾌﾍﾎﾏﾐﾑﾒﾓﾔﾕﾖﾗﾘﾙﾚﾛﾜﾝ';
++
++const String publicFoodHalfwidthKatakanaTo =
++    'をぁぃぅぇぉゃゅょっーあいうえおかきくけこさしすせそたちつてとなにぬねのはひふへほまみむめもやゆよらりるれろわん';
++
++/// 1:1 confusable fold applied after NFKC. Both strings are the same length.
++/// Accents, Cyrillic/Latin lookalikes, and symbol/digit substitutions.
++/// Kept identical to the translate() pair in the banned-name migration.
++const String publicFoodConfusableFrom =
++    'àáâãäåÀÁÂÃÄÅèéêëÈÉÊËìíîïÌÍÎÏòóôõöÒÓÔÕÖùúûüÙÚÛÜýÿÝŸñÑçÇаАеЕоОрРсСуУхХіІјЈѕЅԁԀ013457@\$!';
++
++const String publicFoodConfusableTo =
++    'aaaaaaaaaaaaeeeeeeeeiiiiiiiioooooooooouuuuuuuuyyyynnccaaeeooppccyyxxiijjssddoieastasi';
++
++/// Halfwidth katakana bases that take a dakuten (U+FF9E), and the fullwidth
++/// katakana they become. Both strings are the same length. Applied before NFKC.
++const String publicFoodHalfwidthDakutenBase = 'ｶｷｸｹｺｻｼｽｾｿﾀﾁﾂﾃﾄﾊﾋﾌﾍﾎ';
++
++const String publicFoodHalfwidthDakutenTo = 'ガギグゲゴザジズゼゾダヂヅデドバビブベボ';
++
++/// Halfwidth katakana bases that take a handakuten (U+FF9F).
++const String publicFoodHalfwidthHandakutenBase = 'ﾊﾋﾌﾍﾎ';
++
++const String publicFoodHalfwidthHandakutenTo = 'パピプペポ';
++
++/// Normalized terms that match only on a word boundary.
++/// Longer Japanese terms still match as substrings.
++const List<String> publicFoodBoundaryOnlyTerms = <String>[
++  'えろ',
++  'くそ',
++  'ふぇら',
++  'まんこ',
++];
++
++/// Normalized phrases removed before the banned-word scan.
++/// A banned word beside one of these phrases is still rejected.
++const List<String> publicFoodAllowedPhrases = <String>[
++  'cock tail',
++  'rape seed',
++];
+diff --git a/lib/moderation/public_food_name_moderation.dart b/lib/moderation/public_food_name_moderation.dart
+new file mode 100644
+index 0000000..49ebcad
+--- /dev/null
++++ b/lib/moderation/public_food_name_moderation.dart
+@@ -0,0 +1,313 @@
++import 'package:unorm_dart/unorm_dart.dart' as unorm;
++
++import '../utils/food_name_normalizer.dart';
++import 'public_food_banned_words.dart';
++
++/// Client check for public food text.
++///
++/// Order: compose halfwidth voiced marks (U+FF9E / U+FF9F), Unicode NFKC,
++/// strip combining marks U+0300–U+036F (kana voicing U+3099/U+309A stays),
++/// accent / lookalike / digit-symbol fold, then case fold, kana fold, and
++/// separator folding. Allowed food phrases are removed before the scan.
++/// Latin terms and [publicFoodBoundaryOnlyTerms] match on a word boundary.
++/// Other Japanese terms of length >= 2 match as substrings.
++class PublicFoodNameModeration {
++  const PublicFoodNameModeration._();
++
++  static const rejectionMessage = 'この食品名は公開できません。別の名前を入力してください。';
++
++  static final RegExp _combiningMarks = RegExp(r'[\u0300-\u036F]');
++
++  static bool isBanned(String raw) {
++    final spaced = _stripAllowedPhrases(
++      normalizeForMatch(prepareForMatch(raw)),
++    );
++    if (spaced.isEmpty) {
++      return false;
++    }
++    final compact = spaced.replaceAll(' ', '');
++    for (final term in publicFoodBannedWords) {
++      final normalizedTerm = normalizeForMatch(
++        prepareForMatch(term),
++      ).replaceAll(' ', '');
++      if (normalizedTerm.isEmpty) {
++        continue;
++      }
++      if (_useSubstring(normalizedTerm)) {
++        if (compact.contains(normalizedTerm)) {
++          return true;
++        }
++      } else if (_containsBounded(spaced, normalizedTerm) ||
++          _containsBounded(compact, normalizedTerm)) {
++        return true;
++      }
++    }
++    return false;
++  }
++
++  /// True when a public field is changing into a banned value.
++  /// An unchanged field is left alone so older rows can still edit other fields.
++  static bool rejectsPublicUpdate({
++    required String previousName,
++    required String nextName,
++    String? previousBrand,
++    String? nextBrand,
++    String? previousNormalizedName,
++    String? nextNormalizedName,
++    String? previousServingUnitLabel,
++    String? nextServingUnitLabel,
++  }) {
++    return _changedIntoBanned(previousName, nextName) ||
++        _changedIntoBanned(previousBrand, nextBrand) ||
++        _changedIntoBanned(previousNormalizedName, nextNormalizedName) ||
++        _changedIntoBanned(previousServingUnitLabel, nextServingUnitLabel);
++  }
++
++  static bool anyFieldBanned({
++    required String name,
++    String? normalizedName,
++    String? brand,
++    String? servingUnitLabel,
++  }) {
++    return isBanned(name) ||
++        isBanned(normalizedName ?? '') ||
++        isBanned(brand ?? '') ||
++        isBanned(servingUnitLabel ?? '');
++  }
++
++  static bool _changedIntoBanned(String? previous, String? next) {
++    final before = previous ?? '';
++    final after = next ?? '';
++    if (FoodNameNormalizer.normalize(before) ==
++        FoodNameNormalizer.normalize(after)) {
++      return false;
++    }
++    return isBanned(after);
++  }
++
++  /// Halfwidth voiced marks, then NFKC, then confusable folding.
++  /// Separator folding happens afterwards.
++  static String prepareForMatch(String raw) {
++    final voiced = _composeHalfwidthVoiced(raw);
++    final composed = unorm.nfkc(voiced).replaceAll(_combiningMarks, '');
++    return _foldConfusables(composed);
++  }
++
++  static String _composeHalfwidthVoiced(String raw) {
++    final runes = raw.runes.toList();
++    final buffer = StringBuffer();
++    for (var i = 0; i < runes.length; i++) {
++      if (i + 1 < runes.length) {
++        final mark = runes[i + 1];
++        final Map<int, int>? table = switch (mark) {
++          0xFF9E => _dakuten,
++          0xFF9F => _handakuten,
++          _ => null,
++        };
++        final mapped = table?[runes[i]];
++        if (mapped != null) {
++          buffer.writeCharCode(mapped);
++          i++;
++          continue;
++        }
++      }
++      buffer.writeCharCode(runes[i]);
++    }
++    return buffer.toString();
++  }
++
++  static String _stripAllowedPhrases(String spaced) {
++    var current = spaced;
++    for (final phrase in publicFoodAllowedPhrases) {
++      current = _removeBounded(current, phrase);
++    }
++    return current.replaceAll(RegExp(r' +'), ' ').trim();
++  }
++
++  /// Removes bounded [phrase] occurrences, leaving a space in their place.
++  static String _removeBounded(String haystack, String phrase) {
++    if (phrase.isEmpty || haystack.isEmpty) {
++      return haystack;
++    }
++    final buffer = StringBuffer();
++    var read = 0;
++    var from = 0;
++    while (from <= haystack.length) {
++      final index = haystack.indexOf(phrase, from);
++      if (index < 0) {
++        buffer.write(haystack.substring(read));
++        break;
++      }
++      final beforeOk =
++          index == 0 || !_isWordCode(haystack.codeUnitAt(index - 1));
++      final afterIndex = index + phrase.length;
++      final afterOk =
++          afterIndex >= haystack.length ||
++          !_isWordCode(haystack.codeUnitAt(afterIndex));
++      if (beforeOk && afterOk) {
++        buffer.write(haystack.substring(read, index));
++        buffer.write(' ');
++        read = afterIndex;
++        from = afterIndex;
++      } else {
++        from = index + 1;
++      }
++    }
++    return buffer.toString();
++  }
++
++  static String _foldConfusables(String value) {
++    final expanded = value
++        .replaceAll('ß', 'ss')
++        .replaceAll('æ', 'ae')
++        .replaceAll('Æ', 'ae')
++        .replaceAll('œ', 'oe')
++        .replaceAll('Œ', 'oe');
++    final buffer = StringBuffer();
++    for (final rune in expanded.runes) {
++      final mapped = _confusableMap[rune];
++      if (mapped == null) {
++        buffer.writeCharCode(rune);
++      } else {
++        buffer.writeCharCode(mapped);
++      }
++    }
++    return buffer.toString();
++  }
++
++  static String normalizeForMatch(String raw) {
++    final buffer = StringBuffer();
++    var pendingSpace = false;
++    for (final rune in raw.runes) {
++      final mapped = _mapRune(rune);
++      if (mapped == null) {
++        if (buffer.isNotEmpty) {
++          pendingSpace = true;
++        }
++        continue;
++      }
++      if (pendingSpace) {
++        buffer.write(' ');
++        pendingSpace = false;
++      }
++      buffer.writeCharCode(mapped);
++    }
++    return buffer.toString();
++  }
++
++  static bool _useSubstring(String term) {
++    if (RegExp('[a-z0-9]').hasMatch(term)) {
++      return false;
++    }
++    if (publicFoodBoundaryOnlyTerms.contains(term)) {
++      return false;
++    }
++    return term.runes.length >= 2;
++  }
++
++  static bool _containsBounded(String haystack, String term) {
++    var start = 0;
++    while (true) {
++      final index = haystack.indexOf(term, start);
++      if (index < 0) {
++        return false;
++      }
++      final beforeOk =
++          index == 0 || !_isWordCode(haystack.codeUnitAt(index - 1));
++      final afterIndex = index + term.length;
++      final afterOk =
++          afterIndex >= haystack.length ||
++          !_isWordCode(haystack.codeUnitAt(afterIndex));
++      if (beforeOk && afterOk) {
++        return true;
++      }
++      start = index + 1;
++    }
++  }
++
++  static int? _mapRune(int rune) {
++    if (rune == 0x3000 ||
++        rune == 0x20 ||
++        rune == 0x09 ||
++        rune == 0x0A ||
++        rune == 0x0D) {
++      return null;
++    }
++
++    var code = rune;
++    if (code >= 0xFF10 && code <= 0xFF19) {
++      code = 0x30 + (code - 0xFF10);
++    } else if (code >= 0xFF21 && code <= 0xFF3A) {
++      code = 0x61 + (code - 0xFF21);
++    } else if (code >= 0xFF41 && code <= 0xFF5A) {
++      code = 0x61 + (code - 0xFF41);
++    } else {
++      final halfwidth = _halfwidthKatakana[code];
++      if (halfwidth != null) {
++        code = halfwidth;
++      }
++    }
++
++    if (code >= 0x30A1 && code <= 0x30F3) {
++      code -= 0x60;
++    }
++    if (code >= 0x41 && code <= 0x5A) {
++      code = 0x61 + (code - 0x41);
++    }
++    if (_isWordCode(code)) {
++      return code;
++    }
++    return null;
++  }
++
++  static bool _isWordCode(int code) {
++    if (code >= 0x30 && code <= 0x39) {
++      return true;
++    }
++    if (code >= 0x61 && code <= 0x7A) {
++      return true;
++    }
++    if (code >= 0x3041 && code <= 0x3096) {
++      return true;
++    }
++    if (code >= 0x30A1 && code <= 0x30FA) {
++      return true;
++    }
++    if (code >= 0x4E00 && code <= 0x9FFF) {
++      return true;
++    }
++    return code == 0x30FC;
++  }
++
++  static final Map<int, int> _confusableMap = _buildConfusableMap();
++  static final Map<int, int> _halfwidthKatakana = _buildHalfwidthMap();
++  static final Map<int, int> _dakuten = _pairMap(
++    publicFoodHalfwidthDakutenBase,
++    publicFoodHalfwidthDakutenTo,
++  );
++  static final Map<int, int> _handakuten = _pairMap(
++    publicFoodHalfwidthHandakutenBase,
++    publicFoodHalfwidthHandakutenTo,
++  );
++
++  static Map<int, int> _buildConfusableMap() {
++    return _pairMap(publicFoodConfusableFrom, publicFoodConfusableTo);
++  }
++
++  static Map<int, int> _buildHalfwidthMap() {
++    return _pairMap(
++      publicFoodHalfwidthKatakanaFrom,
++      publicFoodHalfwidthKatakanaTo,
++    );
++  }
++
++  static Map<int, int> _pairMap(String fromText, String toText) {
++    final from = fromText.runes.toList();
++    final to = toText.runes.toList();
++    final map = <int, int>{};
++    for (var i = 0; i < from.length && i < to.length; i++) {
++      map[from[i]] = to[i];
++    }
++    return map;
++  }
++}
+diff --git a/lib/repositories/exceptions/food_master_exceptions.dart b/lib/repositories/exceptions/food_master_exceptions.dart
+index eb86268..57fabb3 100644
+--- a/lib/repositories/exceptions/food_master_exceptions.dart
++++ b/lib/repositories/exceptions/food_master_exceptions.dart
+@@ -8,6 +8,7 @@ enum PublishFailureKind {
+   validation,
+   alreadyPublic,
+   moderationBlocked,
++  bannedName,
+   notAuthenticated,
+   network,
+   unknown,
+@@ -74,6 +75,12 @@ class PublishSavedFoodException extends FoodMasterException {
+   final PublishFailureKind kind;
+ }
+ 
++class PublicFoodNameRejectedException extends FoodMasterException {
++  const PublicFoodNameRejectedException([
++    super.message = 'public food name is not allowed',
++  ]);
++}
++
+ class FoodMasterNotFoundException extends FoodMasterException {
+   const FoodMasterNotFoundException([super.message = 'Resource not found.']);
+ }
+diff --git a/lib/repositories/supabase/supabase_error_mapper.dart b/lib/repositories/supabase/supabase_error_mapper.dart
+index ff8d559..f5a024c 100644
+--- a/lib/repositories/supabase/supabase_error_mapper.dart
++++ b/lib/repositories/supabase/supabase_error_mapper.dart
+@@ -69,6 +69,13 @@ class SupabaseErrorMapper {
+       );
+     }
+ 
++    if (mapped is PublicFoodNameRejectedException) {
++      return PublishSavedFoodException(
++        kind: PublishFailureKind.bannedName,
++        message: mapped.message,
++      );
++    }
++
+     if (mapped is FoodMasterValidationException) {
+       return PublishSavedFoodException(
+         kind: PublishFailureKind.validation,
+@@ -97,6 +104,10 @@ class SupabaseErrorMapper {
+     final details = (error.details?.toString() ?? '').toLowerCase();
+     final combined = '$message $details';
+ 
++    if (combined.contains('public food name is not allowed')) {
++      return const PublicFoodNameRejectedException();
++    }
++
+     if (combined.contains('duplicate public food') ||
+         (combined.contains('duplicate key') && context.contains('publish'))) {
+       return const FoodMasterDuplicateException();
+diff --git a/lib/services/publish_error_messages.dart b/lib/services/publish_error_messages.dart
+index 317c8bb..c5d287f 100644
+--- a/lib/services/publish_error_messages.dart
++++ b/lib/services/publish_error_messages.dart
+@@ -1,3 +1,4 @@
++import '../moderation/public_food_name_moderation.dart';
+ import '../repositories/exceptions/food_master_exceptions.dart';
+ 
+ /// publish_saved_food RPC 失敗のユーザー向けメッセージ。
+@@ -17,7 +18,13 @@ class PublishErrorMessages {
+     if (error is FoodMasterAuthenticationException) {
+       return messageForKind(PublishFailureKind.notAuthenticated);
+     }
++    if (error is PublicFoodNameRejectedException) {
++      return PublicFoodNameModeration.rejectionMessage;
++    }
+     if (error is FoodMasterValidationException) {
++      if (error.message.contains(PublicFoodNameModeration.rejectionMessage)) {
++        return PublicFoodNameModeration.rejectionMessage;
++      }
+       return messageForKind(PublishFailureKind.validation);
+     }
+     if (error is FoodMasterPermissionException) {
+@@ -36,6 +43,8 @@ class PublishErrorMessages {
+       PublishFailureKind.rateLimitDaily => '本日公開できる上限に達しました',
+       PublishFailureKind.notOwner => 'この食品を公開する権限がありません',
+       PublishFailureKind.invalidState => 'この食品は現在公開できません',
++      PublishFailureKind.bannedName =>
++        PublicFoodNameModeration.rejectionMessage,
+       PublishFailureKind.validation => '公開前の入力内容を確認してください',
+       PublishFailureKind.alreadyPublic => 'すでに公開されています',
+       PublishFailureKind.moderationBlocked => 'モデレーション状態により公開できません',
+diff --git a/lib/services/saved_food_publish_validator.dart b/lib/services/saved_food_publish_validator.dart
+index 10aedad..b186bac 100644
+--- a/lib/services/saved_food_publish_validator.dart
++++ b/lib/services/saved_food_publish_validator.dart
+@@ -1,4 +1,5 @@
+ import '../constants/app_strings.dart';
++import '../moderation/public_food_name_moderation.dart';
+ import '../models/food_source_type.dart';
+ import '../models/food_status.dart';
+ import '../models/moderation_status.dart';
+@@ -37,6 +38,14 @@ class SavedFoodPublishValidator {
+     if (normalized.isEmpty) {
+       errors.add('食品名が無効です');
+     }
++    if (PublicFoodNameModeration.anyFieldBanned(
++      name: food.name,
++      normalizedName: food.normalizedName,
++      brand: food.brand,
++      servingUnitLabel: food.servingUnitLabel,
++    )) {
++      errors.add(PublicFoodNameModeration.rejectionMessage);
++    }
+     if (food.baseAmount <= 0) {
+       errors.add('基準量は0より大きい値を入力してください');
+     }
+diff --git a/lib/state/app_controller.dart b/lib/state/app_controller.dart
+index ea99caa..aafb557 100644
+--- a/lib/state/app_controller.dart
++++ b/lib/state/app_controller.dart
+@@ -67,6 +67,7 @@ import '../services/local_user_data_clearer_base.dart';
+ import '../services/meal_template_apply_service.dart';
+ import '../services/meal_template_dependency_service.dart';
+ import '../services/meal_template_totals_service.dart';
++import '../moderation/public_food_name_moderation.dart';
+ import '../services/nutrition_engine.dart';
+ import '../services/public_food_search_service.dart';
+ import '../services/public_food_similar_service.dart';
+@@ -1228,6 +1229,19 @@ class AppController extends ChangeNotifier {
+       throw StateError('Public update confirmation is required');
+     }
+ 
++    if (PublicFoodNameModeration.rejectsPublicUpdate(
++      previousName: existing.name,
++      nextName: food.name,
++      previousBrand: existing.brand,
++      nextBrand: food.brand,
++      previousNormalizedName: existing.normalizedName,
++      nextNormalizedName: food.normalizedName,
++      previousServingUnitLabel: existing.servingUnitLabel,
++      nextServingUnitLabel: food.servingUnitLabel,
++    )) {
++      throw const PublicFoodNameRejectedException();
++    }
++
+     return _updateOwnSavedFood(food, previous: existing);
+   }
+ 
+diff --git a/pubspec.lock b/pubspec.lock
+index 2700646..cf61848 100644
+--- a/pubspec.lock
++++ b/pubspec.lock
+@@ -1084,6 +1084,14 @@ packages:
+       url: "https://pub.dev"
+     source: hosted
+     version: "1.4.0"
++  unorm_dart:
++    dependency: "direct main"
++    description:
++      name: unorm_dart
++      sha256: "0c69186b03ca6addab0774bcc0f4f17b88d4ce78d9d4d8f0619e30a99ead58e7"
++      url: "https://pub.dev"
++    source: hosted
++    version: "0.3.2"
+   url_launcher:
+     dependency: "direct main"
+     description:
+diff --git a/pubspec.yaml b/pubspec.yaml
+index 66a3bf2..80ac378 100644
+--- a/pubspec.yaml
++++ b/pubspec.yaml
+@@ -50,6 +50,7 @@ dependencies:
+   crypto: ^3.0.7
+   material_symbols_icons: ^4.2960.0
+   in_app_purchase: ^3.2.3
++  unorm_dart: ^0.3.2
+ 
+ dev_dependencies:
+   flutter_test:
+diff --git a/supabase/migrations/20260927120000_reject_banned_public_food_names.sql b/supabase/migrations/20260927120000_reject_banned_public_food_names.sql
+new file mode 100644
+index 0000000..bdc3ccf
+--- /dev/null
++++ b/supabase/migrations/20260927120000_reject_banned_public_food_names.sql
+@@ -0,0 +1,566 @@
++-- Reject banned public food text at publish time and when a public row's
++-- name, normalized_name, brand, or serving_unit_label changes.
++-- Does not scan or rewrite existing rows.
++--
++-- search_path is empty on every function below. Names are schema-qualified
++-- (public. or pg_catalog.). publish_saved_food is SECURITY DEFINER, so a
++-- caller-controlled search_path must not apply.
++
++-- pg_catalog.normalize(text, NFKC) needs PostgreSQL 13 or newer.
++-- supabase/config.toml sets major_version = 17.
++-- Halfwidth dakuten (U+FF9E) and handakuten (U+FF9F) are composed before
++-- NFKC so Dart and Postgres agree even when one NFKC implementation does not.
++
++create or replace function public.compose_halfwidth_voiced(p_text text)
++returns text
++language plpgsql
++immutable
++set search_path = ''
++as $$
++declare
++  v text := pg_catalog.coalesce(p_text, '');
++  v_out text := '';
++  i integer := 1;
++  n integer := pg_catalog.char_length(v);
++  ch text;
++  nxt text;
++  base_at integer;
++  dakuten_base constant text := 'ｶｷｸｹｺｻｼｽｾｿﾀﾁﾂﾃﾄﾊﾋﾌﾍﾎ';
++  dakuten_to constant text := 'ガギグゲゴザジズゼゾダヂヅデドバビブベボ';
++  handakuten_base constant text := 'ﾊﾋﾌﾍﾎ';
++  handakuten_to constant text := 'パピプペポ';
++begin
++  while i <= n loop
++    ch := pg_catalog.substr(v, i, 1);
++    if i < n then
++      nxt := pg_catalog.substr(v, i + 1, 1);
++      if nxt = pg_catalog.chr(65438) then
++        base_at := pg_catalog.strpos(dakuten_base, ch);
++        if base_at > 0 then
++          v_out := v_out || pg_catalog.substr(dakuten_to, base_at, 1);
++          i := i + 2;
++          continue;
++        end if;
++      elsif nxt = pg_catalog.chr(65439) then
++        base_at := pg_catalog.strpos(handakuten_base, ch);
++        if base_at > 0 then
++          v_out := v_out || pg_catalog.substr(handakuten_to, base_at, 1);
++          i := i + 2;
++          continue;
++        end if;
++      end if;
++    end if;
++    v_out := v_out || ch;
++    i := i + 1;
++  end loop;
++  return v_out;
++end;
++$$;
++
++create or replace function public.normalize_public_food_name(p_name text)
++returns text
++language plpgsql
++immutable
++set search_path = ''
++as $$
++declare
++  v text := pg_catalog.normalize(
++    public.compose_halfwidth_voiced(pg_catalog.coalesce(p_name, '')),
++    'NFKC'::pg_catalog.normalization_form
++  );
++  v_out text := '';
++  i integer;
++  ch text;
++  cp integer;
++  hw_from constant text := 'ｦｧｨｩｪｫｬｭｮｯｰｱｲｳｴｵｶｷｸｹｺｻｼｽｾｿﾀﾁﾂﾃﾄﾅﾆﾇﾈﾉﾊﾋﾌﾍﾎﾏﾐﾑﾒﾓﾔﾕﾖﾗﾘﾙﾚﾛﾜﾝ';
++  hw_to constant text := 'をぁぃぅぇぉゃゅょっーあいうえおかきくけこさしすせそたちつてとなにぬねのはひふへほまみむめもやゆよらりるれろわん';
++  hw_at integer;
++  -- Same pair as publicFoodConfusableFrom / publicFoodConfusableTo.
++  fold_from constant text := 'àáâãäåÀÁÂÃÄÅèéêëÈÉÊËìíîïÌÍÎÏòóôõöÒÓÔÕÖùúûüÙÚÛÜýÿÝŸñÑçÇаАеЕоОрРсСуУхХіІјЈѕЅԁԀ013457@$!';
++  fold_to constant text := 'aaaaaaaaaaaaeeeeeeeeiiiiiiiioooooooooouuuuuuuuyyyynnccaaeeooppccyyxxiijjssddoieastasi';
++begin
++  -- Multi-character folds, then the 1:1 confusable map. Separator folding
++  -- is the loop below. Combining marks U+0300–U+036F are dropped there
++  -- and are not turned into spaces. Kana voicing U+3099/U+309A is kept.
++  v := pg_catalog.replace(v, 'ß', 'ss');
++  v := pg_catalog.replace(v, 'æ', 'ae');
++  v := pg_catalog.replace(v, 'Æ', 'ae');
++  v := pg_catalog.replace(v, 'œ', 'oe');
++  v := pg_catalog.replace(v, 'Œ', 'oe');
++  v := pg_catalog.translate(v, fold_from, fold_to);
++
++  for i in 1..pg_catalog.char_length(v) loop
++    ch := pg_catalog.substr(v, i, 1);
++    cp := pg_catalog.ascii(ch);
++
++    if cp between 768 and 879 then
++      continue;
++    end if;
++
++    if cp = 12288 or cp = 32 or cp = 9 or cp = 10 or cp = 13 then
++      if v_out <> '' and pg_catalog.right(v_out, 1) <> ' ' then
++        v_out := v_out || ' ';
++      end if;
++      continue;
++    end if;
++
++    if cp between 65296 and 65305 then
++      cp := 48 + (cp - 65296);
++    elsif cp between 65313 and 65338 then
++      cp := 97 + (cp - 65313);
++    elsif cp between 65345 and 65370 then
++      cp := 97 + (cp - 65345);
++    else
++      hw_at := pg_catalog.strpos(hw_from, ch);
++      if hw_at > 0 then
++        ch := pg_catalog.substr(hw_to, hw_at, 1);
++        cp := pg_catalog.ascii(ch);
++      end if;
++    end if;
++
++    if cp between 12449 and 12531 then
++      cp := cp - 96;
++    end if;
++
++    if cp between 65 and 90 then
++      cp := 97 + (cp - 65);
++    end if;
++
++    if cp between 97 and 122
++       or cp between 48 and 57
++       or cp between 12353 and 12438
++       or cp between 12449 and 12538
++       or cp between 19968 and 40959
++       or cp = 12540 then
++      v_out := v_out || pg_catalog.chr(cp);
++    elsif v_out <> '' and pg_catalog.right(v_out, 1) <> ' ' then
++      v_out := v_out || ' ';
++    end if;
++  end loop;
++
++  return pg_catalog.btrim(v_out);
++end;
++$$;
++
++create or replace function public.public_food_name_char_is_word(p_char text)
++returns boolean
++language sql
++immutable
++set search_path = ''
++as $$
++  select p_char is not null
++     and (
++       pg_catalog.ascii(p_char) between 48 and 57
++       or pg_catalog.ascii(p_char) between 97 and 122
++       or pg_catalog.ascii(p_char) between 12353 and 12438
++       or pg_catalog.ascii(p_char) between 12449 and 12538
++       or pg_catalog.ascii(p_char) between 19968 and 40959
++       or pg_catalog.ascii(p_char) = 12540
++     );
++$$;
++
++create or replace function public.public_food_name_contains_term(
++  p_name text,
++  p_term text
++)
++returns boolean
++language plpgsql
++immutable
++set search_path = ''
++as $$
++declare
++  v_from integer := 1;
++  v_at integer;
++  v_before text;
++  v_after text;
++begin
++  if p_term is null or p_term = '' or p_name is null or p_name = '' then
++    return false;
++  end if;
++
++  loop
++    v_at := pg_catalog.strpos(pg_catalog.substr(p_name, v_from), p_term);
++    exit when v_at = 0;
++    v_at := v_from + v_at - 1;
++
++    if v_at = 1 then
++      v_before := null;
++    else
++      v_before := pg_catalog.substr(p_name, v_at - 1, 1);
++    end if;
++
++    if v_at + pg_catalog.char_length(p_term) > pg_catalog.char_length(p_name) then
++      v_after := null;
++    else
++      v_after := pg_catalog.substr(p_name, v_at + pg_catalog.char_length(p_term), 1);
++    end if;
++
++    if (v_before is null or not public.public_food_name_char_is_word(v_before))
++       and (v_after is null or not public.public_food_name_char_is_word(v_after)) then
++      return true;
++    end if;
++
++    v_from := v_at + 1;
++  end loop;
++
++  return false;
++end;
++$$;
++
++create or replace function public.public_food_name_strip_phrase(
++  p_name text,
++  p_phrase text
++)
++returns text
++language plpgsql
++immutable
++set search_path = ''
++as $$
++declare
++  v text := pg_catalog.coalesce(p_name, '');
++  v_from integer := 1;
++  v_at integer;
++  v_before text;
++  v_after text;
++begin
++  if p_phrase is null or p_phrase = '' then
++    return v;
++  end if;
++
++  loop
++    v_at := pg_catalog.strpos(pg_catalog.substr(v, v_from), p_phrase);
++    exit when v_at = 0;
++    v_at := v_from + v_at - 1;
++
++    if v_at = 1 then
++      v_before := null;
++    else
++      v_before := pg_catalog.substr(v, v_at - 1, 1);
++    end if;
++
++    if v_at + pg_catalog.char_length(p_phrase) > pg_catalog.char_length(v) then
++      v_after := null;
++    else
++      v_after := pg_catalog.substr(v, v_at + pg_catalog.char_length(p_phrase), 1);
++    end if;
++
++    if (v_before is null or not public.public_food_name_char_is_word(v_before))
++       and (v_after is null or not public.public_food_name_char_is_word(v_after)) then
++      v := pg_catalog.substr(v, 1, pg_catalog.greatest(v_at - 1, 0))
++        || ' '
++        || pg_catalog.substr(v, v_at + pg_catalog.char_length(p_phrase));
++      v_from := pg_catalog.greatest(v_at, 1);
++    else
++      v_from := v_at + 1;
++    end if;
++  end loop;
++
++  return v;
++end;
++$$;
++
++create or replace function public.public_food_name_term_uses_substring(p_term text)
++returns boolean
++language sql
++immutable
++set search_path = ''
++as $$
++  select not pg_catalog.regexp_like(p_term, '[a-z0-9]')
++     and pg_catalog.char_length(p_term) >= 2
++     and p_term not in (
++       -- PUBLIC_FOOD_BOUNDARY_ONLY
++       'えろ',
++       'くそ',
++       'ふぇら',
++       'まんこ'
++       -- /PUBLIC_FOOD_BOUNDARY_ONLY
++     );
++$$;
++
++create or replace function public.public_food_name_is_banned(p_name text)
++returns boolean
++language plpgsql
++immutable
++set search_path = ''
++as $$
++declare
++  v_spaced text := public.normalize_public_food_name(p_name);
++  v_compact text;
++  v_term text;
++  v_norm text;
++  v_phrase text;
++  v_words text[] := array[
++    -- PUBLIC_FOOD_BANNED_WORDS
++    'fuck',
++    'fucking',
++    'motherfucker',
++    'shit',
++    'bullshit',
++    'asshole',
++    'bitch',
++    'bastard',
++    'cunt',
++    'dick',
++    'cock',
++    'pussy',
++    'whore',
++    'slut',
++    'nigger',
++    'nigga',
++    'faggot',
++    'retard',
++    'rape',
++    'くそ',
++    'くそったれ',
++    'ちくしょう',
++    'ちんこ',
++    'ちんぽ',
++    'まんこ',
++    'うんこ',
++    'きんたま',
++    'ファック',
++    'セックス',
++    'フェラ',
++    '中出し',
++    '死ね',
++    '殺す',
++    'きちがい',
++    '池沼',
++    'エロ',
++    'おまんこ',
++    'フェラチオ',
++    'イラマチオ',
++    'クンニ',
++    'パイズリ',
++    '顔射',
++    'ぶっかけ',
++    'ごっくん',
++    'ザーメン',
++    'オナニー',
++    '潮吹き',
++    '素股',
++    '手コキ',
++    '手マン',
++    '肉便器',
++    'fellatio',
++    'cunnilingus'
++    -- /PUBLIC_FOOD_BANNED_WORDS
++  ];
++  v_phrases text[] := array[
++    -- PUBLIC_FOOD_ALLOWED_PHRASES
++    'cock tail',
++    'rape seed'
++    -- /PUBLIC_FOOD_ALLOWED_PHRASES
++  ];
++begin
++  if v_spaced = '' then
++    return false;
++  end if;
++
++  foreach v_phrase in array v_phrases loop
++    v_spaced := public.public_food_name_strip_phrase(v_spaced, v_phrase);
++  end loop;
++  v_spaced := pg_catalog.btrim(pg_catalog.regexp_replace(v_spaced, ' +', ' ', 'g'));
++  if v_spaced = '' then
++    return false;
++  end if;
++  v_compact := pg_catalog.replace(v_spaced, ' ', '');
++
++  foreach v_term in array v_words loop
++    v_norm := pg_catalog.replace(public.normalize_public_food_name(v_term), ' ', '');
++    if v_norm = '' then
++      continue;
++    end if;
++
++    if public.public_food_name_term_uses_substring(v_norm) then
++      if pg_catalog.strpos(v_compact, v_norm) > 0 then
++        return true;
++      end if;
++    elsif public.public_food_name_contains_term(v_spaced, v_norm)
++       or public.public_food_name_contains_term(v_compact, v_norm) then
++      return true;
++    end if;
++  end loop;
++
++  return false;
++end;
++$$;
++
++revoke all on function public.compose_halfwidth_voiced(text) from public, anon;
++revoke all on function public.normalize_public_food_name(text) from public, anon;
++revoke all on function public.public_food_name_char_is_word(text) from public, anon;
++revoke all on function public.public_food_name_contains_term(text, text) from public, anon;
++revoke all on function public.public_food_name_strip_phrase(text, text) from public, anon;
++revoke all on function public.public_food_name_term_uses_substring(text) from public, anon;
++revoke all on function public.public_food_name_is_banned(text) from public, anon;
++
++grant execute on function public.compose_halfwidth_voiced(text) to authenticated;
++grant execute on function public.normalize_public_food_name(text) to authenticated;
++grant execute on function public.public_food_name_char_is_word(text) to authenticated;
++grant execute on function public.public_food_name_contains_term(text, text) to authenticated;
++grant execute on function public.public_food_name_strip_phrase(text, text) to authenticated;
++grant execute on function public.public_food_name_term_uses_substring(text) to authenticated;
++grant execute on function public.public_food_name_is_banned(text) to authenticated;
++
++-- Name changes on an already public row. Other columns stay editable.
++create or replace function public.validate_saved_foods_public_row()
++returns trigger
++language plpgsql
++set search_path = ''
++as $$
++begin
++  if old.visibility <> 'public' or new.visibility <> 'public' then
++    return new;
++  end if;
++
++  if new.base_amount <= 0 then
++    raise exception 'base_amount must be positive';
++  end if;
++
++  if pg_catalog.btrim(new.name) = '' or pg_catalog.btrim(new.normalized_name) = '' then
++    raise exception 'name and normalized_name are required';
++  end if;
++
++  if new.name is distinct from old.name
++     and public.public_food_name_is_banned(new.name) then
++    raise exception 'public food name is not allowed';
++  end if;
++
++  if new.normalized_name is distinct from old.normalized_name
++     and public.public_food_name_is_banned(new.normalized_name) then
++    raise exception 'public food name is not allowed';
++  end if;
++
++  if new.brand is distinct from old.brand
++     and public.public_food_name_is_banned(pg_catalog.coalesce(new.brand, '')) then
++    raise exception 'public food name is not allowed';
++  end if;
++
++  if new.serving_unit_label is distinct from old.serving_unit_label
++     and public.public_food_name_is_banned(pg_catalog.coalesce(new.serving_unit_label, '')) then
++    raise exception 'public food name is not allowed';
++  end if;
++
++  if pg_catalog.coalesce(new.kcal_per_base, 0) < 0
++     or pg_catalog.coalesce(new.protein_per_base, 0) < 0
++     or pg_catalog.coalesce(new.fat_per_base, 0) < 0
++     or pg_catalog.coalesce(new.carb_per_base, 0) < 0 then
++    raise exception 'nutrition values must be non-negative';
++  end if;
++
++  if (old.normalized_name, old.base_amount, old.unit_type)
++     is distinct from (new.normalized_name, new.base_amount, new.unit_type)
++     and exists (
++       select 1
++       from public.saved_foods sf
++       where sf.visibility = 'public'
++         and sf.status = 'active'
++         and sf.deleted_at is null
++         and sf.normalized_name = new.normalized_name
++         and sf.unit_type = new.unit_type
++         and sf.base_amount = new.base_amount
++         and not (sf.user_id = new.user_id and sf.food_id = new.food_id)
++     ) then
++    raise exception 'duplicate public food exists';
++  end if;
++
++  return new;
++end;
++$$;
++
++create or replace function public.publish_saved_food(p_food_id text)
++returns public.saved_foods
++language plpgsql
++security definer
++set search_path = ''
++as $$
++declare
++  v_owner pg_catalog.uuid := auth.uid();
++  v_row public.saved_foods%rowtype;
++begin
++  if v_owner is null then
++    raise exception 'not authenticated';
++  end if;
++
++  select * into v_row
++  from public.saved_foods
++  where user_id = v_owner and food_id = p_food_id
++  for update;
++
++  if not found then
++    raise exception 'food not found';
++  end if;
++
++  if v_row.visibility = 'public' then
++    raise exception 'food is already public';
++  end if;
++
++  if v_row.status <> 'active' or v_row.deleted_at is not null then
++    raise exception 'food is not publishable';
++  end if;
++
++  if v_row.moderation_status not in ('none', 'reported', 'under_review') then
++    raise exception 'moderation_status blocks publish';
++  end if;
++
++  if v_row.base_amount <= 0 then
++    raise exception 'base_amount must be positive';
++  end if;
++
++  if v_row.unit_type not in ('g', 'ml', 'piece', 'serving') then
++    raise exception 'invalid unit_type';
++  end if;
++
++  if pg_catalog.btrim(v_row.name) = '' or pg_catalog.btrim(v_row.normalized_name) = '' then
++    raise exception 'name and normalized_name are required';
++  end if;
++
++  if public.public_food_name_is_banned(v_row.name)
++     or public.public_food_name_is_banned(v_row.normalized_name)
++     or public.public_food_name_is_banned(pg_catalog.coalesce(v_row.brand, ''))
++     or public.public_food_name_is_banned(pg_catalog.coalesce(v_row.serving_unit_label, '')) then
++    raise exception 'public food name is not allowed';
++  end if;
++
++  if pg_catalog.coalesce(v_row.kcal_per_base, 0) < 0
++     or pg_catalog.coalesce(v_row.protein_per_base, 0) < 0
++     or pg_catalog.coalesce(v_row.fat_per_base, 0) < 0
++     or pg_catalog.coalesce(v_row.carb_per_base, 0) < 0 then
++    raise exception 'nutrition values must be non-negative';
++  end if;
++
++  if exists (
++    select 1
++    from public.saved_foods sf
++    where sf.visibility = 'public'
++      and sf.status = 'active'
++      and sf.deleted_at is null
++      and sf.normalized_name = v_row.normalized_name
++      and sf.unit_type = v_row.unit_type
++      and sf.base_amount = v_row.base_amount
++      and not (sf.user_id = v_row.user_id and sf.food_id = v_row.food_id)
++  ) then
++    raise exception 'duplicate public food exists';
++  end if;
++
++  -- Step 4: lock buckets and verify headroom (no increment yet).
++  perform public.ensure_publish_rate_limit_headroom(v_owner);
++
++  -- Step 5: publicize (any failure rolls back the whole transaction).
++  perform pg_catalog.set_config('ayg.allow_saved_food_publish', 'on', true);
++
++  update public.saved_foods
++  set visibility = 'public'
++  where user_id = v_owner and food_id = p_food_id
++  returning * into v_row;
++
++  if not found then
++    raise exception 'visibility update failed';
++  end if;
++
++  -- Step 4 (count update): only after successful publicization.
++  perform public.increment_publish_rate_limit(v_owner);
++
++  return v_row;
++end;
++$$;
+diff --git a/supabase/rollback/20260927120000_reject_banned_public_food_names_down.sql b/supabase/rollback/20260927120000_reject_banned_public_food_names_down.sql
+new file mode 100644
+index 0000000..96d3f5d
+--- /dev/null
++++ b/supabase/rollback/20260927120000_reject_banned_public_food_names_down.sql
+@@ -0,0 +1,155 @@
++-- Down for 20260927120000_reject_banned_public_food_names.sql.
++-- Not under supabase/migrations, so `db push` does not apply it.
++-- Restores validate_saved_foods_public_row and publish_saved_food to the
++-- bodies from 20260723120000_add_food_master_public_v1_1.sql.
++-- Does not drop the validate_saved_foods_public_row trigger.
++-- Then drops the banned-name helper functions.
++
++begin;
++
++create or replace function public.validate_saved_foods_public_row()
++returns trigger
++language plpgsql
++as $$
++begin
++  if old.visibility <> 'public' or new.visibility <> 'public' then
++    return new;
++  end if;
++
++  if new.base_amount <= 0 then
++    raise exception 'base_amount must be positive';
++  end if;
++
++  if btrim(new.name) = '' or btrim(new.normalized_name) = '' then
++    raise exception 'name and normalized_name are required';
++  end if;
++
++  if coalesce(new.kcal_per_base, 0) < 0
++     or coalesce(new.protein_per_base, 0) < 0
++     or coalesce(new.fat_per_base, 0) < 0
++     or coalesce(new.carb_per_base, 0) < 0 then
++    raise exception 'nutrition values must be non-negative';
++  end if;
++
++  if (old.normalized_name, old.base_amount, old.unit_type)
++     is distinct from (new.normalized_name, new.base_amount, new.unit_type)
++     and exists (
++       select 1
++       from public.saved_foods sf
++       where sf.visibility = 'public'
++         and sf.status = 'active'
++         and sf.deleted_at is null
++         and sf.normalized_name = new.normalized_name
++         and sf.unit_type = new.unit_type
++         and sf.base_amount = new.base_amount
++         and not (sf.user_id = new.user_id and sf.food_id = new.food_id)
++     ) then
++    raise exception 'duplicate public food exists';
++  end if;
++
++  return new;
++end;
++$$;
++
++create or replace function public.publish_saved_food(p_food_id text)
++returns public.saved_foods
++language plpgsql
++security definer
++set search_path = public
++as $$
++declare
++  v_owner uuid := auth.uid();
++  v_row public.saved_foods%rowtype;
++begin
++  if v_owner is null then
++    raise exception 'not authenticated';
++  end if;
++
++  select * into v_row
++  from public.saved_foods
++  where user_id = v_owner and food_id = p_food_id
++  for update;
++
++  if not found then
++    raise exception 'food not found';
++  end if;
++
++  if v_row.visibility = 'public' then
++    raise exception 'food is already public';
++  end if;
++
++  if v_row.status <> 'active' or v_row.deleted_at is not null then
++    raise exception 'food is not publishable';
++  end if;
++
++  if v_row.moderation_status not in ('none', 'reported', 'under_review') then
++    raise exception 'moderation_status blocks publish';
++  end if;
++
++  if v_row.base_amount <= 0 then
++    raise exception 'base_amount must be positive';
++  end if;
++
++  if v_row.unit_type not in ('g', 'ml', 'piece', 'serving') then
++    raise exception 'invalid unit_type';
++  end if;
++
++  if btrim(v_row.name) = '' or btrim(v_row.normalized_name) = '' then
++    raise exception 'name and normalized_name are required';
++  end if;
++
++  if coalesce(v_row.kcal_per_base, 0) < 0
++     or coalesce(v_row.protein_per_base, 0) < 0
++     or coalesce(v_row.fat_per_base, 0) < 0
++     or coalesce(v_row.carb_per_base, 0) < 0 then
++    raise exception 'nutrition values must be non-negative';
++  end if;
++
++  if exists (
++    select 1
++    from public.saved_foods sf
++    where sf.visibility = 'public'
++      and sf.status = 'active'
++      and sf.deleted_at is null
++      and sf.normalized_name = v_row.normalized_name
++      and sf.unit_type = v_row.unit_type
++      and sf.base_amount = v_row.base_amount
++      and not (sf.user_id = v_row.user_id and sf.food_id = v_row.food_id)
++  ) then
++    raise exception 'duplicate public food exists';
++  end if;
++
++  -- Step 4: lock buckets and verify headroom (no increment yet).
++  perform public.ensure_publish_rate_limit_headroom(v_owner);
++
++  -- Step 5: publicize (any failure rolls back the whole transaction).
++  perform set_config('ayg.allow_saved_food_publish', 'on', true);
++
++  update public.saved_foods
++  set visibility = 'public'
++  where user_id = v_owner and food_id = p_food_id
++  returning * into v_row;
++
++  if not found then
++    raise exception 'visibility update failed';
++  end if;
++
++  -- Step 4 (count update): only after successful publicization.
++  perform public.increment_publish_rate_limit(v_owner);
++
++  return v_row;
++end;
++$$;
++
++revoke all on function public.publish_saved_food(text) from public;
++grant execute on function public.publish_saved_food(text) to authenticated;
++
++drop function if exists public.public_food_name_is_banned(text);
++drop function if exists public.public_food_name_term_uses_substring(text);
++drop function if exists public.public_food_name_strip_phrase(text, text);
++drop function if exists public.public_food_name_contains_term(text, text);
++drop function if exists public.public_food_name_char_is_word(text);
++drop function if exists public.normalize_public_food_name(text);
++drop function if exists public.compose_halfwidth_voiced(text);
++
++commit;
+diff --git a/supabase/tests/public_food_banned_name_test.sql b/supabase/tests/public_food_banned_name_test.sql
+new file mode 100644
+index 0000000..8ba0b75
+--- /dev/null
++++ b/supabase/tests/public_food_banned_name_test.sql
+@@ -0,0 +1,261 @@
++-- Public food name filter. Local Supabase only. Does not touch production.
++-- Run after the banned-name migration and the shared helpers:
++--   psql "$DB_URL" -v ON_ERROR_STOP=1 -f supabase/tests/food_master_v1_1_test_helpers.sql
++--   psql "$DB_URL" -v ON_ERROR_STOP=1 -f supabase/tests/public_food_banned_name_test.sql
++
++do $$
++declare
++  v_user uuid := '66666666-6666-6666-6666-666666666666';
++  v_kcal double precision;
++begin
++  perform ayg_test.assert_true(
++    not public.public_food_name_is_banned('キャベツ'),
++    'ordinary name is allowed'
++  );
++  perform ayg_test.assert_true(
++    public.public_food_name_is_banned('ＦＵＣＫ'),
++    'full-width latin name is rejected'
++  );
++  perform ayg_test.assert_true(
++    public.public_food_name_is_banned('f u c k'),
++    'spaced latin name is rejected'
++  );
++  perform ayg_test.assert_true(
++    not public.public_food_name_is_banned('shiitake'),
++    'shiitake is not a banned token'
++  );
++  perform ayg_test.assert_true(
++    not public.public_food_name_is_banned('イエロー'),
++    'yellow is not rejected by a short kana term'
++  );
++  perform ayg_test.assert_true(
++    public.public_food_name_is_banned(U&'f\00FAck'),
++    'precomposed accent is rejected'
++  );
++  perform ayg_test.assert_true(
++    public.public_food_name_is_banned(U&'fu\0301ck'),
++    'combining accent is rejected'
++  );
++  perform ayg_test.assert_true(
++    public.public_food_name_is_banned(U&'fu\0441k'),
++    'cyrillic lookalike is rejected'
++  );
++  perform ayg_test.assert_true(
++    public.public_food_name_is_banned('5h1t'),
++    'digit substitution is rejected'
++  );
++  perform ayg_test.assert_true(
++    public.public_food_name_is_banned('c0ck'),
++    'zero substitution is rejected'
++  );
++  perform ayg_test.assert_true(
++    public.public_food_name_is_banned('$hit'),
++    'dollar substitution is rejected'
++  );
++  perform ayg_test.assert_true(
++    public.public_food_name_is_banned('sh!t'),
++    'exclamation substitution is rejected'
++  );
++  perform ayg_test.assert_true(
++    public.public_food_name_is_banned(U&'\FF77\FF81\FF76\FF9E\FF72'),
++    'halfwidth voiced kana is rejected'
++  );
++  perform ayg_test.assert_true(
++    not public.public_food_name_is_banned('sea bass'),
++    'sea bass stays allowed'
++  );
++  perform ayg_test.assert_true(
++    not public.public_food_name_is_banned('cocktail'),
++    'cocktail stays allowed'
++  );
++  perform ayg_test.assert_true(
++    not public.public_food_name_is_banned('カフェラテ'),
++    'cafe latte stays allowed'
++  );
++  perform ayg_test.assert_true(
++    not public.public_food_name_is_banned('ポークソテー'),
++    'pork saute stays allowed'
++  );
++  perform ayg_test.assert_true(
++    not public.public_food_name_is_banned('ポークソーセージ'),
++    'pork sausage stays allowed'
++  );
++  perform ayg_test.assert_true(
++    not public.public_food_name_is_banned('ミルクソフト'),
++    'milk soft stays allowed'
++  );
++  perform ayg_test.assert_true(
++    not public.public_food_name_is_banned('スモークソルト'),
++    'smoked salt stays allowed'
++  );
++  perform ayg_test.assert_true(
++    not public.public_food_name_is_banned('サンマンコ'),
++    'sanmanko stays allowed'
++  );
++  perform ayg_test.assert_true(
++    not public.public_food_name_is_banned('Cock tail'),
++    'spaced cocktail phrase stays allowed'
++  );
++  perform ayg_test.assert_true(
++    not public.public_food_name_is_banned('rape seed oil'),
++    'rape seed oil stays allowed'
++  );
++  perform ayg_test.assert_true(
++    not public.public_food_name_is_banned('ブラックソース'),
++    'black sauce stays allowed'
++  );
++  perform ayg_test.assert_true(
++    not public.public_food_name_is_banned('やくそう'),
++    'herbal medicine stays allowed'
++  );
++  perform ayg_test.assert_true(
++    public.public_food_name_is_banned('おまんこ'),
++    'explicit compound is rejected'
++  );
++  perform ayg_test.assert_true(
++    public.public_food_name_is_banned('オマンコ'),
++    'katakana explicit compound is rejected'
++  );
++  perform ayg_test.assert_true(
++    public.public_food_name_is_banned('フェラチオ'),
++    'explicit compound fellatio is rejected'
++  );
++  perform ayg_test.assert_true(
++    public.public_food_name_is_banned('ふぇらちお'),
++    'hiragana explicit compound is rejected'
++  );
++  perform ayg_test.assert_true(
++    public.public_food_name_is_banned('イラマチオ'),
++    'explicit compound irrumatio is rejected'
++  );
++  perform ayg_test.assert_true(
++    public.public_food_name_is_banned('おまんこカレー'),
++    'explicit compound beside a food word is rejected'
++  );
++  perform ayg_test.assert_true(
++    public.public_food_name_is_banned('fellatio'),
++    'latin explicit compound is rejected'
++  );
++  perform ayg_test.assert_true(
++    public.public_food_name_is_banned('くそ'),
++    'bare short kana term is rejected'
++  );
++  perform ayg_test.assert_true(
++    public.public_food_name_is_banned('フェラ'),
++    'bare kana term is rejected'
++  );
++  perform ayg_test.assert_true(
++    public.public_food_name_is_banned('まんこ'),
++    'bare short term is rejected'
++  );
++  perform ayg_test.assert_true(
++    public.public_food_name_is_banned('cock'),
++    'bare latin term is rejected'
++  );
++  perform ayg_test.assert_true(
++    public.public_food_name_is_banned('rape'),
++    'bare rape is rejected'
++  );
++  perform ayg_test.assert_true(
++    public.public_food_name_is_banned('fuck rape seed oil'),
++    'banned word beside an allowed phrase is rejected'
++  );
++  perform ayg_test.assert_true(
++    public.public_food_name_is_banned(U&'\FF81\FF9D\FF8E\FF9F'),
++    'halfwidth handakuten is rejected'
++  );
++
++  delete from public.saved_foods where user_id = v_user;
++  delete from public.users where id = v_user;
++  delete from auth.users where id = v_user;
++
++  insert into auth.users (
++    id, instance_id, aud, role, email, encrypted_password,
++    email_confirmed_at, created_at, updated_at
++  ) values (
++    v_user, '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated',
++    'banned-name@test.local', crypt('testpass', gen_salt('bf')), now(), now(), now()
++  );
++  insert into public.users (id, email) values (v_user, 'banned-name@test.local');
++
++  perform ayg_test.set_auth(v_user);
++  insert into public.saved_foods (
++    user_id, food_id, name, normalized_name, base_amount, unit_type, visibility
++  ) values
++    (v_user, 'banned-publish', 'fuck', 'fuck', 100, 'g', 'private'),
++    (v_user, 'ok-publish', 'キャベツ', 'キャベツ', 100, 'g', 'private'),
++    (v_user, 'brand-banned', 'キャベツ', 'キャベツ', 100, 'g', 'private');
++
++  update public.saved_foods
++  set brand = 'shit'
++  where user_id = v_user and food_id = 'brand-banned';
++
++  perform ayg_test.assert_raises(
++    $sql$select public.publish_saved_food('banned-publish')$sql$,
++    '%public food name is not allowed%'
++  );
++  perform ayg_test.assert_raises(
++    $sql$select public.publish_saved_food('brand-banned')$sql$,
++    '%public food name is not allowed%'
++  );
++
++  perform public.publish_saved_food('ok-publish');
++
++  perform ayg_test.assert_raises(
++    format(
++      $sql$update public.saved_foods
++        set name = 'うんこ', normalized_name = 'うんこ'
++        where user_id = '%s' and food_id = 'ok-publish'$sql$,
++      v_user
++    ),
++    '%public food name is not allowed%'
++  );
++
++  perform ayg_test.assert_raises(
++    format(
++      $sql$update public.saved_foods
++        set brand = 'c0ck'
++        where user_id = '%s' and food_id = 'ok-publish'$sql$,
++      v_user
++    ),
++    '%public food name is not allowed%'
++  );
++  perform ayg_test.assert_raises(
++    format(
++      $sql$update public.saved_foods
++        set serving_unit_label = 'sh!t'
++        where user_id = '%s' and food_id = 'ok-publish'$sql$,
++      v_user
++    ),
++    '%public food name is not allowed%'
++  );
++
++  update public.saved_foods
++  set kcal_per_base = 40
++  where user_id = v_user and food_id = 'ok-publish';
++
++  select kcal_per_base into v_kcal
++  from public.saved_foods
++  where user_id = v_user and food_id = 'ok-publish';
++  perform ayg_test.assert_true(v_kcal = 40, 'non-name update of a public row still works');
++
++  perform ayg_test.set_service_role();
++  insert into public.saved_foods (
++    user_id, food_id, name, normalized_name, base_amount, unit_type, visibility
++  ) values (
++    v_user, 'legacy-banned', 'fuck', 'fuck', 50, 'g', 'public'
++  );
++
++  update public.saved_foods
++  set kcal_per_base = 12
++  where user_id = v_user and food_id = 'legacy-banned';
++
++  select kcal_per_base into v_kcal
++  from public.saved_foods
++  where user_id = v_user and food_id = 'legacy-banned';
++  perform ayg_test.assert_true(
++    v_kcal = 12,
++    'existing banned name can still change other fields'
++  );
++end;
++$$;
+diff --git a/test/public_food_name_moderation_test.dart b/test/public_food_name_moderation_test.dart
+new file mode 100644
+index 0000000..69db19a
+--- /dev/null
++++ b/test/public_food_name_moderation_test.dart
+@@ -0,0 +1,416 @@
++import 'dart:io';
++
++import 'package:ayg/moderation/public_food_banned_words.dart';
++import 'package:ayg/moderation/public_food_name_moderation.dart';
++import 'package:ayg/models/food_source_type.dart';
++import 'package:ayg/models/food_status.dart';
++import 'package:ayg/models/food_unit_type.dart';
++import 'package:ayg/models/food_visibility.dart';
++import 'package:ayg/models/saved_food.dart';
++import 'package:ayg/repositories/exceptions/food_master_exceptions.dart';
++import 'package:ayg/repositories/supabase/supabase_error_mapper.dart';
++import 'package:ayg/services/publish_error_messages.dart';
++import 'package:ayg/services/saved_food_publish_validator.dart';
++import 'package:flutter_test/flutter_test.dart';
++import 'package:supabase_flutter/supabase_flutter.dart';
++
++void main() {
++  group('PublicFoodNameModeration', () {
++    test('halfwidth katakana maps are the same length', () {
++      expect(
++        publicFoodHalfwidthKatakanaFrom.runes.length,
++        publicFoodHalfwidthKatakanaTo.runes.length,
++      );
++    });
++
++    test('allows ordinary food names', () {
++      const names = [
++        'キャベツ',
++        '鶏むね肉',
++        '味噌汁',
++        'バナナ',
++        'イエロー',
++        'shiitake',
++        'sea bass',
++        'grape',
++        'cocktail',
++        'classic',
++        'カフェラテ',
++        'ポークソテー',
++        'ポークソーセージ',
++        'ミルクソフト',
++        'スモークソルト',
++        'サンマンコ',
++        'Cock tail',
++        'rape seed oil',
++        'ブラックソース',
++        'やくそう',
++      ];
++      for (final name in names) {
++        expect(PublicFoodNameModeration.isBanned(name), isFalse, reason: name);
++      }
++    });
++
++    test('rejects normalized latin, kana, and spacing', () {
++      expect(PublicFoodNameModeration.isBanned('  FUCK '), isTrue);
++      expect(PublicFoodNameModeration.isBanned('ｆｕｃｋ'), isTrue);
++      expect(PublicFoodNameModeration.isBanned('f u c k'), isTrue);
++      expect(PublicFoodNameModeration.isBanned('ﾌｧｯｸ'), isTrue);
++      expect(PublicFoodNameModeration.isBanned('ファック'), isTrue);
++      expect(PublicFoodNameModeration.isBanned('うんこカレー'), isTrue);
++      expect(PublicFoodNameModeration.isBanned('チンコ'), isTrue);
++    });
++
++    test(
++      'rejects accent, combining, lookalike, digit, and symbol bypasses',
++      () {
++        expect(PublicFoodNameModeration.isBanned('fúck'), isTrue);
++        expect(PublicFoodNameModeration.isBanned('fu\u0301ck'), isTrue);
++        expect(PublicFoodNameModeration.isBanned('fu\u0441k'), isTrue);
++        expect(PublicFoodNameModeration.isBanned('5h1t'), isTrue);
++        expect(PublicFoodNameModeration.isBanned('c0ck'), isTrue);
++        expect(PublicFoodNameModeration.isBanned(r'$hit'), isTrue);
++        expect(PublicFoodNameModeration.isBanned('sh!t'), isTrue);
++        // ｷﾁｶﾞｲ — halfwidth ka plus voiced mark becomes が after NFKC.
++        expect(
++          PublicFoodNameModeration.isBanned('\uFF77\uFF81\uFF76\uFF9E\uFF72'),
++          isTrue,
++        );
++        // ﾁﾝﾎﾟ — halfwidth ho plus handakuten (U+FF9F) becomes ぽ.
++        expect(
++          PublicFoodNameModeration.isBanned('\uFF81\uFF9D\uFF8E\uFF9F'),
++          isTrue,
++        );
++      },
++    );
++
++    test(
++      'still rejects a whole short term and a term beside an allowed phrase',
++      () {
++        expect(PublicFoodNameModeration.isBanned('くそ'), isTrue);
++        expect(PublicFoodNameModeration.isBanned('フェラ'), isTrue);
++        expect(PublicFoodNameModeration.isBanned('まんこ'), isTrue);
++        expect(PublicFoodNameModeration.isBanned('cock'), isTrue);
++        expect(PublicFoodNameModeration.isBanned('rape'), isTrue);
++        expect(PublicFoodNameModeration.isBanned('fuck rape seed oil'), isTrue);
++        expect(PublicFoodNameModeration.isBanned('Cock tail sauce'), isFalse);
++      },
++    );
++
++    test('rejects explicit compounds and still allows ordinary foods', () {
++      const allowed = [
++        'カフェラテ',
++        'ポークソテー',
++        'スモークソルト',
++        'Cock tail',
++        'rape seed oil',
++        'ブラックソース',
++        'やくそう',
++        'サンマンコ',
++      ];
++      const rejected = [
++        'おまんこ',
++        'オマンコ',
++        'フェラチオ',
++        'ふぇらちお',
++        'イラマチオ',
++        'クンニ',
++        'パイズリ',
++        'おまんこカレー',
++        'fellatio',
++        'cunnilingus',
++      ];
++      for (final name in allowed) {
++        expect(PublicFoodNameModeration.isBanned(name), isFalse, reason: name);
++      }
++      for (final name in rejected) {
++        expect(PublicFoodNameModeration.isBanned(name), isTrue, reason: name);
++      }
++    });
++
++    test('does not treat an unchanged public name as a new rejection', () {
++      expect(
++        PublicFoodNameModeration.rejectsPublicUpdate(
++          previousName: 'fuck',
++          nextName: 'fuck',
++        ),
++        isFalse,
++      );
++      expect(
++        PublicFoodNameModeration.rejectsPublicUpdate(
++          previousName: 'キャベツ',
++          nextName: 'うんこ',
++        ),
++        isTrue,
++      );
++      expect(
++        PublicFoodNameModeration.rejectsPublicUpdate(
++          previousName: 'キャベツ',
++          nextName: 'キャベツ',
++          previousBrand: 'fuck',
++          nextBrand: 'fuck',
++        ),
++        isFalse,
++      );
++      expect(
++        PublicFoodNameModeration.rejectsPublicUpdate(
++          previousName: 'キャベツ',
++          nextName: 'キャベツ',
++          previousBrand: 'acme',
++          nextBrand: 'fúck',
++        ),
++        isTrue,
++      );
++    });
++  });
++
++  group('SavedFoodPublishValidator banned names', () {
++    const validator = SavedFoodPublishValidator();
++
++    test('adds the Japanese message for a banned public name', () {
++      final result = validator.validate(
++        food: _food('fuck rice'),
++        ownerUserId: 'user-a',
++      );
++      expect(result.isValid, isFalse);
++      expect(
++        result.errors,
++        contains(PublicFoodNameModeration.rejectionMessage),
++      );
++    });
++
++    test(
++      'rejects a clean name when brand, normalized name, or unit is banned',
++      () {
++        for (final food in [
++          _food('キャベツ').copyWith(brand: 'fuck'),
++          _food('キャベツ').copyWith(normalizedName: '5h1t'),
++          _food('キャベツ').copyWith(servingUnitLabel: r'$hit'),
++        ]) {
++          final result = validator.validate(food: food, ownerUserId: 'user-a');
++          expect(
++            result.isValid,
++            isFalse,
++            reason: food.brand ?? food.normalizedName,
++          );
++          expect(
++            result.errors,
++            contains(PublicFoodNameModeration.rejectionMessage),
++          );
++        }
++      },
++    );
++  });
++
++  group('banned name errors', () {
++    test('maps the database exception to the Japanese message', () {
++      final mapped = SupabaseErrorMapper.mapPublishFailure(
++        const PostgrestException(message: 'public food name is not allowed'),
++      );
++      expect(mapped.kind, PublishFailureKind.bannedName);
++      expect(
++        PublishErrorMessages.messageFor(mapped),
++        PublicFoodNameModeration.rejectionMessage,
++      );
++      expect(
++        PublishErrorMessages.messageFor(
++          const PublicFoodNameRejectedException(),
++        ),
++        PublicFoodNameModeration.rejectionMessage,
++      );
++    });
++  });
++
++  group('banned word list parity', () {
++    late String migration;
++
++    setUpAll(() {
++      migration = File(
++        'supabase/migrations/20260927120000_reject_banned_public_food_names.sql',
++      ).readAsStringSync();
++    });
++
++    test('SQL list matches the Dart list', () {
++      expect(
++        _sqlMarkedList(migration, 'PUBLIC_FOOD_BANNED_WORDS'),
++        publicFoodBannedWords,
++      );
++    });
++
++    test('SQL boundary terms and allowed phrases match Dart', () {
++      expect(
++        publicFoodHalfwidthDakutenBase.runes.length,
++        publicFoodHalfwidthDakutenTo.runes.length,
++      );
++      expect(
++        publicFoodHalfwidthHandakutenBase.runes.length,
++        publicFoodHalfwidthHandakutenTo.runes.length,
++      );
++      expect(
++        _sqlMarkedList(migration, 'PUBLIC_FOOD_BOUNDARY_ONLY'),
++        publicFoodBoundaryOnlyTerms,
++      );
++      expect(
++        _sqlMarkedList(migration, 'PUBLIC_FOOD_ALLOWED_PHRASES'),
++        publicFoodAllowedPhrases,
++      );
++      expect(migration, contains(publicFoodHalfwidthDakutenBase));
++      expect(migration, contains(publicFoodHalfwidthDakutenTo));
++      expect(migration, contains(publicFoodHalfwidthHandakutenBase));
++      expect(migration, contains(publicFoodHalfwidthHandakutenTo));
++      expect(
++        migration,
++        contains(
++          'public.compose_halfwidth_voiced(pg_catalog.coalesce(p_name, \'\'))',
++        ),
++      );
++    });
++
++    test('rollback file restores publish without dropping the trigger', () {
++      final downPath =
++          'supabase/rollback/20260927120000_reject_banned_public_food_names_down.sql';
++      final down = File(downPath).readAsStringSync();
++      expect(
++        File(
++          'supabase/migrations/20260927120000_reject_banned_public_food_names_down.sql',
++        ).existsSync(),
++        isFalse,
++      );
++      expect(
++        down,
++        contains('create or replace function public.publish_saved_food'),
++      );
++      expect(
++        down,
++        contains(
++          'create or replace function public.validate_saved_foods_public_row',
++        ),
++      );
++      expect(down, isNot(contains('public food name is not allowed')));
++      expect(
++        down,
++        contains(
++          'drop function if exists public.compose_halfwidth_voiced(text)',
++        ),
++      );
++      expect(
++        down,
++        contains(
++          'drop function if exists public.public_food_name_strip_phrase(text, text)',
++        ),
++      );
++      expect(
++        down,
++        contains(
++          'grant execute on function public.publish_saved_food(text) to authenticated',
++        ),
++      );
++      expect(down.toLowerCase(), isNot(contains('drop trigger')));
++    });
++
++    test('SQL uses the same halfwidth katakana map', () {
++      expect(migration, contains(publicFoodHalfwidthKatakanaFrom));
++      expect(migration, contains(publicFoodHalfwidthKatakanaTo));
++    });
++
++    test('SQL folds NFKC and the same confusable map', () {
++      expect(
++        publicFoodConfusableFrom.runes.length,
++        publicFoodConfusableTo.runes.length,
++      );
++      expect(migration, contains('pg_catalog.normalize'));
++      expect(migration, contains('NFKC'));
++      expect(migration, contains('major_version = 17'));
++      expect(migration, contains('cp between 768 and 879'));
++      expect(migration, contains(publicFoodConfusableFrom));
++      expect(migration, contains(publicFoodConfusableTo));
++      expect(migration, contains("pg_catalog.replace(v, 'ß', 'ss')"));
++      expect(migration, contains("pg_catalog.replace(v, 'œ', 'oe')"));
++    });
++
++    test('functions use an empty search_path and schema-qualified names', () {
++      expect("set search_path = ''".allMatches(migration).length, 9);
++      expect(migration.contains('set search_path = public'), isFalse);
++      final publish = migration.indexOf(
++        'function public.publish_saved_food',
++      );
++      expect(publish, greaterThanOrEqualTo(0));
++      final publishSql = migration.substring(publish);
++      expect(publishSql, contains('security definer'));
++      expect(publishSql, contains("set search_path = ''"));
++      expect(publishSql, contains('auth.uid()'));
++      expect(publishSql, contains('pg_catalog.set_config('));
++      expect(publishSql.contains('set search_path = public'), isFalse);
++    });
++
++    test('publish and public-field updates call the check', () {
++      expect(
++        migration,
++        contains('public.public_food_name_is_banned(v_row.name)'),
++      );
++      expect(
++        migration,
++        contains('public.public_food_name_is_banned(v_row.normalized_name)'),
++      );
++      expect(
++        migration,
++        contains(
++          "public.public_food_name_is_banned(pg_catalog.coalesce(v_row.brand, ''))",
++        ),
++      );
++      expect(
++        migration,
++        contains(
++          "public.public_food_name_is_banned(pg_catalog.coalesce(v_row.serving_unit_label, ''))",
++        ),
++      );
++      expect(migration, contains('new.name is distinct from old.name'));
++      expect(
++        migration,
++        contains('new.normalized_name is distinct from old.normalized_name'),
++      );
++      expect(migration, contains('new.brand is distinct from old.brand'));
++      expect(
++        migration,
++        contains(
++          'new.serving_unit_label is distinct from old.serving_unit_label',
++        ),
++      );
++      expect(migration, contains('public food name is not allowed'));
++      expect('update public.saved_foods'.allMatches(migration).length, 1);
++      expect(migration, contains("set visibility = 'public'"));
++    });
++  });
++}
++
++List<String> _sqlMarkedList(String migration, String name) {
++  final start = migration.indexOf('-- $name');
++  final end = migration.indexOf('-- /$name');
++  expect(start, greaterThanOrEqualTo(0));
++  expect(end, greaterThan(start));
++  final block = migration.substring(start, end);
++  return RegExp(
++    "'([^']*)'",
++  ).allMatches(block).map((match) => match.group(1)!).toList();
++}
++
++SavedFood _food(String name) {
++  return SavedFood(
++    foodId: 'food-1',
++    ownerUserId: 'user-a',
++    name: name,
++    normalizedName: name.toLowerCase(),
++    baseAmount: 100,
++    unitType: FoodUnitType.g,
++    servingUnitLabel: 'g',
++    visibility: FoodVisibility.private,
++    status: FoodStatus.active,
++    kcalPerBase: 165,
++    proteinPerBase: 10,
++    fatPerBase: 5,
++    carbPerBase: 20,
++    sourceType: FoodSourceType.manual,
++    createdAt: DateTime(2026, 7, 20),
++    updatedAt: DateTime(2026, 7, 20),
++  );
++}
+diff --git a/test/supabase_migration_live_test.dart b/test/supabase_migration_live_test.dart
+index 7c5d17e..235abac 100644
+--- a/test/supabase_migration_live_test.dart
++++ b/test/supabase_migration_live_test.dart
+@@ -147,5 +147,95 @@ void main() {
+         );
+       },
+     );
++
++    test('banned public food name function is installed', () async {
++      if (!available) {
++        markTestSkipped('Local Supabase not available');
++        return;
++      }
++
++      await _applyMigration(
++        '20260927120000_reject_banned_public_food_names.sql',
++      );
++
++      expect(
++        await _psql("SELECT public.public_food_name_is_banned('キャベツ');"),
++        'f',
++      );
++      expect(
++        await _psql("SELECT public.public_food_name_is_banned('f u c k');"),
++        't',
++      );
++      expect(
++        await _psql("SELECT public.public_food_name_is_banned('shiitake');"),
++        'f',
++      );
++      expect(
++        await _psql(r"SELECT public.public_food_name_is_banned(U&'f\00FAck');"),
++        't',
++      );
++      expect(
++        await _psql(r"SELECT public.public_food_name_is_banned(U&'fu\0441k');"),
++        't',
++      );
++      expect(
++        await _psql("SELECT public.public_food_name_is_banned('5h1t');"),
++        't',
++      );
++      expect(
++        await _psql(r"SELECT public.public_food_name_is_banned('$hit');"),
++        't',
++      );
++      expect(
++        await _psql("SELECT public.public_food_name_is_banned('カフェラテ');"),
++        'f',
++      );
++      expect(
++        await _psql("SELECT public.public_food_name_is_banned('ポークソテー');"),
++        'f',
++      );
++      expect(
++        await _psql("SELECT public.public_food_name_is_banned('ポークソーセージ');"),
++        'f',
++      );
++      expect(
++        await _psql("SELECT public.public_food_name_is_banned('ミルクソフト');"),
++        'f',
++      );
++      expect(
++        await _psql("SELECT public.public_food_name_is_banned('スモークソルト');"),
++        'f',
++      );
++      expect(
++        await _psql("SELECT public.public_food_name_is_banned('サンマンコ');"),
++        'f',
++      );
++      expect(
++        await _psql("SELECT public.public_food_name_is_banned('Cock tail');"),
++        'f',
++      );
++      expect(
++        await _psql(
++          "SELECT public.public_food_name_is_banned('rape seed oil');",
++        ),
++        'f',
++      );
++      expect(
++        await _psql(
++          r"SELECT public.public_food_name_is_banned(U&'\FF81\FF9D\FF8E\FF9F');",
++        ),
++        't',
++      );
++      expect(
++        await _psql("SELECT public.public_food_name_is_banned('くそ');"),
++        't',
++      );
++      expect(
++        await _psql(
++          "SELECT proname FROM pg_proc WHERE proname = 'publish_saved_food';",
++        ),
++        'publish_saved_food',
++      );
++    });
+   });
+ }
+diff --git a/test/synced_saved_food_repository_test.dart b/test/synced_saved_food_repository_test.dart
+index 7b74742..4b80506 100644
+--- a/test/synced_saved_food_repository_test.dart
++++ b/test/synced_saved_food_repository_test.dart
+@@ -6,8 +6,10 @@ import 'package:ayg/models/moderation_status.dart';
+ import 'package:ayg/models/saved_food.dart';
+ import 'package:ayg/repositories/contracts/saved_food_local_store.dart';
+ import 'package:ayg/repositories/contracts/saved_food_remote_store.dart';
++import 'package:ayg/moderation/public_food_name_moderation.dart';
+ import 'package:ayg/repositories/exceptions/food_master_exceptions.dart';
+ import 'package:ayg/repositories/synced_saved_food_repository.dart';
++import 'package:ayg/services/publish_error_messages.dart';
+ import 'package:flutter_test/flutter_test.dart';
+ 
+ class _FakeLocalStore implements SavedFoodLocalStore {
+@@ -214,6 +216,27 @@ void main() {
+       expect(local.stored?.visibility, FoodVisibility.private);
+     });
+ 
++    test('banned-name publish failure keeps local private', () async {
++      final local = _FakeLocalStore()..stored = _sampleFood('u1', 'f1');
++      const failure = PublishSavedFoodException(
++        kind: PublishFailureKind.bannedName,
++        message: 'public food name is not allowed',
++      );
++      final remote = _FakeRemoteStore()..publishError = failure;
++      final repo = SyncedSavedFoodRepository(local: local, remote: remote);
++
++      await expectLater(
++        repo.publish(ownerUserId: 'u1', foodId: 'f1'),
++        throwsA(isA<PublishSavedFoodException>()),
++      );
++      expect(local.stored?.visibility, FoodVisibility.private);
++      expect(
++        PublishErrorMessages.messageFor(failure),
++        PublicFoodNameModeration.rejectionMessage,
++      );
++      expect(remote.publishError, same(failure));
++    });
++
+     test('searchPublic requires remote', () async {
+       final repo = SyncedSavedFoodRepository(local: _FakeLocalStore());
+       await expectLater(

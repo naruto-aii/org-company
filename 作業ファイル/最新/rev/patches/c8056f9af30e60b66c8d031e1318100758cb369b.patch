@@ -1,0 +1,40 @@
+From c8056f9af30e60b66c8d031e1318100758cb369b Mon Sep 17 00:00:00 2001
+From: Cursor Agent <cursoragent@cursor.com>
+Date: Sun, 20 Sep 2026 15:14:18 +0000
+Subject: [PATCH] chore: add a double-click helper for local dart defines
+
+Creates a gitignored local config with the known URL and support email filled in. Keys stay off the Mac until Owner pastes them locally.
+
+Co-authored-by: naruto.futuree <naruto.futuree@gmail.com>
+---
+ tool/setup_local_defines.command | 21 +++++++++++++++++++++
+ 1 file changed, 21 insertions(+)
+ create mode 100755 tool/setup_local_defines.command
+
+diff --git a/tool/setup_local_defines.command b/tool/setup_local_defines.command
+new file mode 100755
+index 0000000..193056c
+--- /dev/null
++++ b/tool/setup_local_defines.command
+@@ -0,0 +1,21 @@
++#!/bin/bash
++# Double-click on Mac. Creates tool/dart_defines.local.json if missing, then opens it.
++set -eu
++cd "$(dirname "$0")/.."
++DEST="tool/dart_defines.local.json"
++
++if [ ! -f "$DEST" ]; then
++  cat > "$DEST" <<'EOF'
++{
++  "SUPABASE_URL": "https://vdzzuoqsymetlejcnkeb.supabase.co",
++  "SUPABASE_ANON_KEY": "PASTE_ANON_KEY_HERE",
++  "GOOGLE_WEB_CLIENT_ID": "PASTE_WEB_CLIENT_ID.apps.googleusercontent.com",
++  "GOOGLE_IOS_CLIENT_ID": "PASTE_IOS_CLIENT_ID.apps.googleusercontent.com",
++  "OFF_CONTACT_EMAIL": "calonavi.ayg.support@gmail.com",
++  "SUPPORT_EMAIL": "calonavi.ayg.support@gmail.com"
++}
++EOF
++fi
++
++open -e "$DEST"
++echo "Opened $DEST in TextEdit. Fill the three PASTE_ fields, save, then close."

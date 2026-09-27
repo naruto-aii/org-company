@@ -1,0 +1,26 @@
+From 9d3808c4c128b974c552c62c1d24213017760add Mon Sep 17 00:00:00 2001
+From: Cursor Agent <cursoragent@cursor.com>
+Date: Sun, 20 Sep 2026 02:08:03 +0000
+Subject: [PATCH] docs: treat support email as inbox watch, not a build task
+
+Co-authored-by: naruto.futuree <naruto.futuree@gmail.com>
+---
+ docs/legal/README.md | 5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
+
+diff --git a/docs/legal/README.md b/docs/legal/README.md
+index 2d46a61..6041a42 100644
+--- a/docs/legal/README.md
++++ b/docs/legal/README.md
+@@ -79,9 +79,8 @@ App Store Connect で上記 Product ID の自動更新サブスクリプショ
+    - Privacy Nutrition Labels（Health は目標計算のみ。広告・マーケティングに使わない）
+    - 年齢、審査メモ（公開食品が残ること、削除手順、Health の用途）
+    - スクリーンショットとアイコンは空のまま
+-4. **日常運用の受け皿**（Owner）
+-   - `calonavi.ayg.support@gmail.com` を見る。住所・電話請求と削除依頼は本人確認のうえ遅滞なく返す
+-   - 番地・私用電話を公開ページに載せない
++
++公開窓口は `calonavi.ayg.support@gmail.com`。新しい仕組みは作らない。その Gmail を見られればよい。
+ 
+ ## デザインが戻ってから着手
+ 

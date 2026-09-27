@@ -1,0 +1,41 @@
+== forward applied (4c54fc4, 17 files)
+[all applied] save/publish: OK
+[all applied] email-fail: ABORTED (rolled back) STATE private=1 ident=1 sess=1 email=u1@t.local
+[all applied] delete: OK RES fn=delete_own_account(uuid) private=0 public=1 owner_deleted=true subev=? ident=0 meta={} email=deleted+dddddddd-0000-4000-8000-000000000001@invalid.local sess=0 rt=0 SUBEV 0
+== down 20260927180000: 1st=ok 2nd(rerun)=ok
+[after 20260927180000 down] save/publish: OK
+[after 20260927180000 down] email-fail: ABORTED (rolled back) STATE private=1 ident=1 sess=1 email=u2@t.local
+[after 20260927180000 down] delete: OK RES fn=delete_own_account() private=0 public=1 owner_deleted=true subev=? ident=0 meta={} email=deleted+dddddddd-0000-4000-8000-000000000002@invalid.local sess=0 rt=0 SUBEV 0
+== down 20260927170000: 1st=ok 2nd(rerun)=ok
+[after 20260927170000 down] save/publish: OK
+[after 20260927170000 down] email-fail: ABORTED (rolled back) STATE private=1 ident=1 sess=1 email=u3@t.local
+[after 20260927170000 down] delete: OK RES fn=delete_own_account() private=0 public=1 owner_deleted=true subev=? ident=0 meta={} email=deleted+dddddddd-0000-4000-8000-000000000003@invalid.local sess=0 rt=0 SUBEV 0
+== down 20260927160000: 1st=ok 2nd(rerun)=ok
+[after 20260927160000 down] save/publish: OK
+[after 20260927160000 down] email-fail: ABORTED (rolled back) STATE private=1 ident=1 sess=1 email=u4@t.local
+[after 20260927160000 down] delete: OK RES fn=delete_own_account() private=0 public=1 owner_deleted=true subev=? ident=0 meta={} email=deleted+dddddddd-0000-4000-8000-000000000004@invalid.local sess=0 rt=0 SUBEV 1
+== down 20260927150000: 1st=ok 2nd(rerun)=ok
+[after 20260927150000 down] save/publish: OK
+[after 20260927150000 down] email-fail: SWALLOWED (reported success) STATE private=0 ident=1 sess=1 email=u5@t.local
+[after 20260927150000 down] delete: OK RES fn=delete_own_account() private=0 public=1 owner_deleted=nocol subev=? ident=0 meta={} email=deleted+dddddddd-0000-4000-8000-000000000005@invalid.local sess=1 rt=1 SUBEV 1
+== down 20260927140000: 1st=ok 2nd(rerun)=ok
+[after 20260927140000 down] save/publish: OK
+[after 20260927140000 down] email-fail: SWALLOWED (reported success) STATE private=0 ident=1 sess=1 email=u6@t.local
+[after 20260927140000 down] delete: OK RES fn=delete_own_account() private=0 public=1 owner_deleted=nocol subev=notable ident=0 meta={} email=deleted+dddddddd-0000-4000-8000-000000000006@invalid.local sess=1 rt=1 
+== down 20260927120000: 1st=ok 2nd(rerun)=ok
+[after 20260927120000 down] save/publish: OK
+[after 20260927120000 down] email-fail: SWALLOWED (reported success) STATE private=0 ident=1 sess=1 email=u7@t.local
+[after 20260927120000 down] delete: OK RES fn=delete_own_account() private=0 public=1 owner_deleted=nocol subev=notable ident=0 meta={} email=deleted+dddddddd-0000-4000-8000-000000000007@invalid.local sess=1 rt=1 
+== re-apply forward 120000..180000 after full rollback
+reapply 20260927120000_reject_banned_public_food_names.sql: ok
+reapply 20260927140000_subscription_events.sql: ok
+reapply 20260927150000_protect_owner_deleted_and_revoke_sessions.sql: ok
+reapply 20260927160000_delete_subscription_events_on_account_deletion.sql: ok
+reapply 20260927170000_store_apple_refresh_tokens.sql: ok
+reapply 20260927180000_delete_own_account_service_role_only.sql: ok
+[re-applied] save/publish: OK
+[re-applied] email-fail: ABORTED (rolled back) STATE private=1 ident=1 sess=1 email=u8@t.local
+[re-applied] delete: OK RES fn=delete_own_account(uuid) private=0 public=1 owner_deleted=true subev=? ident=0 meta={} email=deleted+dddddddd-0000-4000-8000-000000000008@invalid.local sess=0 rt=0 SUBEV 0
+== repo smoke on re-applied DB
+banned_name_test ok
+sql_runtime_smoke ok

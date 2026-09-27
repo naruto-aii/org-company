@@ -1,0 +1,1207 @@
+### FILE docs/legal/README.md (modified)
+@@ -40,9 +40,16 @@ Owner が本番 Supabase の SQL Editor で適用する。エージェントは
+ - アカウント削除後の公開食品は残し、作成者欄は「削除済みユーザー」
+ - 法務文面は、弁護士未確認のまま出す（残余リスクは薄いと判断した場合）
+ 
+-## まだ決めること
++## 課金（2026-09-20 決定）
+ 
+-1. **課金の中身**（相談中）: 何を無料にし、何を有料にするか。買い切りか年額か。価格。
++商品名: カロナビ+
++- 月額 380円 / 年額 4,180円（月額×11、1ヶ月分お得）
++- Product ID: `calonavi_plus_monthly` / `calonavi_plus_yearly`
++- 無料枠: 公開食品検索 5回/日、食事テンプレート 3件、運動テンプレート 3件
++- 加入中は3つとも無制限
++- 記録・Health・バーコード・公開投稿は無料のまま
++
++App Store Connect で上記 Product ID の自動更新サブスクリプションを作るのは Owner 作業。
+ 
+ ## Owner の作業
+ 
+### FILE legal/tokushoho.html (modified)
+@@ -34,7 +34,9 @@ <h1>特定商取引法に基づく表記</h1>
+             >calonavi.ayg.support@gmail.com</a
+           >
+         </li>
+-        <li>販売価格: 各購入画面に税込で表示します</li>
++        <li>
++          販売価格: カロナビ+ 月額 380円、年額 4,180円（年額は1ヶ月分お得）。いずれも税込。購入画面の表示が正です
++        </li>
+         <li>数量: 各購入画面に表示します</li>
+         <li>送料: かかりません（デジタル役務です）</li>
+         <li>販売価格以外に必要な費用: インターネット接続料、通信料は利用者の負担です</li>
+### FILE lib/bootstrap/native_bootstrap.dart (modified)
+@@ -1,4 +1,5 @@
+ import 'package:flutter/material.dart';
++import 'package:shared_preferences/shared_preferences.dart';
+ import 'package:supabase_flutter/supabase_flutter.dart';
+ 
+ import '../app.dart';
+@@ -25,8 +26,10 @@ import '../repositories/supabase/supabase_saved_food_repository.dart';
+ import '../repositories/supabase/supabase_workout_template_repository.dart';
+ import '../repositories/user_repository.dart';
+ import '../repositories/supabase/supabase_blocked_food_creator_repository.dart';
++import '../repositories/storekit_subscription_repository.dart';
+ import '../repositories/supabase_authentication_repository.dart';
+ import '../repositories/weight_repository.dart';
++import '../repositories/local_subscription_usage_store.dart';
+ import '../services/local_user_data_clearer.dart';
+ import '../services/open_food_facts_service.dart';
+ import '../state/app_controller.dart';
+@@ -111,6 +114,12 @@ Future<void> bootstrapApp() async {
+     workoutTemplateRepository: workoutTemplateRepository,
+   );
+ 
++  final preferences = await SharedPreferences.getInstance();
++  final subscriptionRepository = StoreKitSubscriptionRepository(
++    preferences: preferences,
++  );
++  await subscriptionRepository.initialize();
++
+   final controller = AppController(
+     healthRepository: healthRepository,
+     authenticationRepository: authenticationRepository,
+@@ -129,6 +138,10 @@ Future<void> bootstrapApp() async {
+     blockedCreatorRepository: foodMasterRepositories.blockedCreators,
+     mealTemplateRepository: mealTemplateRepository,
+     workoutTemplateRepository: workoutTemplateRepository,
++    subscriptionRepository: subscriptionRepository,
++    subscriptionUsageStore: LocalSubscriptionUsageStore(
++      preferences: preferences,
++    ),
+   );
+   await controller.initialize();
+ 
+### FILE lib/bootstrap/web_bootstrap.dart (modified)
+@@ -1,5 +1,6 @@
+ import 'package:flutter/foundation.dart';
+ import 'package:flutter/material.dart';
++import 'package:shared_preferences/shared_preferences.dart';
+ import 'package:supabase_flutter/supabase_flutter.dart';
+ 
+ import '../app.dart';
+@@ -26,6 +27,7 @@ import '../repositories/data_sync_repository.dart';
+ import '../repositories/food_master_repositories.dart';
+ import '../repositories/health_repository.dart';
+ import '../repositories/local_session_store.dart';
++import '../repositories/local_subscription_usage_store.dart';
+ import '../repositories/supabase/supabase_blocked_food_creator_repository.dart';
+ import '../repositories/supabase/supabase_food_rating_repository.dart';
+ import '../repositories/supabase/supabase_food_report_repository.dart';
+@@ -188,6 +190,7 @@ Future<void> bootstrapWebApp() async {
+       workoutTemplateRepository: workoutTemplateRepository,
+     );
+ 
++    final preferences = await SharedPreferences.getInstance();
+     final controller = AppController(
+       healthRepository: healthRepository,
+       authenticationRepository: authenticationRepository,
+@@ -206,6 +209,9 @@ Future<void> bootstrapWebApp() async {
+       blockedCreatorRepository: foodMasterRepositories.blockedCreators,
+       mealTemplateRepository: mealTemplateRepository,
+       workoutTemplateRepository: workoutTemplateRepository,
++      subscriptionUsageStore: LocalSubscriptionUsageStore(
++        preferences: preferences,
++      ),
+     );
+ 
+     if (kDebugMode) {
+### FILE lib/config/subscription_catalog.dart (added)
+@@ -0,0 +1,19 @@
++/// カロナビ+ の商品と無料枠。App Store Connect の Product ID と揃える。
++class SubscriptionCatalog {
++  SubscriptionCatalog._();
++
++  static const productName = 'カロナビ+';
++  static const monthlyProductId = 'calonavi_plus_monthly';
++  static const yearlyProductId = 'calonavi_plus_yearly';
++
++  static const monthlyYen = 380;
++  static const yearlyYen = 4180;
++
++  static const publicFoodSearchesPerDay = 5;
++  static const mealTemplateLimit = 3;
++  static const workoutTemplateLimit = 3;
++
++  static const monthlyLabel = '月額 380円';
++  static const yearlyLabel = '年額 4,180円';
++  static const yearlySavingLabel = '1ヶ月分お得';
++}
+### FILE lib/constants/app_strings.dart (modified)
+@@ -48,6 +48,17 @@ class AppStrings {
+   static const accountDeletionReadPolicy = '詳しい説明を読む';
+   static const loginLegalAgreement = 'ログインにより、利用規約とプライバシーポリシーに同意したものとします。';
+   static const loginAppleComingSoon = 'Appleログインは準備中です。';
++  static const plusTitle = 'カロナビ+';
++  static const plusLead =
++      '公開食品検索とテンプレートの上限を外します。記録・Health・バーコードはこれまでどおり無料です。';
++  static const plusFreeQuota =
++      '無料枠: 公開食品検索 5回/日、食事テンプレート 3件、運動テンプレート 3件。';
++  static const plusRestore = '購入を復元';
++  static const plusPurchaseUnavailable = 'この画面では購入できません。iPhone のアプリから購入してください。';
++  static const plusLegalNote =
++      '価格は税込です。購入画面の表示が正です。定期購入の解約は App Store の設定から行います。';
++  static const plusActive = '加入中';
++  static const plusInactive = '無料枠あり';
+ 
+   static const birthDate = '生年月日';
+   static const gender = '性別';
+### FILE lib/repositories/local_subscription_usage_store.dart (added)
+@@ -0,0 +1,49 @@
++import 'package:shared_preferences/shared_preferences.dart';
++
++import '../utils/local_date.dart';
++
++/// 公開食品検索の1日あたり回数。加入状態は [SubscriptionRepository] が持つ。
++class LocalSubscriptionUsageStore {
++  LocalSubscriptionUsageStore({SharedPreferences? preferences})
++    : _preferences = preferences,
++      _memory = preferences == null ? <String, int>{} : null;
++
++  final SharedPreferences? _preferences;
++  final Map<String, int>? _memory;
++
++  String _searchKey(String userId, DateTime day) {
++    final date = localDayStart(day);
++    final stamp =
++        '${date.year.toString().padLeft(4, '0')}-'
++        '${date.month.toString().padLeft(2, '0')}-'
++        '${date.day.toString().padLeft(2, '0')}';
++    return 'public_food_search_count:$userId:$stamp';
++  }
++
++  Future<int> publicSearchCount({
++    required String userId,
++    required DateTime day,
++  }) async {
++    final key = _searchKey(userId, day);
++    final prefs = _preferences;
++    if (prefs != null) {
++      return prefs.getInt(key) ?? 0;
++    }
++    return _memory![key] ?? 0;
++  }
++
++  Future<int> incrementPublicSearch({
++    required String userId,
++    required DateTime day,
++  }) async {
++    final next = await publicSearchCount(userId: userId, day: day) + 1;
++    final key = _searchKey(userId, day);
++    final prefs = _preferences;
++    if (prefs != null) {
++      await prefs.setInt(key, next);
++    } else {
++      _memory![key] = next;
++    }
++    return next;
++  }
++}
+### FILE lib/repositories/storekit_subscription_repository.dart (added)
+@@ -0,0 +1,121 @@
++import 'dart:async';
++
++import 'package:in_app_purchase/in_app_purchase.dart';
++import 'package:shared_preferences/shared_preferences.dart';
++
++import '../config/subscription_catalog.dart';
++import 'subscription_exceptions.dart';
++import 'subscription_repository.dart';
++
++/// App Store の自動更新サブスクリプション。
++class StoreKitSubscriptionRepository extends SubscriptionRepository {
++  StoreKitSubscriptionRepository({
++    InAppPurchase? store,
++    SharedPreferences? preferences,
++  }) : _store = store ?? InAppPurchase.instance,
++       _preferences = preferences;
++
++  static const _plusKey = 'calonavi_plus_active';
++
++  final InAppPurchase _store;
++  final SharedPreferences? _preferences;
++  final StreamController<bool> _plusController =
++      StreamController<bool>.broadcast();
++  StreamSubscription<List<PurchaseDetails>>? _purchaseSubscription;
++  bool _plus = false;
++
++  @override
++  bool get isPlusActive => _plus;
++
++  @override
++  Stream<bool> get plusChanges => _plusController.stream;
++
++  Future<void> initialize() async {
++    final prefs = _preferences ?? await SharedPreferences.getInstance();
++    _plus = prefs.getBool(_plusKey) ?? false;
++    _purchaseSubscription ??= _store.purchaseStream.listen(_onPurchases);
++    try {
++      await restore();
++    } catch (_) {}
++  }
++
++  @override
++  Future<void> restore() async {
++    await _store.restorePurchases();
++  }
++
++  @override
++  Future<void> purchaseMonthly() {
++    return _buy(SubscriptionCatalog.monthlyProductId);
++  }
++
++  @override
++  Future<void> purchaseYearly() {
++    return _buy(SubscriptionCatalog.yearlyProductId);
++  }
++
++  Future<void> _buy(String productId) async {
++    final available = await _store.isAvailable();
++    if (!available) {
++      throw SubscriptionPurchaseUnavailableException();
++    }
++    final response = await _store.queryProductDetails({
++      SubscriptionCatalog.monthlyProductId,
++      SubscriptionCatalog.yearlyProductId,
++    });
++    if (response.error != null) {
++      throw SubscriptionPurchaseFailedException(response.error!.message);
++    }
++    ProductDetails? product;
++    for (final item in response.productDetails) {
++      if (item.id == productId) {
++        product = item;
++        break;
++      }
++    }
++    if (product == null) {
++      throw SubscriptionPurchaseFailedException(
++        '購入商品が見つかりません。App Store Connect で商品を作成してください。',
++      );
++    }
++    final launched = await _store.buyNonConsumable(
++      purchaseParam: PurchaseParam(productDetails: product),
++    );
++    if (!launched) {
++      throw SubscriptionPurchaseFailedException('購入画面を開けませんでした。');
++    }
++  }
++
++  Future<void> _onPurchases(List<PurchaseDetails> purchases) async {
++    for (final purchase in purchases) {
++      final isPlusProduct =
++          purchase.productID == SubscriptionCatalog.monthlyProductId ||
++          purchase.productID == SubscriptionCatalog.yearlyProductId;
++      if (isPlusProduct &&
++          (purchase.status == PurchaseStatus.purchased ||
++              purchase.status == PurchaseStatus.restored)) {
++        await _setPlus(true);
++      }
++      if (purchase.pendingCompletePurchase) {
++        await _store.completePurchase(purchase);
++      }
++      if (purchase.status == PurchaseStatus.error &&
++          purchase.error != null &&
++          purchase.error!.message.isNotEmpty) {
++        // 購入失敗は画面側のタイムアウトやキャンセルと別に、ストアが通知する。
++      }
++    }
++  }
++
++  Future<void> _setPlus(bool value) async {
++    _plus = value;
++    final prefs = _preferences ?? await SharedPreferences.getInstance();
++    await prefs.setBool(_plusKey, value);
++    _plusController.add(value);
++  }
++
++  Future<void> dispose() async {
++    await _purchaseSubscription?.cancel();
++    await _plusController.close();
++  }
++}
+### FILE lib/repositories/subscription_exceptions.dart (added)
+@@ -0,0 +1,35 @@
++import '../config/subscription_catalog.dart';
++
++enum SubscriptionLimitKind { publicFoodSearch, mealTemplate, workoutTemplate }
++
++class SubscriptionLimitExceededException implements Exception {
++  SubscriptionLimitExceededException(this.kind);
++
++  final SubscriptionLimitKind kind;
++
++  @override
++  String toString() {
++    return switch (kind) {
++      SubscriptionLimitKind.publicFoodSearch =>
++        '公開食品検索は1日${SubscriptionCatalog.publicFoodSearchesPerDay}回までです。',
++      SubscriptionLimitKind.mealTemplate =>
++        '食事テンプレートは${SubscriptionCatalog.mealTemplateLimit}件までです。',
++      SubscriptionLimitKind.workoutTemplate =>
++        '運動テンプレートは${SubscriptionCatalog.workoutTemplateLimit}件までです。',
++    };
++  }
++}
++
++class SubscriptionPurchaseUnavailableException implements Exception {
++  @override
++  String toString() => 'この環境ではアプリ内課金を使えません。';
++}
++
++class SubscriptionPurchaseFailedException implements Exception {
++  SubscriptionPurchaseFailedException(this.message);
++
++  final String message;
++
++  @override
++  String toString() => message;
++}
+### FILE lib/repositories/subscription_repository.dart (added)
+@@ -0,0 +1,12 @@
++/// カロナビ+ の加入状態と購入。
++abstract class SubscriptionRepository {
++  bool get isPlusActive;
++
++  Stream<bool> get plusChanges;
++
++  Future<void> restore();
++
++  Future<void> purchaseMonthly();
++
++  Future<void> purchaseYearly();
++}
+### FILE lib/repositories/unavailable_subscription_repository.dart (added)
+@@ -0,0 +1,24 @@
++import 'subscription_exceptions.dart';
++import 'subscription_repository.dart';
++
++/// Web Preview など、ストア課金が無い環境。
++class UnavailableSubscriptionRepository extends SubscriptionRepository {
++  @override
++  bool get isPlusActive => false;
++
++  @override
++  Stream<bool> get plusChanges => const Stream.empty();
++
++  @override
++  Future<void> restore() async {}
++
++  @override
++  Future<void> purchaseMonthly() {
++    throw SubscriptionPurchaseUnavailableException();
++  }
++
++  @override
++  Future<void> purchaseYearly() {
++    throw SubscriptionPurchaseUnavailableException();
++  }
++}
+### FILE lib/screens/exercise/exercise_form_template_actions.dart (modified)
+@@ -12,6 +12,8 @@ import '../../widgets/common/app_card.dart';
+ import '../../widgets/common/logged_at_picker_field.dart';
+ import '../../widgets/common/primary_button.dart';
+ import '../../widgets/layout/app_form_constraint.dart';
++import '../../repositories/subscription_exceptions.dart';
++import '../subscription/calonavi_plus_screen.dart';
+ import '../workout_template/workout_template_screens.dart';
+ 
+ Future<void> openWorkoutTemplatePicker({
+@@ -48,8 +50,16 @@ Future<void> openWorkoutTemplatePicker({
+ Future<void> openWorkoutTemplateCreate(
+   BuildContext context,
+   AppController controller,
+-) {
+-  return Navigator.of(context).push<void>(
++) async {
++  final allowed = await guardPlusFeature(
++    context: context,
++    controller: controller,
++    ensure: controller.ensureCanCreateWorkoutTemplate,
++  );
++  if (!allowed || !context.mounted) {
++    return;
++  }
++  await Navigator.of(context).push<void>(
+     MaterialPageRoute<void>(
+       builder: (context) => WorkoutTemplateFormScreen(controller: controller),
+     ),
+@@ -99,6 +109,7 @@ Future<void> saveCurrentExerciseAsTemplate({
+   }
+ 
+   try {
++    await controller.ensureCanCreateWorkoutTemplate();
+     await controller.saveWorkoutTemplate(
+       draft: WorkoutTemplateDraft(name: name, items: [itemDraft]),
+     );
+@@ -108,6 +119,10 @@ Future<void> saveCurrentExerciseAsTemplate({
+     ScaffoldMessenger.of(
+       context,
+     ).showSnackBar(const SnackBar(content: Text('テンプレートを保存しました')));
++  } on SubscriptionLimitExceededException {
++    if (context.mounted) {
++      await showCalonaviPlus(context, controller.subscriptionRepository);
++    }
+   } catch (error) {
+     if (!context.mounted) {
+       return;
+### FILE lib/screens/food/food_form_template_actions.dart (modified)
+@@ -1,18 +1,28 @@
+ import 'package:flutter/material.dart';
+ 
+ import '../../models/food_unit_type.dart';
++import '../../repositories/subscription_exceptions.dart';
+ import '../../models/macro_field.dart';
+ import '../../models/meal_template_draft.dart';
+ import '../../state/app_controller.dart';
+ import '../meal_template/meal_template_form_screen.dart';
++import '../subscription/calonavi_plus_screen.dart';
+ import 'food_meal_registration_screen.dart';
+ 
+ /// 食事フォームからテンプレート関連の導線を開く。
+ Future<void> openFoodTemplateCreate(
+   BuildContext context,
+   AppController controller,
+-) {
+-  return Navigator.of(context).push<void>(
++) async {
++  final allowed = await guardPlusFeature(
++    context: context,
++    controller: controller,
++    ensure: controller.ensureCanCreateMealTemplate,
++  );
++  if (!allowed || !context.mounted) {
++    return;
++  }
++  await Navigator.of(context).push<void>(
+     MaterialPageRoute<void>(
+       builder: (context) => MealTemplateFormScreen(controller: controller),
+     ),
+@@ -81,6 +91,7 @@ Future<void> saveCurrentFoodAsTemplate({
+   }
+ 
+   try {
++    await controller.ensureCanCreateMealTemplate();
+     await controller.saveMealTemplate(
+       draft: MealTemplateDraft(name: name, items: [itemDraft]),
+     );
+@@ -90,6 +101,10 @@ Future<void> saveCurrentFoodAsTemplate({
+     ScaffoldMessenger.of(
+       context,
+     ).showSnackBar(SnackBar(content: Text('「$name」をテンプレートとして保存しました')));
++  } on SubscriptionLimitExceededException {
++    if (context.mounted) {
++      await showCalonaviPlus(context, controller.subscriptionRepository);
++    }
+   } catch (error) {
+     if (!context.mounted) {
+       return;
+### FILE lib/screens/meal_template/meal_template_form_screen.dart (modified)
+@@ -4,7 +4,9 @@ import '../../models/food_unit_type.dart';
+ import '../../models/meal_template_draft.dart';
+ import '../../models/saved_food.dart';
+ import '../../models/saved_food_entry_selection.dart';
++import '../../repositories/subscription_exceptions.dart';
+ import '../../state/app_controller.dart';
++import '../subscription/calonavi_plus_screen.dart';
+ import '../../theme/app_spacing.dart';
+ import '../../utils/macro_display.dart';
+ import '../../utils/nutrition_format.dart';
+@@ -228,6 +230,11 @@ class _MealTemplateFormScreenState extends State<MealTemplateFormScreen> {
+         return;
+       }
+       Navigator.of(context).pop(true);
++    } on SubscriptionLimitExceededException {
++      if (!mounted) {
++        return;
++      }
++      await showCalonaviPlus(context, widget.controller.subscriptionRepository);
+     } catch (error) {
+       if (!mounted) {
+         return;
+### FILE lib/screens/meal_template/meal_template_list_screen.dart (modified)
+@@ -13,6 +13,7 @@ import '../../widgets/common/app_empty_state.dart';
+ import '../../widgets/common/app_loading_state.dart';
+ import '../../widgets/common/app_text_field.dart';
+ import '../../widgets/layout/app_content_constraint.dart';
++import '../subscription/calonavi_plus_screen.dart';
+ import 'meal_template_form_screen.dart';
+ 
+ class MealTemplateListScreen extends StatefulWidget {
+@@ -58,6 +59,14 @@ class _MealTemplateListScreenState extends State<MealTemplateListScreen> {
+   }
+ 
+   Future<void> _openCreate() async {
++    final allowed = await guardPlusFeature(
++      context: context,
++      controller: widget.controller,
++      ensure: widget.controller.ensureCanCreateMealTemplate,
++    );
++    if (!allowed || !mounted) {
++      return;
++    }
+     final saved = await Navigator.of(context).push<bool>(
+       MaterialPageRoute<bool>(
+         builder: (context) =>
+### FILE lib/screens/saved_food/public_food_search_screen.dart (modified)
+@@ -13,8 +13,10 @@ import '../../widgets/common/secondary_button.dart';
+ import '../../widgets/layout/app_content_constraint.dart';
+ import '../../services/open_food_facts_service.dart';
+ import '../../services/public_food_meal_add_flow.dart';
++import '../../repositories/subscription_exceptions.dart';
+ import '../../widgets/saved_food/public_food_detail_sheet.dart';
+ import '../../widgets/saved_food/public_food_search_result_tile.dart';
++import '../subscription/calonavi_plus_screen.dart';
+ import '../food/food_form_screen.dart';
+ 
+ class PublicFoodSearchScreen extends StatefulWidget {
+@@ -78,6 +80,16 @@ class _PublicFoodSearchScreenState extends State<PublicFoodSearchScreen> {
+           _errorMessage = '該当する公開食品が見つかりませんでした';
+         }
+       });
++    } on SubscriptionLimitExceededException {
++      if (!mounted) {
++        return;
++      }
++      setState(() => _isSearching = false);
++      await showCalonaviPlus(
++        context,
++        widget.controller.subscriptionRepository,
++      );
++      return;
+     } catch (error) {
+       if (!mounted) {
+         return;
+### FILE lib/screens/settings/settings_screen.dart (modified)
+@@ -19,6 +19,7 @@ import 'settings_basic_info_screen.dart';
+ import 'settings_food_master_screen.dart';
+ import 'settings_goal_screen.dart';
+ import 'settings_health_activity_screen.dart';
++import '../subscription/calonavi_plus_screen.dart';
+ 
+ class SettingsScreen extends StatelessWidget {
+   const SettingsScreen({
+@@ -167,6 +168,18 @@ class SettingsScreen extends StatelessWidget {
+                 padding: EdgeInsets.zero,
+                 child: Column(
+                   children: [
++                    SettingsListTile(
++                      icon: Icons.workspace_premium_outlined,
++                      title: AppStrings.plusTitle,
++                      subtitle: controller.isCalonaviPlusActive
++                          ? AppStrings.plusActive
++                          : AppStrings.plusInactive,
++                      onTap: () => showCalonaviPlus(
++                        context,
++                        controller.subscriptionRepository,
++                      ),
++                    ),
++                    const Divider(height: 1),
+                     SettingsListTile(
+                       icon: Icons.description_outlined,
+                       title: '利用規約',
+### FILE lib/screens/subscription/calonavi_plus_screen.dart (added)
+@@ -0,0 +1,154 @@
++import 'package:flutter/material.dart';
++
++import '../../config/subscription_catalog.dart';
++import '../../constants/app_strings.dart';
++import '../../repositories/subscription_exceptions.dart';
++import '../../repositories/subscription_repository.dart';
++import '../../state/app_controller.dart';
++import '../../theme/app_colors.dart';
++import '../../theme/app_spacing.dart';
++import '../../widgets/common/app_card.dart';
++import '../../widgets/common/primary_button.dart';
++import '../../widgets/common/secondary_button.dart';
++import '../../widgets/layout/app_content_constraint.dart';
++
++Future<bool> guardPlusFeature({
++  required BuildContext context,
++  required AppController controller,
++  required Future<void> Function() ensure,
++}) async {
++  try {
++    await ensure();
++    return true;
++  } on SubscriptionLimitExceededException {
++    if (context.mounted) {
++      await showCalonaviPlus(context, controller.subscriptionRepository);
++    }
++    return false;
++  }
++}
++
++Future<void> showCalonaviPlus(
++  BuildContext context,
++  SubscriptionRepository repository,
++) {
++  return Navigator.of(context).push<void>(
++    MaterialPageRoute<void>(
++      fullscreenDialog: true,
++      builder: (context) => CalonaviPlusScreen(repository: repository),
++    ),
++  );
++}
++
++class CalonaviPlusScreen extends StatefulWidget {
++  const CalonaviPlusScreen({super.key, required this.repository});
++
++  final SubscriptionRepository repository;
++
++  @override
++  State<CalonaviPlusScreen> createState() => _CalonaviPlusScreenState();
++}
++
++class _CalonaviPlusScreenState extends State<CalonaviPlusScreen> {
++  bool _busy = false;
++
++  Future<void> _run(Future<void> Function() action) async {
++    setState(() => _busy = true);
++    try {
++      await action();
++      if (!mounted) {
++        return;
++      }
++      if (widget.repository.isPlusActive && Navigator.of(context).canPop()) {
++        Navigator.of(context).pop();
++      }
++    } on SubscriptionPurchaseUnavailableException {
++      if (!mounted) {
++        return;
++      }
++      ScaffoldMessenger.of(context).showSnackBar(
++        const SnackBar(content: Text(AppStrings.plusPurchaseUnavailable)),
++      );
++    } catch (error) {
++      if (!mounted) {
++        return;
++      }
++      ScaffoldMessenger.of(
++        context,
++      ).showSnackBar(SnackBar(content: Text('$error')));
++    } finally {
++      if (mounted) {
++        setState(() => _busy = false);
++      }
++    }
++  }
++
++  @override
++  Widget build(BuildContext context) {
++    final body = Theme.of(context).textTheme.bodyMedium;
++
++    return Scaffold(
++      appBar: AppBar(
++        title: const Text(AppStrings.plusTitle),
++        leading: IconButton(
++          tooltip: '閉じる',
++          onPressed: () => Navigator.of(context).pop(),
++          icon: const Icon(Icons.close),
++        ),
++      ),
++      body: SafeArea(
++        child: AppContentConstraint(
++          child: ListView(
++            padding: const EdgeInsets.all(AppSpacing.md),
++            children: [
++              Text(AppStrings.plusLead, style: body),
++              const SizedBox(height: AppSpacing.md),
++              const AppCard(
++                child: Column(
++                  crossAxisAlignment: CrossAxisAlignment.start,
++                  children: [
++                    Text('・公開食品検索が無制限'),
++                    Text('・食事テンプレートが無制限'),
++                    Text('・運動テンプレートが無制限'),
++                  ],
++                ),
++              ),
++              const SizedBox(height: AppSpacing.md),
++              Text(
++                AppStrings.plusFreeQuota,
++                style: body?.copyWith(color: AppColors.secondaryText),
++              ),
++              const SizedBox(height: AppSpacing.lg),
++              PrimaryButton(
++                label: '${SubscriptionCatalog.monthlyLabel}で続ける',
++                loading: _busy,
++                onPressed: _busy
++                    ? null
++                    : () => _run(widget.repository.purchaseMonthly),
++              ),
++              SecondaryButton(
++                label:
++                    '${SubscriptionCatalog.yearlyLabel}（${SubscriptionCatalog.yearlySavingLabel}）',
++                onPressed: _busy
++                    ? null
++                    : () => _run(widget.repository.purchaseYearly),
++              ),
++              const SizedBox(height: AppSpacing.sm),
++              TextButton(
++                onPressed: _busy
++                    ? null
++                    : () => _run(widget.repository.restore),
++                child: const Text(AppStrings.plusRestore),
++              ),
++              const SizedBox(height: AppSpacing.md),
++              Text(
++                AppStrings.plusLegalNote,
++                style: Theme.of(context).textTheme.bodySmall,
++              ),
++            ],
++          ),
++        ),
++      ),
++    );
++  }
++}
+### FILE lib/screens/workout_template/workout_template_screens.dart (modified)
+@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
+ 
+ import '../../models/exercise_category.dart';
+ import '../../models/workout_template.dart';
++import '../../repositories/subscription_exceptions.dart';
+ import '../../state/app_controller.dart';
+ import '../../theme/app_spacing.dart';
+ import '../../utils/id_generator.dart';
+@@ -11,6 +12,7 @@ import '../../widgets/common/app_empty_state.dart';
+ import '../../widgets/common/app_loading_state.dart';
+ import '../../widgets/common/app_text_field.dart';
+ import '../../widgets/layout/app_content_constraint.dart';
++import '../subscription/calonavi_plus_screen.dart';
+ 
+ class WorkoutTemplateFormScreen extends StatefulWidget {
+   const WorkoutTemplateFormScreen({
+@@ -104,6 +106,11 @@ class _WorkoutTemplateFormScreenState extends State<WorkoutTemplateFormScreen> {
+         return;
+       }
+       Navigator.of(context).pop(true);
++    } on SubscriptionLimitExceededException {
++      if (!mounted) {
++        return;
++      }
++      await showCalonaviPlus(context, widget.controller.subscriptionRepository);
+     } catch (error) {
+       if (!mounted) {
+         return;
+@@ -207,6 +214,14 @@ class _WorkoutTemplateListScreenState extends State<WorkoutTemplateListScreen> {
+   }
+ 
+   Future<void> _openCreate() async {
++    final allowed = await guardPlusFeature(
++      context: context,
++      controller: widget.controller,
++      ensure: widget.controller.ensureCanCreateWorkoutTemplate,
++    );
++    if (!allowed || !mounted) {
++      return;
++    }
+     final saved = await Navigator.of(context).push<bool>(
+       MaterialPageRoute<bool>(
+         builder: (context) =>
+@@ -478,6 +493,14 @@ class _WorkoutTemplatePickerScreenState
+   }
+ 
+   Future<void> _openCreate() async {
++    final allowed = await guardPlusFeature(
++      context: context,
++      controller: widget.controller,
++      ensure: widget.controller.ensureCanCreateWorkoutTemplate,
++    );
++    if (!allowed || !mounted) {
++      return;
++    }
+     final saved = await Navigator.of(context).push<bool>(
+       MaterialPageRoute<bool>(
+         builder: (context) =>
+### FILE lib/services/subscription_policy.dart (added)
+@@ -0,0 +1,41 @@
++import '../config/subscription_catalog.dart';
++
++/// 無料枠の判定だけを持つ。UI や StoreKit には依存しない。
++class SubscriptionPolicy {
++  const SubscriptionPolicy();
++
++  bool canUse({
++    required bool isPlus,
++    required int used,
++    required int limit,
++  }) {
++    return isPlus || used < limit;
++  }
++
++  bool canSearchPublicFood({required bool isPlus, required int usedToday}) {
++    return canUse(
++      isPlus: isPlus,
++      used: usedToday,
++      limit: SubscriptionCatalog.publicFoodSearchesPerDay,
++    );
++  }
++
++  bool canCreateMealTemplate({required bool isPlus, required int currentCount}) {
++    return canUse(
++      isPlus: isPlus,
++      used: currentCount,
++      limit: SubscriptionCatalog.mealTemplateLimit,
++    );
++  }
++
++  bool canCreateWorkoutTemplate({
++    required bool isPlus,
++    required int currentCount,
++  }) {
++    return canUse(
++      isPlus: isPlus,
++      used: currentCount,
++      limit: SubscriptionCatalog.workoutTemplateLimit,
++    );
++  }
++}
+### FILE lib/state/app_controller.dart (modified)
+@@ -40,6 +40,11 @@ import '../models/user_profile.dart';
+ import '../models/weight_entry.dart';
+ import '../models/workout_template.dart';
+ import '../repositories/authentication_repository.dart';
++import '../repositories/local_subscription_usage_store.dart';
++import '../repositories/subscription_exceptions.dart';
++import '../repositories/subscription_repository.dart';
++import '../repositories/unavailable_subscription_repository.dart';
++import '../services/subscription_policy.dart';
+ import '../repositories/exceptions/food_master_exceptions.dart';
+ import '../repositories/contracts/blocked_food_creator_repository_base.dart';
+ import '../repositories/contracts/food_rating_repository_base.dart';
+@@ -97,6 +102,8 @@ class AppController extends ChangeNotifier {
+     BlockedFoodCreatorRepositoryBase? blockedCreatorRepository,
+     MealTemplateRepositoryBase? mealTemplateRepository,
+     WorkoutTemplateRepositoryBase? workoutTemplateRepository,
++    SubscriptionRepository? subscriptionRepository,
++    LocalSubscriptionUsageStore? subscriptionUsageStore,
+   }) : _nutritionEngine = nutritionEngine ?? NutritionEngine(),
+        _healthRepository = healthRepository,
+        _authenticationRepository = authenticationRepository,
+@@ -115,6 +122,10 @@ class AppController extends ChangeNotifier {
+        _blockedCreatorRepository = blockedCreatorRepository,
+        _mealTemplateRepository = mealTemplateRepository,
+        _workoutTemplateRepository = workoutTemplateRepository,
++       _subscriptionRepository =
++           subscriptionRepository ?? UnavailableSubscriptionRepository(),
++       _subscriptionUsageStore =
++           subscriptionUsageStore ?? LocalSubscriptionUsageStore(),
+        _savedFoodSearchService = const SavedFoodSearchService(),
+        _savedFoodDuplicateService = const SavedFoodDuplicateService(),
+        _savedFoodEntryBuilder = const SavedFoodEntryBuilder(),
+@@ -124,7 +135,8 @@ class AppController extends ChangeNotifier {
+        _mealTemplateTotalsService = const MealTemplateTotalsService(),
+        _mealTemplateDependencyService = const MealTemplateDependencyService(),
+        _mealTemplateApplyService = const MealTemplateApplyService(),
+-       _searchSuggestionService = const SearchSuggestionService();
++       _searchSuggestionService = const SearchSuggestionService(),
++       _subscriptionPolicy = const SubscriptionPolicy();
+ 
+   final NutritionEngine _nutritionEngine;
+   final HealthRepository? _healthRepository;
+@@ -144,6 +156,9 @@ class AppController extends ChangeNotifier {
+   final BlockedFoodCreatorRepositoryBase? _blockedCreatorRepository;
+   final MealTemplateRepositoryBase? _mealTemplateRepository;
+   final WorkoutTemplateRepositoryBase? _workoutTemplateRepository;
++  final SubscriptionRepository _subscriptionRepository;
++  final LocalSubscriptionUsageStore _subscriptionUsageStore;
++  final SubscriptionPolicy _subscriptionPolicy;
+   final SavedFoodSearchService _savedFoodSearchService;
+   final SavedFoodDuplicateService _savedFoodDuplicateService;
+   final SavedFoodEntryBuilder _savedFoodEntryBuilder;
+@@ -201,6 +216,10 @@ class AppController extends ChangeNotifier {
+   bool get isAuthenticated =>
+       _authenticationRepository?.isAuthenticated ?? false;
+ 
++  SubscriptionRepository get subscriptionRepository => _subscriptionRepository;
++
++  bool get isCalonaviPlusActive => _subscriptionRepository.isPlusActive;
++
+   String get currentOwnerUserId =>
+       _authenticationRepository?.currentUser?.id ?? localOwnerUserId;
+ 
+@@ -259,6 +278,13 @@ class AppController extends ChangeNotifier {
+       _clearInMemoryState();
+     }
+ 
++    try {
++      await _subscriptionRepository.restore();
++    } catch (_) {}
++    _subscriptionRepository.plusChanges.listen((_) {
++      notifyListeners();
++    });
++
+     _isInitializing = false;
+     notifyListeners();
+   }
+@@ -1484,6 +1510,52 @@ class AppController extends ChangeNotifier {
+     return keys.map((key) => displayNames[key] ?? key).toList();
+   }
+ 
++  Future<void> ensureCanCreateMealTemplate() async {
++    if (_subscriptionPolicy.canCreateMealTemplate(
++      isPlus: isCalonaviPlusActive,
++      currentCount: (await searchMealTemplates('')).length,
++    )) {
++      return;
++    }
++    throw SubscriptionLimitExceededException(
++      SubscriptionLimitKind.mealTemplate,
++    );
++  }
++
++  Future<void> ensureCanCreateWorkoutTemplate() async {
++    if (_subscriptionPolicy.canCreateWorkoutTemplate(
++      isPlus: isCalonaviPlusActive,
++      currentCount: (await searchWorkoutTemplates('')).length,
++    )) {
++      return;
++    }
++    throw SubscriptionLimitExceededException(
++      SubscriptionLimitKind.workoutTemplate,
++    );
++  }
++
++  Future<void> _consumePublicFoodSearchSlot() async {
++    if (isCalonaviPlusActive) {
++      return;
++    }
++    final used = await _subscriptionUsageStore.publicSearchCount(
++      userId: currentOwnerUserId,
++      day: DateTime.now(),
++    );
++    if (!_subscriptionPolicy.canSearchPublicFood(
++      isPlus: false,
++      usedToday: used,
++    )) {
++      throw SubscriptionLimitExceededException(
++        SubscriptionLimitKind.publicFoodSearch,
++      );
++    }
++    await _subscriptionUsageStore.incrementPublicSearch(
++      userId: currentOwnerUserId,
++      day: DateTime.now(),
++    );
++  }
++
+   Future<List<PublicFoodSearchMatch>> searchPublicSavedFoods(
+     String query,
+   ) async {
+@@ -1493,6 +1565,7 @@ class AppController extends ChangeNotifier {
+     }
+ 
+     try {
++      await _consumePublicFoodSearchSlot();
+       final candidates = await repository.searchPublic(query: query);
+       final ratingsByKey = <String, ({int goodCount, int badCount})>{};
+       for (final food in candidates) {
+@@ -1511,6 +1584,8 @@ class AppController extends ChangeNotifier {
+         query: query,
+         ratingsByKey: ratingsByKey,
+       );
++    } on SubscriptionLimitExceededException {
++      rethrow;
+     } catch (_) {
+       return const [];
+     }
+@@ -1921,6 +1996,9 @@ class AppController extends ChangeNotifier {
+     if (draft.items.isEmpty) {
+       throw ArgumentError('Template must include at least one item');
+     }
++    if (templateId == null) {
++      await ensureCanCreateWorkoutTemplate();
++    }
+ 
+     final now = DateTime.now();
+     final id = templateId ?? generateId();
+@@ -2030,6 +2108,9 @@ class AppController extends ChangeNotifier {
+     if (draft.items.isEmpty) {
+       throw ArgumentError('Template must include at least one item');
+     }
++    if (templateId == null) {
++      await ensureCanCreateMealTemplate();
++    }
+ 
+     final now = DateTime.now();
+     final id = templateId ?? generateId();
+### FILE pubspec.yaml (modified)
+@@ -46,6 +46,7 @@ dependencies:
+   url_launcher: ^6.3.2
+   shared_preferences: ^2.5.3
+   uuid: ^4.6.0
++  in_app_purchase: ^3.2.3
+ 
+ dev_dependencies:
+   flutter_test:
+### FILE test/calonavi_plus_screen_test.dart (added)
+@@ -0,0 +1,34 @@
++import 'package:ayg/config/subscription_catalog.dart';
++import 'package:ayg/constants/app_strings.dart';
++import 'package:ayg/screens/subscription/calonavi_plus_screen.dart';
++import 'package:ayg/theme/app_theme.dart';
++import 'package:flutter/material.dart';
++import 'package:flutter_test/flutter_test.dart';
++
++import 'mocks/mock_subscription_repository.dart';
++
++void main() {
++  TestWidgetsFlutterBinding.ensureInitialized();
++
++  testWidgets('plus screen offers monthly and yearly prices', (tester) async {
++    final repository = MockSubscriptionRepository();
++    await tester.pumpWidget(
++      MaterialApp(
++        theme: AppTheme.light,
++        home: CalonaviPlusScreen(repository: repository),
++      ),
++    );
++
++    expect(find.text(AppStrings.plusTitle), findsOneWidget);
++    expect(find.textContaining(SubscriptionCatalog.monthlyLabel), findsOneWidget);
++    expect(find.textContaining(SubscriptionCatalog.yearlyLabel), findsOneWidget);
++
++    await tester.tap(find.textContaining(SubscriptionCatalog.monthlyLabel));
++    await tester.pumpAndSettle();
++
++    expect(repository.monthlyCalled, isTrue);
++    expect(repository.plus, isTrue);
++
++    await repository.dispose();
++  });
++}
+### FILE test/legal_document_screen_test.dart (modified)
+@@ -122,6 +122,8 @@ void main() {
+     expect(find.text('特定商取引法に基づく表記'), findsOneWidget);
+     expect(find.textContaining('麹池成'), findsWidgets);
+     expect(find.textContaining('アプリ内課金'), findsOneWidget);
++    expect(find.textContaining('380'), findsOneWidget);
++    expect(find.textContaining('4,180'), findsOneWidget);
+     expect(find.byTooltip('閉じる'), findsOneWidget);
+   });
+ 
+### FILE test/mocks/mock_subscription_repository.dart (added)
+@@ -0,0 +1,52 @@
++import 'dart:async';
++
++import 'package:ayg/repositories/subscription_exceptions.dart';
++import 'package:ayg/repositories/subscription_repository.dart';
++
++class MockSubscriptionRepository extends SubscriptionRepository {
++  bool plus = false;
++  bool purchaseUnavailable = false;
++  bool monthlyCalled = false;
++  bool yearlyCalled = false;
++  bool restoreCalled = false;
++
++  final StreamController<bool> _controller = StreamController<bool>.broadcast();
++
++  @override
++  bool get isPlusActive => plus;
++
++  @override
++  Stream<bool> get plusChanges => _controller.stream;
++
++  void setPlus(bool value) {
++    plus = value;
++    _controller.add(value);
++  }
++
++  @override
++  Future<void> restore() async {
++    restoreCalled = true;
++  }
++
++  @override
++  Future<void> purchaseMonthly() async {
++    monthlyCalled = true;
++    if (purchaseUnavailable) {
++      throw SubscriptionPurchaseUnavailableException();
++    }
++    setPlus(true);
++  }
++
++  @override
++  Future<void> purchaseYearly() async {
++    yearlyCalled = true;
++    if (purchaseUnavailable) {
++      throw SubscriptionPurchaseUnavailableException();
++    }
++    setPlus(true);
++  }
++
++  Future<void> dispose() async {
++    await _controller.close();
++  }
++}
+### FILE test/settings_screen_test.dart (modified)
+@@ -76,6 +76,7 @@ void main() {
+     expect(find.text(AppStrings.settingsSupport), findsOneWidget);
+     expect(find.text(AppStrings.settingsTokushoho), findsOneWidget);
+     expect(find.text(AppStrings.settingsAccountDeletion), findsOneWidget);
++    expect(find.text(AppStrings.plusTitle), findsOneWidget);
+ 
+     await authRepository.dispose();
+   });
+### FILE test/subscription_policy_test.dart (added)
+@@ -0,0 +1,59 @@
++import 'package:ayg/config/subscription_catalog.dart';
++import 'package:ayg/repositories/local_subscription_usage_store.dart';
++import 'package:ayg/services/subscription_policy.dart';
++import 'package:flutter_test/flutter_test.dart';
++
++void main() {
++  const policy = SubscriptionPolicy();
++
++  test('free users can search five times a day', () {
++    expect(
++      policy.canSearchPublicFood(isPlus: false, usedToday: 4),
++      isTrue,
++    );
++    expect(
++      policy.canSearchPublicFood(isPlus: false, usedToday: 5),
++      isFalse,
++    );
++    expect(
++      policy.canSearchPublicFood(isPlus: true, usedToday: 20),
++      isTrue,
++    );
++  });
++
++  test('free users can keep three templates', () {
++    expect(
++      policy.canCreateMealTemplate(isPlus: false, currentCount: 2),
++      isTrue,
++    );
++    expect(
++      policy.canCreateMealTemplate(isPlus: false, currentCount: 3),
++      isFalse,
++    );
++    expect(
++      policy.canCreateWorkoutTemplate(isPlus: false, currentCount: 3),
++      isFalse,
++    );
++  });
++
++  test('catalog matches the locked prices and limits', () {
++    expect(SubscriptionCatalog.monthlyYen, 380);
++    expect(SubscriptionCatalog.yearlyYen, 4180);
++    expect(SubscriptionCatalog.publicFoodSearchesPerDay, 5);
++    expect(SubscriptionCatalog.mealTemplateLimit, 3);
++    expect(SubscriptionCatalog.workoutTemplateLimit, 3);
++  });
++
++  test('usage store counts searches per user and day', () async {
++    final store = LocalSubscriptionUsageStore();
++    final day = DateTime(2026, 9, 20, 15);
++    expect(await store.publicSearchCount(userId: 'u1', day: day), 0);
++    expect(await store.incrementPublicSearch(userId: 'u1', day: day), 1);
++    expect(await store.incrementPublicSearch(userId: 'u1', day: day), 2);
++    expect(await store.publicSearchCount(userId: 'u2', day: day), 0);
++    expect(
++      await store.publicSearchCount(userId: 'u1', day: DateTime(2026, 9, 21)),
++      0,
++    );
++  });
++}

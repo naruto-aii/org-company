@@ -1,0 +1,436 @@
+pg17 syntax repro passed
+CREATE EXTENSION
+DO
+CREATE SCHEMA
+CREATE SCHEMA
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE FUNCTION
+CREATE FUNCTION
+GRANT
+GRANT
+apply supabase/migrations/20260722130000_create_v1_1_schema.sql
+CREATE TABLE
+CREATE INDEX
+CREATE TABLE
+CREATE INDEX
+CREATE TABLE
+CREATE INDEX
+CREATE TABLE
+CREATE INDEX
+CREATE TABLE
+CREATE INDEX
+CREATE TABLE
+CREATE INDEX
+CREATE TABLE
+CREATE INDEX
+CREATE INDEX
+CREATE TABLE
+CREATE INDEX
+CREATE INDEX
+CREATE TABLE
+CREATE INDEX
+CREATE INDEX
+CREATE FUNCTION
+psql:supabase/migrations/20260722130000_create_v1_1_schema.sql:175: NOTICE:  trigger "set_profiles_updated_at" for relation "public.profiles" does not exist, skipping
+psql:supabase/migrations/20260722130000_create_v1_1_schema.sql:175: NOTICE:  trigger "set_goals_updated_at" for relation "public.goals" does not exist, skipping
+psql:supabase/migrations/20260722130000_create_v1_1_schema.sql:175: NOTICE:  trigger "set_nutrition_settings_updated_at" for relation "public.nutrition_settings" does not exist, skipping
+psql:supabase/migrations/20260722130000_create_v1_1_schema.sql:175: NOTICE:  trigger "set_health_snapshots_updated_at" for relation "public.health_snapshots" does not exist, skipping
+psql:supabase/migrations/20260722130000_create_v1_1_schema.sql:175: NOTICE:  trigger "set_app_settings_updated_at" for relation "public.app_settings" does not exist, skipping
+psql:supabase/migrations/20260722130000_create_v1_1_schema.sql:175: NOTICE:  trigger "set_food_entries_updated_at" for relation "public.food_entries" does not exist, skipping
+psql:supabase/migrations/20260722130000_create_v1_1_schema.sql:175: NOTICE:  trigger "set_exercise_entries_updated_at" for relation "public.exercise_entries" does not exist, skipping
+psql:supabase/migrations/20260722130000_create_v1_1_schema.sql:175: NOTICE:  trigger "set_weight_entries_updated_at" for relation "public.weight_entries" does not exist, skipping
+DO
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+psql:supabase/migrations/20260722130000_create_v1_1_schema.sql:191: NOTICE:  policy "users_select_own" for relation "public.users" does not exist, skipping
+DROP POLICY
+CREATE POLICY
+psql:supabase/migrations/20260722130000_create_v1_1_schema.sql:196: NOTICE:  policy "users_insert_own" for relation "public.users" does not exist, skipping
+DROP POLICY
+CREATE POLICY
+psql:supabase/migrations/20260722130000_create_v1_1_schema.sql:201: NOTICE:  policy "users_update_own" for relation "public.users" does not exist, skipping
+DROP POLICY
+CREATE POLICY
+psql:supabase/migrations/20260722130000_create_v1_1_schema.sql:207: NOTICE:  policy "users_delete_own" for relation "public.users" does not exist, skipping
+DROP POLICY
+CREATE POLICY
+psql:supabase/migrations/20260722130000_create_v1_1_schema.sql:213: NOTICE:  policy "profiles_select_own" for relation "public.profiles" does not exist, skipping
+DROP POLICY
+CREATE POLICY
+psql:supabase/migrations/20260722130000_create_v1_1_schema.sql:218: NOTICE:  policy "profiles_insert_own" for relation "public.profiles" does not exist, skipping
+DROP POLICY
+CREATE POLICY
+psql:supabase/migrations/20260722130000_create_v1_1_schema.sql:223: NOTICE:  policy "profiles_update_own" for relation "public.profiles" does not exist, skipping
+DROP POLICY
+CREATE POLICY
+psql:supabase/migrations/20260722130000_create_v1_1_schema.sql:229: NOTICE:  policy "profiles_delete_own" for relation "public.profiles" does not exist, skipping
+DROP POLICY
+CREATE POLICY
+psql:supabase/migrations/20260722130000_create_v1_1_schema.sql:234: NOTICE:  policy "goals_select_own" for relation "public.goals" does not exist, skipping
+DROP POLICY
+CREATE POLICY
+psql:supabase/migrations/20260722130000_create_v1_1_schema.sql:239: NOTICE:  policy "goals_insert_own" for relation "public.goals" does not exist, skipping
+DROP POLICY
+CREATE POLICY
+psql:supabase/migrations/20260722130000_create_v1_1_schema.sql:244: NOTICE:  policy "goals_update_own" for relation "public.goals" does not exist, skipping
+DROP POLICY
+CREATE POLICY
+psql:supabase/migrations/20260722130000_create_v1_1_schema.sql:250: NOTICE:  policy "goals_delete_own" for relation "public.goals" does not exist, skipping
+DROP POLICY
+CREATE POLICY
+psql:supabase/migrations/20260722130000_create_v1_1_schema.sql:255: NOTICE:  policy "nutrition_settings_select_own" for relation "public.nutrition_settings" does not exist, skipping
+DROP POLICY
+CREATE POLICY
+psql:supabase/migrations/20260722130000_create_v1_1_schema.sql:260: NOTICE:  policy "nutrition_settings_insert_own" for relation "public.nutrition_settings" does not exist, skipping
+DROP POLICY
+CREATE POLICY
+psql:supabase/migrations/20260722130000_create_v1_1_schema.sql:265: NOTICE:  policy "nutrition_settings_update_own" for relation "public.nutrition_settings" does not exist, skipping
+DROP POLICY
+CREATE POLICY
+psql:supabase/migrations/20260722130000_create_v1_1_schema.sql:271: NOTICE:  policy "nutrition_settings_delete_own" for relation "public.nutrition_settings" does not exist, skipping
+DROP POLICY
+CREATE POLICY
+psql:supabase/migrations/20260722130000_create_v1_1_schema.sql:276: NOTICE:  policy "health_snapshots_select_own" for relation "public.health_snapshots" does not exist, skipping
+DROP POLICY
+CREATE POLICY
+psql:supabase/migrations/20260722130000_create_v1_1_schema.sql:281: NOTICE:  policy "health_snapshots_insert_own" for relation "public.health_snapshots" does not exist, skipping
+DROP POLICY
+CREATE POLICY
+psql:supabase/migrations/20260722130000_create_v1_1_schema.sql:286: NOTICE:  policy "health_snapshots_update_own" for relation "public.health_snapshots" does not exist, skipping
+DROP POLICY
+CREATE POLICY
+psql:supabase/migrations/20260722130000_create_v1_1_schema.sql:292: NOTICE:  policy "health_snapshots_delete_own" for relation "public.health_snapshots" does not exist, skipping
+DROP POLICY
+CREATE POLICY
+psql:supabase/migrations/20260722130000_create_v1_1_schema.sql:297: NOTICE:  policy "app_settings_select_own" for relation "public.app_settings" does not exist, skipping
+DROP POLICY
+CREATE POLICY
+psql:supabase/migrations/20260722130000_create_v1_1_schema.sql:302: NOTICE:  policy "app_settings_insert_own" for relation "public.app_settings" does not exist, skipping
+DROP POLICY
+CREATE POLICY
+psql:supabase/migrations/20260722130000_create_v1_1_schema.sql:307: NOTICE:  policy "app_settings_update_own" for relation "public.app_settings" does not exist, skipping
+DROP POLICY
+CREATE POLICY
+psql:supabase/migrations/20260722130000_create_v1_1_schema.sql:313: NOTICE:  policy "app_settings_delete_own" for relation "public.app_settings" does not exist, skipping
+DROP POLICY
+CREATE POLICY
+psql:supabase/migrations/20260722130000_create_v1_1_schema.sql:318: NOTICE:  policy "food_entries_select_own" for relation "public.food_entries" does not exist, skipping
+DROP POLICY
+CREATE POLICY
+psql:supabase/migrations/20260722130000_create_v1_1_schema.sql:323: NOTICE:  policy "food_entries_insert_own" for relation "public.food_entries" does not exist, skipping
+DROP POLICY
+CREATE POLICY
+psql:supabase/migrations/20260722130000_create_v1_1_schema.sql:328: NOTICE:  policy "food_entries_update_own" for relation "public.food_entries" does not exist, skipping
+DROP POLICY
+CREATE POLICY
+psql:supabase/migrations/20260722130000_create_v1_1_schema.sql:334: NOTICE:  policy "food_entries_delete_own" for relation "public.food_entries" does not exist, skipping
+DROP POLICY
+CREATE POLICY
+psql:supabase/migrations/20260722130000_create_v1_1_schema.sql:339: NOTICE:  policy "exercise_entries_select_own" for relation "public.exercise_entries" does not exist, skipping
+DROP POLICY
+CREATE POLICY
+psql:supabase/migrations/20260722130000_create_v1_1_schema.sql:344: NOTICE:  policy "exercise_entries_insert_own" for relation "public.exercise_entries" does not exist, skipping
+DROP POLICY
+CREATE POLICY
+psql:supabase/migrations/20260722130000_create_v1_1_schema.sql:349: NOTICE:  policy "exercise_entries_update_own" for relation "public.exercise_entries" does not exist, skipping
+DROP POLICY
+CREATE POLICY
+psql:supabase/migrations/20260722130000_create_v1_1_schema.sql:355: NOTICE:  policy "exercise_entries_delete_own" for relation "public.exercise_entries" does not exist, skipping
+DROP POLICY
+CREATE POLICY
+psql:supabase/migrations/20260722130000_create_v1_1_schema.sql:360: NOTICE:  policy "weight_entries_select_own" for relation "public.weight_entries" does not exist, skipping
+DROP POLICY
+CREATE POLICY
+psql:supabase/migrations/20260722130000_create_v1_1_schema.sql:365: NOTICE:  policy "weight_entries_insert_own" for relation "public.weight_entries" does not exist, skipping
+DROP POLICY
+CREATE POLICY
+psql:supabase/migrations/20260722130000_create_v1_1_schema.sql:370: NOTICE:  policy "weight_entries_update_own" for relation "public.weight_entries" does not exist, skipping
+DROP POLICY
+CREATE POLICY
+psql:supabase/migrations/20260722130000_create_v1_1_schema.sql:376: NOTICE:  policy "weight_entries_delete_own" for relation "public.weight_entries" does not exist, skipping
+DROP POLICY
+CREATE POLICY
+apply supabase/migrations/20260723120000_add_food_master_public_v1_1.sql
+BEGIN
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE TABLE
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE TABLE
+CREATE INDEX
+CREATE INDEX
+CREATE TABLE
+CREATE INDEX
+CREATE INDEX
+CREATE TABLE
+CREATE INDEX
+CREATE INDEX
+CREATE TABLE
+CREATE TABLE
+CREATE INDEX
+CREATE INDEX
+CREATE TABLE
+CREATE INDEX
+CREATE TABLE
+CREATE INDEX
+CREATE FUNCTION
+CREATE FUNCTION
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+CREATE FUNCTION
+CREATE TRIGGER
+CREATE FUNCTION
+CREATE TRIGGER
+CREATE FUNCTION
+CREATE TRIGGER
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+REVOKE
+GRANT
+CREATE FUNCTION
+CREATE TRIGGER
+CREATE FUNCTION
+psql:supabase/migrations/20260723120000_add_food_master_public_v1_1.sql:747: NOTICE:  trigger "sync_saved_foods_report_count" for relation "public.food_reports" does not exist, skipping
+DROP TRIGGER
+CREATE TRIGGER
+CREATE FUNCTION
+CREATE TRIGGER
+CREATE FUNCTION
+CREATE TRIGGER
+CREATE TRIGGER
+CREATE TRIGGER
+CREATE TRIGGER
+CREATE TRIGGER
+CREATE TRIGGER
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+REVOKE
+CREATE POLICY
+CREATE POLICY
+CREATE POLICY
+CREATE POLICY
+CREATE POLICY
+CREATE POLICY
+CREATE POLICY
+CREATE POLICY
+CREATE POLICY
+CREATE POLICY
+CREATE POLICY
+CREATE POLICY
+CREATE POLICY
+CREATE POLICY
+CREATE POLICY
+CREATE POLICY
+CREATE POLICY
+CREATE POLICY
+CREATE POLICY
+CREATE POLICY
+CREATE POLICY
+REVOKE
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+COMMIT
+apply supabase/migrations/20260727120000_add_saved_foods_version.sql
+BEGIN
+ALTER TABLE
+COMMENT
+COMMIT
+apply supabase/migrations/20260728120000_add_workout_templates_v1.sql
+CREATE TABLE
+CREATE INDEX
+CREATE TABLE
+CREATE INDEX
+ALTER TABLE
+ALTER TABLE
+psql:supabase/migrations/20260728120000_add_workout_templates_v1.sql:52: NOTICE:  policy "workout_templates_own" for relation "public.workout_templates" does not exist, skipping
+DROP POLICY
+CREATE POLICY
+psql:supabase/migrations/20260728120000_add_workout_templates_v1.sql:58: NOTICE:  policy "workout_template_items_own" for relation "public.workout_template_items" does not exist, skipping
+DROP POLICY
+CREATE POLICY
+REVOKE
+REVOKE
+GRANT
+GRANT
+apply supabase/migrations/20260729120000_add_saved_foods_serving_unit_label.sql
+BEGIN
+ALTER TABLE
+COMMENT
+COMMIT
+apply supabase/migrations/20260801120000_create_alcohol_entries.sql
+CREATE TABLE
+CREATE INDEX
+CREATE INDEX
+psql:supabase/migrations/20260801120000_create_alcohol_entries.sql:24: NOTICE:  trigger "set_alcohol_entries_updated_at" for relation "public.alcohol_entries" does not exist, skipping
+DROP TRIGGER
+CREATE TRIGGER
+ALTER TABLE
+psql:supabase/migrations/20260801120000_create_alcohol_entries.sql:31: NOTICE:  policy "alcohol_entries_select_own" for relation "public.alcohol_entries" does not exist, skipping
+DROP POLICY
+CREATE POLICY
+psql:supabase/migrations/20260801120000_create_alcohol_entries.sql:36: NOTICE:  policy "alcohol_entries_insert_own" for relation "public.alcohol_entries" does not exist, skipping
+DROP POLICY
+CREATE POLICY
+psql:supabase/migrations/20260801120000_create_alcohol_entries.sql:41: NOTICE:  policy "alcohol_entries_update_own" for relation "public.alcohol_entries" does not exist, skipping
+DROP POLICY
+CREATE POLICY
+psql:supabase/migrations/20260801120000_create_alcohol_entries.sql:47: NOTICE:  policy "alcohol_entries_delete_own" for relation "public.alcohol_entries" does not exist, skipping
+DROP POLICY
+CREATE POLICY
+GRANT
+apply supabase/migrations/20260801180000_add_exercise_entry_calculation_columns.sql
+ALTER TABLE
+CREATE INDEX
+CREATE INDEX
+apply supabase/migrations/20260801200000_tighten_public_grants_v1.sql
+BEGIN
+CREATE FUNCTION
+DO
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+REVOKE
+REVOKE
+GRANT
+GRANT
+REVOKE
+REVOKE
+GRANT
+GRANT
+REVOKE
+REVOKE
+DO
+GRANT
+GRANT
+GRANT
+GRANT
+ALTER DEFAULT PRIVILEGES
+ALTER DEFAULT PRIVILEGES
+ALTER DEFAULT PRIVILEGES
+ALTER DEFAULT PRIVILEGES
+ALTER DEFAULT PRIVILEGES
+ALTER DEFAULT PRIVILEGES
+ALTER DEFAULT PRIVILEGES
+ALTER DEFAULT PRIVILEGES
+DO
+COMMIT
+apply supabase/migrations/20260802120000_add_goal_pace_to_goals.sql
+ALTER TABLE
+psql:supabase/migrations/20260802120000_add_goal_pace_to_goals.sql:8: NOTICE:  constraint "goals_goal_pace_check" of relation "goals" does not exist, skipping
+ALTER TABLE
+ALTER TABLE
+COMMENT
+apply supabase/migrations/20260920120000_delete_own_account_keep_public_foods.sql
+BEGIN
+ALTER TABLE
+CREATE FUNCTION
+REVOKE
+REVOKE
+REVOKE
+GRANT
+COMMIT
+apply supabase/migrations/20260927120000_reject_banned_public_food_names.sql
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+REVOKE
+REVOKE
+REVOKE
+REVOKE
+REVOKE
+REVOKE
+REVOKE
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+CREATE FUNCTION
+CREATE FUNCTION
+apply supabase/migrations/20260927150000_protect_owner_deleted_and_revoke_sessions.sql
+BEGIN
+ALTER TABLE
+COMMENT
+CREATE FUNCTION
+REVOKE
+REVOKE
+REVOKE
+GRANT
+REVOKE
+REVOKE
+REVOKE
+REVOKE
+GRANT
+GRANT
+CREATE FUNCTION
+psql:supabase/migrations/20260927150000_protect_owner_deleted_and_revoke_sessions.sql:212: NOTICE:  trigger "saved_foods_reject_owner_deleted_change" for relation "public.saved_foods" does not exist, skipping
+DROP TRIGGER
+CREATE TRIGGER
+COMMIT
+CREATE SCHEMA
+GRANT
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+GRANT
+DO
+DO
+DO
+sql smoke passed

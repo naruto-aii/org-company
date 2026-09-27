@@ -1,0 +1,895 @@
+=== lib/bootstrap/native_bootstrap.dart
+@@ -27,6 +27,7 @@ import '../repositories/supabase/supabase_workout_template_repository.dart';
+ import '../repositories/user_repository.dart';
+ import '../repositories/supabase/supabase_blocked_food_creator_repository.dart';
+ import '../repositories/storekit_subscription_repository.dart';
++import '../repositories/supabase_subscription_event_reporter.dart';
+ import '../repositories/supabase_authentication_repository.dart';
+ import '../repositories/weight_repository.dart';
+ import '../repositories/local_subscription_usage_store.dart';
+@@ -133,6 +134,9 @@ Future<void> bootstrapApp() async {
+     alcoholRepository: alcoholRepository,
+     weightRepository: weightRepository,
+     savedFoodRepository: foodMasterRepositories.savedFoods,
++    subscriptionEventReporter: SupabaseConfig.isConfigured
++        ? SupabaseSubscriptionEventReporter()
++        : null,
+     foodRatingRepository: foodMasterRepositories.foodRatings,
+     foodReportRepository: foodMasterRepositories.foodReports,
+     blockedCreatorRepository: foodMasterRepositories.blockedCreators,
+=== lib/bootstrap/web_bootstrap.dart
+@@ -34,6 +34,7 @@ import '../repositories/supabase/supabase_blocked_food_creator_repository.dart';
+ import '../repositories/supabase/supabase_food_rating_repository.dart';
+ import '../repositories/supabase/supabase_food_report_repository.dart';
+ import '../repositories/supabase_authentication_repository.dart';
++import '../repositories/supabase_subscription_event_reporter.dart';
+ import '../platform/web/resilient_auth_local_storage.dart';
+ import '../services/open_food_facts_service.dart';
+ import '../state/app_controller.dart';
+@@ -212,6 +213,9 @@ Future<void> bootstrapWebApp() async {
+       subscriptionUsageStore: LocalSubscriptionUsageStore(
+         preferences: preferences,
+       ),
++      subscriptionEventReporter: SupabaseConfig.isConfigured
++          ? SupabaseSubscriptionEventReporter()
++          : null,
+     );
+ 
+     if (kDebugMode) {
+=== lib/config/subscription_catalog.dart
+@@ -6,14 +6,11 @@ class SubscriptionCatalog {
+   static const monthlyProductId = 'calonavi_plus_monthly';
+   static const yearlyProductId = 'calonavi_plus_yearly';
+ 
+-  static const monthlyYen = 380;
+-  static const yearlyYen = 4180;
+-
+   static const publicFoodSearchesPerDay = 5;
+   static const mealTemplateLimit = 3;
+   static const workoutTemplateLimit = 3;
+ 
+-  static const monthlyLabel = '月額 380円';
+-  static const yearlyLabel = '年額 4,180円';
+-  static const yearlySavingLabel = '1ヶ月分お得';
++  static bool isPlusProduct(String productId) {
++    return productId == monthlyProductId || productId == yearlyProductId;
++  }
+ }
+=== lib/constants/app_strings.dart
+@@ -61,8 +61,15 @@ class AppStrings {
+   static const plusFreeQuota = '無料枠: 公開食品検索 5回/日、食事テンプレート 3件、運動テンプレート 3件。';
+   static const plusRestore = '購入を復元';
+   static const plusPurchaseUnavailable = 'この画面では購入できません。iPhone のアプリから購入してください。';
+-  static const plusLegalNote =
+-      '価格は税込です。購入画面の表示が正です。定期購入の解約は App Store の設定から行います。';
++  static const plusAutoRenew = 'サブスクリプションは、解約するまで自動更新されます。';
++  static const plusCancelHow =
++      '解約は iPhone の「設定」> Apple ID >「サブスクリプション」から行えます。';
++  static const plusPriceLoading = '価格を読み込んでいます';
++  static const plusPriceUnavailable =
++      '価格を読み込めませんでした。価格が表示されるまで購入はできません。';
++  static const plusRetryPrices = '価格を再読み込み';
++  static const plusTermsLink = '利用規約';
++  static const plusPrivacyLink = 'プライバシーポリシー';
+   static const plusActive = '加入中';
+   static const plusInactive = '無料枠あり';
+ 
+=== lib/repositories/storekit_subscription_repository.dart
+@@ -1,26 +1,53 @@
+ import 'dart:async';
+ 
++import 'package:flutter/foundation.dart';
+ import 'package:in_app_purchase/in_app_purchase.dart';
++import 'package:in_app_purchase_storekit/in_app_purchase_storekit.dart';
++import 'package:in_app_purchase_storekit/store_kit_2_wrappers.dart';
+ import 'package:shared_preferences/shared_preferences.dart';
+ 
+ import '../config/subscription_catalog.dart';
++import '../services/subscription_entitlement.dart';
++import '../services/subscription_offer.dart';
+ import 'subscription_exceptions.dart';
+ import 'subscription_repository.dart';
+ 
++class EntitlementLoad {
++  const EntitlementLoad({required this.records, required this.authoritative});
++
++  final List<SubscriptionEntitlementRecord> records;
++
++  /// True when the store answered. A failure must not wipe a still-valid expiry.
++  final bool authoritative;
++}
++
+ /// App Store の自動更新サブスクリプション。
+ class StoreKitSubscriptionRepository extends SubscriptionRepository {
+   StoreKitSubscriptionRepository({
+     InAppPurchase? store,
+     SharedPreferences? preferences,
+-  }) : _store = store ?? InAppPurchase.instance,
+-       _preferences = preferences;
++    Stream<List<PurchaseDetails>>? purchaseUpdates,
++    Future<EntitlementLoad> Function()? loadEntitlements,
++    DateTime Function()? clock,
++  }) : _store = store,
++       _preferences = preferences,
++       _purchaseUpdates = purchaseUpdates,
++       _loadEntitlements = loadEntitlements,
++       _clock = clock ?? DateTime.now;
+ 
+-  static const _plusKey = 'calonavi_plus_active';
++  static const expiryKey = 'calonavi_plus_expires_at_ms';
++  static const legacyPlusKey = 'calonavi_plus_active';
+ 
+-  final InAppPurchase _store;
++  final InAppPurchase? _store;
+   final SharedPreferences? _preferences;
++  final Stream<List<PurchaseDetails>>? _purchaseUpdates;
++  final Future<EntitlementLoad> Function()? _loadEntitlements;
++  final DateTime Function() _clock;
++
+   final StreamController<bool> _plusController =
+       StreamController<bool>.broadcast();
++  final SubscriptionEntitlementState _entitlement =
++      SubscriptionEntitlementState();
+   StreamSubscription<List<PurchaseDetails>>? _purchaseSubscription;
+   bool _plus = false;
+ 
+@@ -31,17 +58,78 @@ class StoreKitSubscriptionRepository extends SubscriptionRepository {
+   Stream<bool> get plusChanges => _plusController.stream;
+ 
+   Future<void> initialize() async {
+-    final prefs = _preferences ?? await SharedPreferences.getInstance();
+-    _plus = prefs.getBool(_plusKey) ?? false;
+-    _purchaseSubscription ??= _store.purchaseStream.listen(_onPurchases);
++    final prefs = await _prefs();
++    await prefs.remove(legacyPlusKey);
++    final stored = prefs.getInt(expiryKey);
++    if (stored != null) {
++      _entitlement.replaceAll([
++        SubscriptionEntitlementRecord(
++          productId: SubscriptionCatalog.monthlyProductId,
++          expiresAt: DateTime.fromMillisecondsSinceEpoch(stored),
++        ),
++      ]);
++    }
++    _plus = _entitlement.isActive(_clock());
++    _purchaseSubscription ??= _updates.listen(_onPurchases);
+     try {
+-      await restore();
++      await _refreshEntitlement();
+     } catch (_) {}
+   }
+ 
++  Stream<List<PurchaseDetails>> get _updates {
++    final updates = _purchaseUpdates;
++    if (updates != null) {
++      return updates;
++    }
++    return (_store ?? InAppPurchase.instance).purchaseStream;
++  }
++
++  InAppPurchase? get _purchases {
++    if (_store != null) {
++      return _store;
++    }
++    if (_purchaseUpdates != null) {
++      return null;
++    }
++    return InAppPurchase.instance;
++  }
++
++  @override
++  Future<SubscriptionOfferings> loadOfferings() async {
++    final store = _purchases ?? InAppPurchase.instance;
++    try {
++      final available = await store.isAvailable();
++      if (!available) {
++        return SubscriptionOfferings.failed;
++      }
++      final response = await store.queryProductDetails({
++        SubscriptionCatalog.monthlyProductId,
++        SubscriptionCatalog.yearlyProductId,
++      });
++      if (response.error != null) {
++        return SubscriptionOfferings.failed;
++      }
++      return SubscriptionOfferings(
++        monthly: _offerFor(
++          response.productDetails,
++          SubscriptionCatalog.monthlyProductId,
++        ),
++        yearly: _offerFor(
++          response.productDetails,
++          SubscriptionCatalog.yearlyProductId,
++        ),
++        loadFailed: false,
++      );
++    } catch (_) {
++      return SubscriptionOfferings.failed;
++    }
++  }
++
+   @override
+   Future<void> restore() async {
+-    await _store.restorePurchases();
++    final store = _purchases ?? InAppPurchase.instance;
++    await store.restorePurchases();
++    await _refreshEntitlement();
+   }
+ 
+   @override
+@@ -55,11 +143,12 @@ class StoreKitSubscriptionRepository extends SubscriptionRepository {
+   }
+ 
+   Future<void> _buy(String productId) async {
+-    final available = await _store.isAvailable();
++    final store = _purchases ?? InAppPurchase.instance;
++    final available = await store.isAvailable();
+     if (!available) {
+       throw SubscriptionPurchaseUnavailableException();
+     }
+-    final response = await _store.queryProductDetails({
++    final response = await store.queryProductDetails({
+       SubscriptionCatalog.monthlyProductId,
+       SubscriptionCatalog.yearlyProductId,
+     });
+@@ -73,12 +162,12 @@ class StoreKitSubscriptionRepository extends SubscriptionRepository {
+         break;
+       }
+     }
+-    if (product == null) {
++    if (product == null || product.price.trim().isEmpty) {
+       throw SubscriptionPurchaseFailedException(
+         '購入商品が見つかりません。App Store Connect で商品を作成してください。',
+       );
+     }
+-    final launched = await _store.buyNonConsumable(
++    final launched = await store.buyNonConsumable(
+       purchaseParam: PurchaseParam(productDetails: product),
+     );
+     if (!launched) {
+@@ -87,31 +176,122 @@ class StoreKitSubscriptionRepository extends SubscriptionRepository {
+   }
+ 
+   Future<void> _onPurchases(List<PurchaseDetails> purchases) async {
++    final store = _purchases;
+     for (final purchase in purchases) {
+-      final isPlusProduct =
+-          purchase.productID == SubscriptionCatalog.monthlyProductId ||
+-          purchase.productID == SubscriptionCatalog.yearlyProductId;
+-      if (isPlusProduct &&
+-          (purchase.status == PurchaseStatus.purchased ||
+-              purchase.status == PurchaseStatus.restored)) {
+-        await _setPlus(true);
++      if (purchase.status == PurchaseStatus.purchased ||
++          purchase.status == PurchaseStatus.restored) {
++        _entitlement.apply(
++          SubscriptionEntitlementRecord(
++            productId: purchase.productID,
++            expiresAt: _expiryOf(purchase),
++          ),
++        );
+       }
+-      if (purchase.pendingCompletePurchase) {
+-        await _store.completePurchase(purchase);
++      if (purchase.pendingCompletePurchase && store != null) {
++        await store.completePurchase(purchase);
+       }
+-      if (purchase.status == PurchaseStatus.error &&
+-          purchase.error != null &&
+-          purchase.error!.message.isNotEmpty) {
+-        // 購入失敗は画面側のタイムアウトやキャンセルと別に、ストアが通知する。
++    }
++    await _persist();
++  }
++
++  Future<void> _refreshEntitlement() async {
++    final load = _loadEntitlements ?? _loadStoreEntitlements;
++    final result = await load();
++    if (!result.authoritative) {
++      _plus = _entitlement.isActive(_clock());
++      return;
++    }
++    _entitlement.replaceAll(result.records);
++    await _persist();
++  }
++
++  Future<EntitlementLoad> _loadStoreEntitlements() async {
++    if (kIsWeb ||
++        (defaultTargetPlatform != TargetPlatform.iOS &&
++            defaultTargetPlatform != TargetPlatform.macOS)) {
++      return const EntitlementLoad(records: [], authoritative: false);
++    }
++    try {
++      final transactions = await SK2Transaction.transactions();
++      return EntitlementLoad(
++        records: [
++          for (final transaction in transactions)
++            SubscriptionEntitlementRecord(
++              productId: transaction.productId,
++              expiresAt: parseStoreExpiryMillis(transaction.expirationDate),
++            ),
++        ],
++        authoritative: true,
++      );
++    } catch (_) {
++      return const EntitlementLoad(records: [], authoritative: false);
++    }
++  }
++
++  SubscriptionProductOffer? _offerFor(
++    List<ProductDetails> products,
++    String productId,
++  ) {
++    for (final product in products) {
++      if (product.id != productId || product.price.trim().isEmpty) {
++        continue;
+       }
++      return SubscriptionProductOffer(
++        productId: product.id,
++        period: periodForProduct(
++          productId: product.id,
++          storePeriod: _storePeriod(product),
++        ),
++        localizedPrice: product.price,
++      );
++    }
++    return null;
++  }
++
++  PlusBillingPeriod? _storePeriod(ProductDetails product) {
++    if (product is! AppStoreProduct2Details) {
++      return null;
++    }
++    final period = product.sk2Product.subscription?.subscriptionPeriod;
++    if (period == null) {
++      return null;
++    }
++    return switch (period.unit) {
++      SK2SubscriptionPeriodUnit.month when period.value == 1 =>
++        PlusBillingPeriod.month,
++      SK2SubscriptionPeriodUnit.year when period.value == 1 =>
++        PlusBillingPeriod.year,
++      _ => PlusBillingPeriod.other,
++    };
++  }
++
++  DateTime? _expiryOf(PurchaseDetails purchase) {
++    if (purchase is SK2PurchaseDetails) {
++      return parseStoreExpiryMillis(purchase.expirationDate);
++    }
++    return null;
++  }
++
++  Future<void> _persist() async {
++    final expiry = _entitlement.latestExpiry;
++    final prefs = await _prefs();
++    if (expiry == null) {
++      await prefs.remove(expiryKey);
++    } else {
++      await prefs.setInt(expiryKey, expiry.millisecondsSinceEpoch);
++    }
++    final active = _entitlement.isActive(_clock());
++    if (active == _plus) {
++      return;
++    }
++    _plus = active;
++    if (!_plusController.isClosed) {
++      _plusController.add(active);
+     }
+   }
+ 
+-  Future<void> _setPlus(bool value) async {
+-    _plus = value;
+-    final prefs = _preferences ?? await SharedPreferences.getInstance();
+-    await prefs.setBool(_plusKey, value);
+-    _plusController.add(value);
++  Future<SharedPreferences> _prefs() async {
++    return _preferences ?? await SharedPreferences.getInstance();
+   }
+ 
+   Future<void> dispose() async {
+=== lib/repositories/subscription_repository.dart
+@@ -1,9 +1,14 @@
++import '../services/subscription_offer.dart';
++
+ /// カロナビ+ の加入状態と購入。
+ abstract class SubscriptionRepository {
+   bool get isPlusActive;
+ 
+   Stream<bool> get plusChanges;
+ 
++  /// Store prices. Callers must not invent a price when this fails.
++  Future<SubscriptionOfferings> loadOfferings();
++
+   Future<void> restore();
+ 
+   Future<void> purchaseMonthly();
+=== lib/repositories/supabase_subscription_event_reporter.dart
+@@ -0,0 +1,14 @@
++import 'package:supabase_flutter/supabase_flutter.dart';
++
++import '../services/subscription_event_reporter.dart';
++
++class SupabaseSubscriptionEventReporter
++    extends InsertingSubscriptionEventReporter {
++  SupabaseSubscriptionEventReporter({SupabaseClient? client})
++    : super(
++        insert: (row) async {
++          final supabase = client ?? Supabase.instance.client;
++          await supabase.from('subscription_events').insert(row);
++        },
++      );
++}
+=== lib/repositories/unavailable_subscription_repository.dart
+@@ -1,3 +1,4 @@
++import '../services/subscription_offer.dart';
+ import 'subscription_exceptions.dart';
+ import 'subscription_repository.dart';
+ 
+@@ -9,6 +10,11 @@ class UnavailableSubscriptionRepository extends SubscriptionRepository {
+   @override
+   Stream<bool> get plusChanges => const Stream.empty();
+ 
++  @override
++  Future<SubscriptionOfferings> loadOfferings() async {
++    return SubscriptionOfferings.failed;
++  }
++
+   @override
+   Future<void> restore() async {}
+ 
+=== lib/screens/subscription/calonavi_plus_screen.dart
+@@ -1,9 +1,11 @@
+ import 'package:flutter/material.dart';
+ 
+-import '../../config/subscription_catalog.dart';
+ import '../../constants/app_strings.dart';
+ import '../../repositories/subscription_exceptions.dart';
+ import '../../repositories/subscription_repository.dart';
++import '../../screens/legal/legal_document.dart';
++import '../../screens/legal/legal_document_screen.dart';
++import '../../services/subscription_offer.dart';
+ import '../../state/app_controller.dart';
+ import '../../theme/app_colors.dart';
+ import '../../theme/app_spacing.dart';
+@@ -51,6 +53,33 @@ class CalonaviPlusScreen extends StatefulWidget {
+ 
+ class _CalonaviPlusScreenState extends State<CalonaviPlusScreen> {
+   bool _busy = false;
++  bool _loadingPrices = true;
++  SubscriptionOfferings? _offerings;
++
++  @override
++  void initState() {
++    super.initState();
++    _loadPrices(showLoading: false);
++  }
++
++  Future<void> _loadPrices({bool showLoading = true}) async {
++    if (showLoading && mounted) {
++      setState(() => _loadingPrices = true);
++    }
++    SubscriptionOfferings offerings;
++    try {
++      offerings = await widget.repository.loadOfferings();
++    } catch (_) {
++      offerings = SubscriptionOfferings.failed;
++    }
++    if (!mounted) {
++      return;
++    }
++    setState(() {
++      _offerings = offerings;
++      _loadingPrices = false;
++    });
++  }
+ 
+   Future<void> _run(Future<void> Function() action) async {
+     setState(() => _busy = true);
+@@ -86,6 +115,9 @@ class _CalonaviPlusScreenState extends State<CalonaviPlusScreen> {
+   @override
+   Widget build(BuildContext context) {
+     final body = Theme.of(context).textTheme.bodyMedium;
++    final offerings = _offerings;
++    final monthly = offerings?.monthly;
++    final yearly = offerings?.yearly;
+ 
+     return Scaffold(
+       appBar: AppBar(
+@@ -119,32 +151,69 @@ class _CalonaviPlusScreenState extends State<CalonaviPlusScreen> {
+                 style: body?.copyWith(color: AppColors.secondaryText),
+               ),
+               const SizedBox(height: AppSpacing.lg),
+-              PrimaryButton(
+-                label: '${SubscriptionCatalog.monthlyLabel}で続ける',
+-                loading: _busy,
+-                onPressed: _busy
+-                    ? null
+-                    : () => _run(widget.repository.purchaseMonthly),
+-              ),
+-              SecondaryButton(
+-                label:
+-                    '${SubscriptionCatalog.yearlyLabel}（${SubscriptionCatalog.yearlySavingLabel}）',
+-                onPressed: _busy
+-                    ? null
+-                    : () => _run(widget.repository.purchaseYearly),
+-              ),
++              if (_loadingPrices)
++                const Padding(
++                  padding: EdgeInsets.symmetric(vertical: AppSpacing.md),
++                  child: Column(
++                    children: [
++                      Center(child: CircularProgressIndicator()),
++                      SizedBox(height: AppSpacing.sm),
++                      Text(AppStrings.plusPriceLoading),
++                    ],
++                  ),
++                )
++              else ...[
++                if (monthly != null && monthly.canPurchase)
++                  PrimaryButton(
++                    label: monthly.buttonLabel,
++                    loading: _busy,
++                    onPressed: _busy
++                        ? null
++                        : () => _run(widget.repository.purchaseMonthly),
++                  ),
++                if (yearly != null && yearly.canPurchase)
++                  SecondaryButton(
++                    label: yearly.buttonLabel,
++                    onPressed: _busy
++                        ? null
++                        : () => _run(widget.repository.purchaseYearly),
++                  ),
++                if (monthly?.canPurchase != true && yearly?.canPurchase != true)
++                  Text(AppStrings.plusPriceUnavailable, style: body),
++                if (monthly?.canPurchase != true && yearly?.canPurchase != true)
++                  TextButton(
++                    onPressed: _busy ? null : _loadPrices,
++                    child: const Text(AppStrings.plusRetryPrices),
++                  ),
++              ],
+               const SizedBox(height: AppSpacing.sm),
+               TextButton(
+-                onPressed: _busy
+-                    ? null
+-                    : () => _run(widget.repository.restore),
++                onPressed: _busy ? null : () => _run(widget.repository.restore),
+                 child: const Text(AppStrings.plusRestore),
+               ),
+               const SizedBox(height: AppSpacing.md),
++              Text(AppStrings.plusAutoRenew, style: body),
++              const SizedBox(height: AppSpacing.sm),
+               Text(
+-                AppStrings.plusLegalNote,
++                AppStrings.plusCancelHow,
+                 style: Theme.of(context).textTheme.bodySmall,
+               ),
++              const SizedBox(height: AppSpacing.sm),
++              Wrap(
++                spacing: AppSpacing.sm,
++                children: [
++                  TextButton(
++                    onPressed: () =>
++                        showLegalDocument(context, LegalDocument.terms),
++                    child: const Text(AppStrings.plusTermsLink),
++                  ),
++                  TextButton(
++                    onPressed: () =>
++                        showLegalDocument(context, LegalDocument.privacy),
++                    child: const Text(AppStrings.plusPrivacyLink),
++                  ),
++                ],
++              ),
+             ],
+           ),
+         ),
+=== lib/services/subscription_entitlement.dart
+@@ -0,0 +1,66 @@
++import '../config/subscription_catalog.dart';
++
++class SubscriptionEntitlementRecord {
++  const SubscriptionEntitlementRecord({
++    required this.productId,
++    required this.expiresAt,
++  });
++
++  final String productId;
++
++  /// Null when the store did not provide an expiry. That is not an active grant.
++  final DateTime? expiresAt;
++}
++
++/// Plus access follows the latest unexpired subscription, not a sticky flag.
++class SubscriptionEntitlementState {
++  SubscriptionEntitlementState([Map<String, DateTime>? initial])
++    : expiryByProduct = Map<String, DateTime>.of(initial ?? const {});
++
++  final Map<String, DateTime> expiryByProduct;
++
++  void apply(SubscriptionEntitlementRecord record) {
++    if (!SubscriptionCatalog.isPlusProduct(record.productId)) {
++      return;
++    }
++    final expiry = record.expiresAt;
++    if (expiry == null) {
++      expiryByProduct.remove(record.productId);
++      return;
++    }
++    expiryByProduct[record.productId] = expiry;
++  }
++
++  void replaceAll(Iterable<SubscriptionEntitlementRecord> records) {
++    expiryByProduct.clear();
++    for (final record in records) {
++      apply(record);
++    }
++  }
++
++  DateTime? get latestExpiry {
++    DateTime? best;
++    for (final expiry in expiryByProduct.values) {
++      if (best == null || expiry.isAfter(best)) {
++        best = expiry;
++      }
++    }
++    return best;
++  }
++
++  bool isActive(DateTime now) {
++    final expiry = latestExpiry;
++    return expiry != null && expiry.isAfter(now);
++  }
++}
++
++DateTime? parseStoreExpiryMillis(String? raw) {
++  if (raw == null || raw.isEmpty) {
++    return null;
++  }
++  final millis = int.tryParse(raw);
++  if (millis == null) {
++    return null;
++  }
++  return DateTime.fromMillisecondsSinceEpoch(millis);
++}
+=== lib/services/subscription_event_reporter.dart
+@@ -0,0 +1,70 @@
++/// Counts two product events. Each insert is user id, event type, and a
++/// server timestamp. No food names, health data, receipts, or free text.
++abstract class SubscriptionEventReporter {
++  const SubscriptionEventReporter();
++
++  Future<void> recordFreeLimitHit(String? userId);
++
++  Future<void> recordConvertedToPaid(String? userId);
++}
++
++class NoOpSubscriptionEventReporter extends SubscriptionEventReporter {
++  const NoOpSubscriptionEventReporter();
++
++  @override
++  Future<void> recordFreeLimitHit(String? userId) async {}
++
++  @override
++  Future<void> recordConvertedToPaid(String? userId) async {}
++}
++
++class SubscriptionEventTypes {
++  const SubscriptionEventTypes._();
++
++  static const freeLimitHit = 'free_limit_hit';
++  static const convertedToPaid = 'converted_to_paid';
++}
++
++/// Row written by the client. The database sets `created_at`.
++Map<String, String>? subscriptionEventInsert({
++  required String? userId,
++  required String eventType,
++}) {
++  final id = userId?.trim() ?? '';
++  if (id.isEmpty) {
++    return null;
++  }
++  if (eventType != SubscriptionEventTypes.freeLimitHit &&
++      eventType != SubscriptionEventTypes.convertedToPaid) {
++    return null;
++  }
++  return {'user_id': id, 'event_type': eventType};
++}
++
++class InsertingSubscriptionEventReporter extends SubscriptionEventReporter {
++  InsertingSubscriptionEventReporter({required this.insert});
++
++  final Future<void> Function(Map<String, String> row) insert;
++
++  @override
++  Future<void> recordFreeLimitHit(String? userId) {
++    return _record(userId, SubscriptionEventTypes.freeLimitHit);
++  }
++
++  @override
++  Future<void> recordConvertedToPaid(String? userId) {
++    return _record(userId, SubscriptionEventTypes.convertedToPaid);
++  }
++
++  Future<void> _record(String? userId, String eventType) async {
++    final row = subscriptionEventInsert(userId: userId, eventType: eventType);
++    if (row == null) {
++      return;
++    }
++    try {
++      await insert(row);
++    } catch (_) {
++      // A duplicate first-event row, or a missing table, must not block the app.
++    }
++  }
++}
+=== lib/services/subscription_offer.dart
+@@ -0,0 +1,63 @@
++import '../config/subscription_catalog.dart';
++
++enum PlusBillingPeriod { month, year, other }
++
++class SubscriptionProductOffer {
++  const SubscriptionProductOffer({
++    required this.productId,
++    required this.period,
++    required this.localizedPrice,
++  });
++
++  final String productId;
++  final PlusBillingPeriod period;
++
++  /// StoreKit localized price, for example `¥380` or `$2.99`.
++  final String localizedPrice;
++
++  bool get canPurchase => localizedPrice.trim().isNotEmpty;
++
++  String get buttonLabel => '${plusPeriodLabel(period)} $localizedPrice';
++}
++
++class SubscriptionOfferings {
++  const SubscriptionOfferings({
++    required this.monthly,
++    required this.yearly,
++    required this.loadFailed,
++  });
++
++  static const failed = SubscriptionOfferings(
++    monthly: null,
++    yearly: null,
++    loadFailed: true,
++  );
++
++  final SubscriptionProductOffer? monthly;
++  final SubscriptionProductOffer? yearly;
++  final bool loadFailed;
++}
++
++String plusPeriodLabel(PlusBillingPeriod period) {
++  return switch (period) {
++    PlusBillingPeriod.month => '月額',
++    PlusBillingPeriod.year => '年額',
++    PlusBillingPeriod.other => '定期購入',
++  };
++}
++
++PlusBillingPeriod periodForProduct({
++  required String productId,
++  PlusBillingPeriod? storePeriod,
++}) {
++  if (storePeriod != null && storePeriod != PlusBillingPeriod.other) {
++    return storePeriod;
++  }
++  if (productId == SubscriptionCatalog.monthlyProductId) {
++    return PlusBillingPeriod.month;
++  }
++  if (productId == SubscriptionCatalog.yearlyProductId) {
++    return PlusBillingPeriod.year;
++  }
++  return PlusBillingPeriod.other;
++}
+=== lib/state/app_controller.dart
+@@ -44,6 +44,7 @@ import '../repositories/local_subscription_usage_store.dart';
+ import '../repositories/subscription_exceptions.dart';
+ import '../repositories/subscription_repository.dart';
+ import '../repositories/unavailable_subscription_repository.dart';
++import '../services/subscription_event_reporter.dart';
+ import '../services/subscription_policy.dart';
+ import '../repositories/exceptions/food_master_exceptions.dart';
+ import '../repositories/contracts/blocked_food_creator_repository_base.dart';
+@@ -104,6 +105,7 @@ class AppController extends ChangeNotifier {
+     WorkoutTemplateRepositoryBase? workoutTemplateRepository,
+     SubscriptionRepository? subscriptionRepository,
+     LocalSubscriptionUsageStore? subscriptionUsageStore,
++    SubscriptionEventReporter? subscriptionEventReporter,
+   }) : _nutritionEngine = nutritionEngine ?? NutritionEngine(),
+        _healthRepository = healthRepository,
+        _authenticationRepository = authenticationRepository,
+@@ -126,6 +128,8 @@ class AppController extends ChangeNotifier {
+            subscriptionRepository ?? UnavailableSubscriptionRepository(),
+        _subscriptionUsageStore =
+            subscriptionUsageStore ?? LocalSubscriptionUsageStore(),
++       _subscriptionEventReporter =
++           subscriptionEventReporter ?? const NoOpSubscriptionEventReporter(),
+        _savedFoodSearchService = const SavedFoodSearchService(),
+        _savedFoodDuplicateService = const SavedFoodDuplicateService(),
+        _savedFoodEntryBuilder = const SavedFoodEntryBuilder(),
+@@ -158,6 +162,7 @@ class AppController extends ChangeNotifier {
+   final WorkoutTemplateRepositoryBase? _workoutTemplateRepository;
+   final SubscriptionRepository _subscriptionRepository;
+   final LocalSubscriptionUsageStore _subscriptionUsageStore;
++  final SubscriptionEventReporter _subscriptionEventReporter;
+   final SubscriptionPolicy _subscriptionPolicy;
+   final SavedFoodSearchService _savedFoodSearchService;
+   final SavedFoodDuplicateService _savedFoodDuplicateService;
+@@ -281,9 +286,15 @@ class AppController extends ChangeNotifier {
+     try {
+       await _subscriptionRepository.restore();
+     } catch (_) {}
+-    _subscriptionRepository.plusChanges.listen((_) {
++    _subscriptionRepository.plusChanges.listen((active) {
++      if (active) {
++        unawaited(_notePaidConversion());
++      }
+       notifyListeners();
+     });
++    if (_subscriptionRepository.isPlusActive) {
++      unawaited(_notePaidConversion());
++    }
+ 
+     _isInitializing = false;
+     notifyListeners();
+@@ -300,6 +311,9 @@ class AppController extends ChangeNotifier {
+     if (!_isSyncInProgress) {
+       await handleAuthenticatedSession();
+     }
++    if (_subscriptionRepository.isPlusActive) {
++      unawaited(_notePaidConversion());
++    }
+     notifyListeners();
+   }
+ 
+@@ -1523,6 +1537,7 @@ class AppController extends ChangeNotifier {
+     )) {
+       return;
+     }
++    await _noteFreeLimitHit();
+     throw SubscriptionLimitExceededException(
+       SubscriptionLimitKind.mealTemplate,
+     );
+@@ -1535,6 +1550,7 @@ class AppController extends ChangeNotifier {
+     )) {
+       return;
+     }
++    await _noteFreeLimitHit();
+     throw SubscriptionLimitExceededException(
+       SubscriptionLimitKind.workoutTemplate,
+     );
+@@ -1552,6 +1568,7 @@ class AppController extends ChangeNotifier {
+       isPlus: false,
+       usedToday: used,
+     )) {
++      await _noteFreeLimitHit();
+       throw SubscriptionLimitExceededException(
+         SubscriptionLimitKind.publicFoodSearch,
+       );
+@@ -1562,6 +1579,18 @@ class AppController extends ChangeNotifier {
+     );
+   }
+ 
++  Future<void> _noteFreeLimitHit() {
++    return _subscriptionEventReporter.recordFreeLimitHit(
++      _authenticationRepository?.currentUser?.id,
++    );
++  }
++
++  Future<void> _notePaidConversion() {
++    return _subscriptionEventReporter.recordConvertedToPaid(
++      _authenticationRepository?.currentUser?.id,
++    );
++  }
++
+   Future<List<PublicFoodSearchMatch>> searchPublicSavedFoods(
+     String query,
+   ) async {

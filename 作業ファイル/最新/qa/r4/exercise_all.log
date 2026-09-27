@@ -1,0 +1,484 @@
+=== h25
+apply 20260722130000_create_v1_1_schema.sql
+NOTICE:  trigger "set_profiles_updated_at" for relation "public.profiles" does not exist, skipping
+NOTICE:  trigger "set_goals_updated_at" for relation "public.goals" does not exist, skipping
+NOTICE:  trigger "set_nutrition_settings_updated_at" for relation "public.nutrition_settings" does not exist, skipping
+NOTICE:  trigger "set_health_snapshots_updated_at" for relation "public.health_snapshots" does not exist, skipping
+NOTICE:  trigger "set_app_settings_updated_at" for relation "public.app_settings" does not exist, skipping
+NOTICE:  trigger "set_food_entries_updated_at" for relation "public.food_entries" does not exist, skipping
+NOTICE:  trigger "set_exercise_entries_updated_at" for relation "public.exercise_entries" does not exist, skipping
+NOTICE:  trigger "set_weight_entries_updated_at" for relation "public.weight_entries" does not exist, skipping
+NOTICE:  policy "users_select_own" for relation "public.users" does not exist, skipping
+NOTICE:  policy "users_insert_own" for relation "public.users" does not exist, skipping
+NOTICE:  policy "users_update_own" for relation "public.users" does not exist, skipping
+NOTICE:  policy "users_delete_own" for relation "public.users" does not exist, skipping
+NOTICE:  policy "profiles_select_own" for relation "public.profiles" does not exist, skipping
+NOTICE:  policy "profiles_insert_own" for relation "public.profiles" does not exist, skipping
+NOTICE:  policy "profiles_update_own" for relation "public.profiles" does not exist, skipping
+NOTICE:  policy "profiles_delete_own" for relation "public.profiles" does not exist, skipping
+NOTICE:  policy "goals_select_own" for relation "public.goals" does not exist, skipping
+NOTICE:  policy "goals_insert_own" for relation "public.goals" does not exist, skipping
+NOTICE:  policy "goals_update_own" for relation "public.goals" does not exist, skipping
+NOTICE:  policy "goals_delete_own" for relation "public.goals" does not exist, skipping
+NOTICE:  policy "nutrition_settings_select_own" for relation "public.nutrition_settings" does not exist, skipping
+NOTICE:  policy "nutrition_settings_insert_own" for relation "public.nutrition_settings" does not exist, skipping
+NOTICE:  policy "nutrition_settings_update_own" for relation "public.nutrition_settings" does not exist, skipping
+NOTICE:  policy "nutrition_settings_delete_own" for relation "public.nutrition_settings" does not exist, skipping
+NOTICE:  policy "health_snapshots_select_own" for relation "public.health_snapshots" does not exist, skipping
+NOTICE:  policy "health_snapshots_insert_own" for relation "public.health_snapshots" does not exist, skipping
+NOTICE:  policy "health_snapshots_update_own" for relation "public.health_snapshots" does not exist, skipping
+NOTICE:  policy "health_snapshots_delete_own" for relation "public.health_snapshots" does not exist, skipping
+NOTICE:  policy "app_settings_select_own" for relation "public.app_settings" does not exist, skipping
+NOTICE:  policy "app_settings_insert_own" for relation "public.app_settings" does not exist, skipping
+NOTICE:  policy "app_settings_update_own" for relation "public.app_settings" does not exist, skipping
+NOTICE:  policy "app_settings_delete_own" for relation "public.app_settings" does not exist, skipping
+NOTICE:  policy "food_entries_select_own" for relation "public.food_entries" does not exist, skipping
+NOTICE:  policy "food_entries_insert_own" for relation "public.food_entries" does not exist, skipping
+NOTICE:  policy "food_entries_update_own" for relation "public.food_entries" does not exist, skipping
+NOTICE:  policy "food_entries_delete_own" for relation "public.food_entries" does not exist, skipping
+NOTICE:  policy "exercise_entries_select_own" for relation "public.exercise_entries" does not exist, skipping
+NOTICE:  policy "exercise_entries_insert_own" for relation "public.exercise_entries" does not exist, skipping
+NOTICE:  policy "exercise_entries_update_own" for relation "public.exercise_entries" does not exist, skipping
+NOTICE:  policy "exercise_entries_delete_own" for relation "public.exercise_entries" does not exist, skipping
+NOTICE:  policy "weight_entries_select_own" for relation "public.weight_entries" does not exist, skipping
+NOTICE:  policy "weight_entries_insert_own" for relation "public.weight_entries" does not exist, skipping
+NOTICE:  policy "weight_entries_update_own" for relation "public.weight_entries" does not exist, skipping
+NOTICE:  policy "weight_entries_delete_own" for relation "public.weight_entries" does not exist, skipping
+apply 20260723120000_add_food_master_public_v1_1.sql
+NOTICE:  trigger "sync_saved_foods_report_count" for relation "public.food_reports" does not exist, skipping
+apply 20260727120000_add_saved_foods_version.sql
+apply 20260728120000_add_workout_templates_v1.sql
+NOTICE:  policy "workout_templates_own" for relation "public.workout_templates" does not exist, skipping
+NOTICE:  policy "workout_template_items_own" for relation "public.workout_template_items" does not exist, skipping
+apply 20260729120000_add_saved_foods_serving_unit_label.sql
+apply 20260801120000_create_alcohol_entries.sql
+NOTICE:  trigger "set_alcohol_entries_updated_at" for relation "public.alcohol_entries" does not exist, skipping
+NOTICE:  policy "alcohol_entries_select_own" for relation "public.alcohol_entries" does not exist, skipping
+NOTICE:  policy "alcohol_entries_insert_own" for relation "public.alcohol_entries" does not exist, skipping
+NOTICE:  policy "alcohol_entries_update_own" for relation "public.alcohol_entries" does not exist, skipping
+NOTICE:  policy "alcohol_entries_delete_own" for relation "public.alcohol_entries" does not exist, skipping
+apply 20260801180000_add_exercise_entry_calculation_columns.sql
+apply 20260801200000_tighten_public_grants_v1.sql
+apply 20260802120000_add_goal_pace_to_goals.sql
+NOTICE:  constraint "goals_goal_pace_check" of relation "goals" does not exist, skipping
+apply 20260920120000_delete_own_account_keep_public_foods.sql
+apply 20260927150000_protect_owner_deleted_and_revoke_sessions.sql
+NOTICE:  trigger "saved_foods_reject_owner_deleted_change" for relation "public.saved_foods" does not exist, skipping
+NOTICE:  RESULT T1_save OK insert 3 private rows
+NOTICE:  RESULT T2_update OK update private
+NOTICE:  RESULT T3_publish OK publish 2 (ぶっかけうどん, エリンギソテー)
+NOTICE:  RESULT T3b_publish_banned NG publish of banned name succeeded
+NOTICE:  RESULT T4_edit_public OK ordinary rename ok
+NOTICE:  RESULT T4b_edit_public_banned NG banned rename accepted
+NOTICE:  RESULT T5_owner_deleted_client OK rejected: permission denied for table saved_foods
+NOTICE:  RESULT T6_report OK report inserted
+NOTICE:  RESULT T6b_report_by_A OK A report inserted
+NOTICE:  RESULT T7_subevents OK N/A (table absent)
+NOTICE:  RESULT T7b_vault OK N/A
+NOTICE:  RESULT T8_auth_delete_denied OK N/A (zero-arg era; client RPC by design)
+NOTICE:  RESULT T8b_email_fail NG function returned success; private=0 identities=2 sessions=0 email=a@test.local
+ after T8b: private=0 identities=2 sessions=0 users.email=NULL
+NOTICE:  RESULT T9_delete OK returned
+NOTICE:  RESULT T10_private_deleted OK 
+NOTICE:  RESULT T10_public_owner_deleted OK n_public=3
+NOTICE:  RESULT T10_report_by_B_kept OK 
+NOTICE:  RESULT T10_report_by_A_deleted OK 
+NOTICE:  RESULT T10_subevents_0 OK n=-1
+NOTICE:  RESULT T10_identities_0 OK 
+NOTICE:  RESULT T10_sessions_0 OK 
+NOTICE:  RESULT T10_refresh_0 OK 
+NOTICE:  RESULT T10_B_untouched OK 
+NOTICE:  RESULT T10_auth_email OK 
+NOTICE:  RESULT T10_users_email_null OK 
+NOTICE:  INFO vault token rows after delete_own_account (Edge Function deletes separately) = -1
+=== h26
+apply 20260722130000_create_v1_1_schema.sql
+NOTICE:  trigger "set_profiles_updated_at" for relation "public.profiles" does not exist, skipping
+NOTICE:  trigger "set_goals_updated_at" for relation "public.goals" does not exist, skipping
+NOTICE:  trigger "set_nutrition_settings_updated_at" for relation "public.nutrition_settings" does not exist, skipping
+NOTICE:  trigger "set_health_snapshots_updated_at" for relation "public.health_snapshots" does not exist, skipping
+NOTICE:  trigger "set_app_settings_updated_at" for relation "public.app_settings" does not exist, skipping
+NOTICE:  trigger "set_food_entries_updated_at" for relation "public.food_entries" does not exist, skipping
+NOTICE:  trigger "set_exercise_entries_updated_at" for relation "public.exercise_entries" does not exist, skipping
+NOTICE:  trigger "set_weight_entries_updated_at" for relation "public.weight_entries" does not exist, skipping
+NOTICE:  policy "users_select_own" for relation "public.users" does not exist, skipping
+NOTICE:  policy "users_insert_own" for relation "public.users" does not exist, skipping
+NOTICE:  policy "users_update_own" for relation "public.users" does not exist, skipping
+NOTICE:  policy "users_delete_own" for relation "public.users" does not exist, skipping
+NOTICE:  policy "profiles_select_own" for relation "public.profiles" does not exist, skipping
+NOTICE:  policy "profiles_insert_own" for relation "public.profiles" does not exist, skipping
+NOTICE:  policy "profiles_update_own" for relation "public.profiles" does not exist, skipping
+NOTICE:  policy "profiles_delete_own" for relation "public.profiles" does not exist, skipping
+NOTICE:  policy "goals_select_own" for relation "public.goals" does not exist, skipping
+NOTICE:  policy "goals_insert_own" for relation "public.goals" does not exist, skipping
+NOTICE:  policy "goals_update_own" for relation "public.goals" does not exist, skipping
+NOTICE:  policy "goals_delete_own" for relation "public.goals" does not exist, skipping
+NOTICE:  policy "nutrition_settings_select_own" for relation "public.nutrition_settings" does not exist, skipping
+NOTICE:  policy "nutrition_settings_insert_own" for relation "public.nutrition_settings" does not exist, skipping
+NOTICE:  policy "nutrition_settings_update_own" for relation "public.nutrition_settings" does not exist, skipping
+NOTICE:  policy "nutrition_settings_delete_own" for relation "public.nutrition_settings" does not exist, skipping
+NOTICE:  policy "health_snapshots_select_own" for relation "public.health_snapshots" does not exist, skipping
+NOTICE:  policy "health_snapshots_insert_own" for relation "public.health_snapshots" does not exist, skipping
+NOTICE:  policy "health_snapshots_update_own" for relation "public.health_snapshots" does not exist, skipping
+NOTICE:  policy "health_snapshots_delete_own" for relation "public.health_snapshots" does not exist, skipping
+NOTICE:  policy "app_settings_select_own" for relation "public.app_settings" does not exist, skipping
+NOTICE:  policy "app_settings_insert_own" for relation "public.app_settings" does not exist, skipping
+NOTICE:  policy "app_settings_update_own" for relation "public.app_settings" does not exist, skipping
+NOTICE:  policy "app_settings_delete_own" for relation "public.app_settings" does not exist, skipping
+NOTICE:  policy "food_entries_select_own" for relation "public.food_entries" does not exist, skipping
+NOTICE:  policy "food_entries_insert_own" for relation "public.food_entries" does not exist, skipping
+NOTICE:  policy "food_entries_update_own" for relation "public.food_entries" does not exist, skipping
+NOTICE:  policy "food_entries_delete_own" for relation "public.food_entries" does not exist, skipping
+NOTICE:  policy "exercise_entries_select_own" for relation "public.exercise_entries" does not exist, skipping
+NOTICE:  policy "exercise_entries_insert_own" for relation "public.exercise_entries" does not exist, skipping
+NOTICE:  policy "exercise_entries_update_own" for relation "public.exercise_entries" does not exist, skipping
+NOTICE:  policy "exercise_entries_delete_own" for relation "public.exercise_entries" does not exist, skipping
+NOTICE:  policy "weight_entries_select_own" for relation "public.weight_entries" does not exist, skipping
+NOTICE:  policy "weight_entries_insert_own" for relation "public.weight_entries" does not exist, skipping
+NOTICE:  policy "weight_entries_update_own" for relation "public.weight_entries" does not exist, skipping
+NOTICE:  policy "weight_entries_delete_own" for relation "public.weight_entries" does not exist, skipping
+apply 20260723120000_add_food_master_public_v1_1.sql
+NOTICE:  trigger "sync_saved_foods_report_count" for relation "public.food_reports" does not exist, skipping
+apply 20260727120000_add_saved_foods_version.sql
+apply 20260728120000_add_workout_templates_v1.sql
+NOTICE:  policy "workout_templates_own" for relation "public.workout_templates" does not exist, skipping
+NOTICE:  policy "workout_template_items_own" for relation "public.workout_template_items" does not exist, skipping
+apply 20260729120000_add_saved_foods_serving_unit_label.sql
+apply 20260801120000_create_alcohol_entries.sql
+NOTICE:  trigger "set_alcohol_entries_updated_at" for relation "public.alcohol_entries" does not exist, skipping
+NOTICE:  policy "alcohol_entries_select_own" for relation "public.alcohol_entries" does not exist, skipping
+NOTICE:  policy "alcohol_entries_insert_own" for relation "public.alcohol_entries" does not exist, skipping
+NOTICE:  policy "alcohol_entries_update_own" for relation "public.alcohol_entries" does not exist, skipping
+NOTICE:  policy "alcohol_entries_delete_own" for relation "public.alcohol_entries" does not exist, skipping
+apply 20260801180000_add_exercise_entry_calculation_columns.sql
+apply 20260801200000_tighten_public_grants_v1.sql
+apply 20260802120000_add_goal_pace_to_goals.sql
+NOTICE:  constraint "goals_goal_pace_check" of relation "goals" does not exist, skipping
+apply 20260920120000_delete_own_account_keep_public_foods.sql
+apply 20260927120000_reject_banned_public_food_names.sql
+apply 20260927150000_protect_owner_deleted_and_revoke_sessions.sql
+NOTICE:  trigger "saved_foods_reject_owner_deleted_change" for relation "public.saved_foods" does not exist, skipping
+NOTICE:  RESULT T1_save OK insert 3 private rows
+NOTICE:  RESULT T2_update OK update private
+NOTICE:  RESULT T3_publish OK publish 2 (ぶっかけうどん, エリンギソテー)
+NOTICE:  RESULT T3b_publish_banned OK rejected: public food name is not allowed
+NOTICE:  RESULT T4_edit_public OK ordinary rename ok
+NOTICE:  RESULT T4b_edit_public_banned OK rejected: public food name is not allowed
+NOTICE:  RESULT T5_owner_deleted_client OK rejected: permission denied for table saved_foods
+NOTICE:  RESULT T6_report OK report inserted
+NOTICE:  RESULT T6b_report_by_A OK A report inserted
+NOTICE:  RESULT T7_subevents OK N/A (table absent)
+NOTICE:  RESULT T7b_vault OK N/A
+NOTICE:  RESULT T8_auth_delete_denied OK N/A (zero-arg era; client RPC by design)
+NOTICE:  RESULT T8b_email_fail NG function returned success; private=0 identities=2 sessions=0 email=a@test.local
+ after T8b: private=0 identities=2 sessions=0 users.email=NULL
+NOTICE:  RESULT T9_delete OK returned
+NOTICE:  RESULT T10_private_deleted OK 
+NOTICE:  RESULT T10_public_owner_deleted OK n_public=2
+NOTICE:  RESULT T10_report_by_B_kept OK 
+NOTICE:  RESULT T10_report_by_A_deleted OK 
+NOTICE:  RESULT T10_subevents_0 OK n=-1
+NOTICE:  RESULT T10_identities_0 OK 
+NOTICE:  RESULT T10_sessions_0 OK 
+NOTICE:  RESULT T10_refresh_0 OK 
+NOTICE:  RESULT T10_B_untouched OK 
+NOTICE:  RESULT T10_auth_email OK 
+NOTICE:  RESULT T10_users_email_null OK 
+NOTICE:  INFO vault token rows after delete_own_account (Edge Function deletes separately) = -1
+=== h27
+apply 20260722130000_create_v1_1_schema.sql
+NOTICE:  trigger "set_profiles_updated_at" for relation "public.profiles" does not exist, skipping
+NOTICE:  trigger "set_goals_updated_at" for relation "public.goals" does not exist, skipping
+NOTICE:  trigger "set_nutrition_settings_updated_at" for relation "public.nutrition_settings" does not exist, skipping
+NOTICE:  trigger "set_health_snapshots_updated_at" for relation "public.health_snapshots" does not exist, skipping
+NOTICE:  trigger "set_app_settings_updated_at" for relation "public.app_settings" does not exist, skipping
+NOTICE:  trigger "set_food_entries_updated_at" for relation "public.food_entries" does not exist, skipping
+NOTICE:  trigger "set_exercise_entries_updated_at" for relation "public.exercise_entries" does not exist, skipping
+NOTICE:  trigger "set_weight_entries_updated_at" for relation "public.weight_entries" does not exist, skipping
+NOTICE:  policy "users_select_own" for relation "public.users" does not exist, skipping
+NOTICE:  policy "users_insert_own" for relation "public.users" does not exist, skipping
+NOTICE:  policy "users_update_own" for relation "public.users" does not exist, skipping
+NOTICE:  policy "users_delete_own" for relation "public.users" does not exist, skipping
+NOTICE:  policy "profiles_select_own" for relation "public.profiles" does not exist, skipping
+NOTICE:  policy "profiles_insert_own" for relation "public.profiles" does not exist, skipping
+NOTICE:  policy "profiles_update_own" for relation "public.profiles" does not exist, skipping
+NOTICE:  policy "profiles_delete_own" for relation "public.profiles" does not exist, skipping
+NOTICE:  policy "goals_select_own" for relation "public.goals" does not exist, skipping
+NOTICE:  policy "goals_insert_own" for relation "public.goals" does not exist, skipping
+NOTICE:  policy "goals_update_own" for relation "public.goals" does not exist, skipping
+NOTICE:  policy "goals_delete_own" for relation "public.goals" does not exist, skipping
+NOTICE:  policy "nutrition_settings_select_own" for relation "public.nutrition_settings" does not exist, skipping
+NOTICE:  policy "nutrition_settings_insert_own" for relation "public.nutrition_settings" does not exist, skipping
+NOTICE:  policy "nutrition_settings_update_own" for relation "public.nutrition_settings" does not exist, skipping
+NOTICE:  policy "nutrition_settings_delete_own" for relation "public.nutrition_settings" does not exist, skipping
+NOTICE:  policy "health_snapshots_select_own" for relation "public.health_snapshots" does not exist, skipping
+NOTICE:  policy "health_snapshots_insert_own" for relation "public.health_snapshots" does not exist, skipping
+NOTICE:  policy "health_snapshots_update_own" for relation "public.health_snapshots" does not exist, skipping
+NOTICE:  policy "health_snapshots_delete_own" for relation "public.health_snapshots" does not exist, skipping
+NOTICE:  policy "app_settings_select_own" for relation "public.app_settings" does not exist, skipping
+NOTICE:  policy "app_settings_insert_own" for relation "public.app_settings" does not exist, skipping
+NOTICE:  policy "app_settings_update_own" for relation "public.app_settings" does not exist, skipping
+NOTICE:  policy "app_settings_delete_own" for relation "public.app_settings" does not exist, skipping
+NOTICE:  policy "food_entries_select_own" for relation "public.food_entries" does not exist, skipping
+NOTICE:  policy "food_entries_insert_own" for relation "public.food_entries" does not exist, skipping
+NOTICE:  policy "food_entries_update_own" for relation "public.food_entries" does not exist, skipping
+NOTICE:  policy "food_entries_delete_own" for relation "public.food_entries" does not exist, skipping
+NOTICE:  policy "exercise_entries_select_own" for relation "public.exercise_entries" does not exist, skipping
+NOTICE:  policy "exercise_entries_insert_own" for relation "public.exercise_entries" does not exist, skipping
+NOTICE:  policy "exercise_entries_update_own" for relation "public.exercise_entries" does not exist, skipping
+NOTICE:  policy "exercise_entries_delete_own" for relation "public.exercise_entries" does not exist, skipping
+NOTICE:  policy "weight_entries_select_own" for relation "public.weight_entries" does not exist, skipping
+NOTICE:  policy "weight_entries_insert_own" for relation "public.weight_entries" does not exist, skipping
+NOTICE:  policy "weight_entries_update_own" for relation "public.weight_entries" does not exist, skipping
+NOTICE:  policy "weight_entries_delete_own" for relation "public.weight_entries" does not exist, skipping
+apply 20260723120000_add_food_master_public_v1_1.sql
+NOTICE:  trigger "sync_saved_foods_report_count" for relation "public.food_reports" does not exist, skipping
+apply 20260727120000_add_saved_foods_version.sql
+apply 20260728120000_add_workout_templates_v1.sql
+NOTICE:  policy "workout_templates_own" for relation "public.workout_templates" does not exist, skipping
+NOTICE:  policy "workout_template_items_own" for relation "public.workout_template_items" does not exist, skipping
+apply 20260729120000_add_saved_foods_serving_unit_label.sql
+apply 20260801120000_create_alcohol_entries.sql
+NOTICE:  trigger "set_alcohol_entries_updated_at" for relation "public.alcohol_entries" does not exist, skipping
+NOTICE:  policy "alcohol_entries_select_own" for relation "public.alcohol_entries" does not exist, skipping
+NOTICE:  policy "alcohol_entries_insert_own" for relation "public.alcohol_entries" does not exist, skipping
+NOTICE:  policy "alcohol_entries_update_own" for relation "public.alcohol_entries" does not exist, skipping
+NOTICE:  policy "alcohol_entries_delete_own" for relation "public.alcohol_entries" does not exist, skipping
+apply 20260801180000_add_exercise_entry_calculation_columns.sql
+apply 20260801200000_tighten_public_grants_v1.sql
+apply 20260802120000_add_goal_pace_to_goals.sql
+NOTICE:  constraint "goals_goal_pace_check" of relation "goals" does not exist, skipping
+apply 20260920120000_delete_own_account_keep_public_foods.sql
+apply 20260927120000_reject_banned_public_food_names.sql
+apply 20260927140000_subscription_events.sql
+NOTICE:  trigger "subscription_events_force_row" for relation "public.subscription_events" does not exist, skipping
+NOTICE:  policy "subscription_events_insert_own" for relation "public.subscription_events" does not exist, skipping
+apply 20260927150000_protect_owner_deleted_and_revoke_sessions.sql
+NOTICE:  trigger "saved_foods_reject_owner_deleted_change" for relation "public.saved_foods" does not exist, skipping
+apply 20260927160000_delete_subscription_events_on_account_deletion.sql
+NOTICE:  RESULT T1_save OK insert 3 private rows
+NOTICE:  RESULT T2_update OK update private
+NOTICE:  RESULT T3_publish OK publish 2 (ぶっかけうどん, エリンギソテー)
+NOTICE:  RESULT T3b_publish_banned OK rejected: public food name is not allowed
+NOTICE:  RESULT T4_edit_public OK ordinary rename ok
+NOTICE:  RESULT T4b_edit_public_banned OK rejected: public food name is not allowed
+NOTICE:  RESULT T5_owner_deleted_client OK rejected: permission denied for table saved_foods
+NOTICE:  RESULT T6_report OK report inserted
+NOTICE:  RESULT T6b_report_by_A OK A report inserted
+NOTICE:  RESULT T7_subevents OK 2 events
+NOTICE:  RESULT T7b_vault OK N/A
+NOTICE:  RESULT T8_auth_delete_denied OK N/A (zero-arg era; client RPC by design)
+NOTICE:  RESULT T8b_email_fail NG function returned success; private=0 identities=2 sessions=0 email=a@test.local
+ after T8b: private=0 identities=2 sessions=0 users.email=NULL
+NOTICE:  RESULT T9_delete OK returned
+NOTICE:  RESULT T10_private_deleted OK 
+NOTICE:  RESULT T10_public_owner_deleted OK n_public=2
+NOTICE:  RESULT T10_report_by_B_kept OK 
+NOTICE:  RESULT T10_report_by_A_deleted OK 
+NOTICE:  RESULT T10_subevents_0 OK n=0
+NOTICE:  RESULT T10_identities_0 OK 
+NOTICE:  RESULT T10_sessions_0 OK 
+NOTICE:  RESULT T10_refresh_0 OK 
+NOTICE:  RESULT T10_B_untouched OK 
+NOTICE:  RESULT T10_auth_email OK 
+NOTICE:  RESULT T10_users_email_null OK 
+NOTICE:  INFO vault token rows after delete_own_account (Edge Function deletes separately) = -1
+=== h28
+apply 20260722130000_create_v1_1_schema.sql
+NOTICE:  trigger "set_profiles_updated_at" for relation "public.profiles" does not exist, skipping
+NOTICE:  trigger "set_goals_updated_at" for relation "public.goals" does not exist, skipping
+NOTICE:  trigger "set_nutrition_settings_updated_at" for relation "public.nutrition_settings" does not exist, skipping
+NOTICE:  trigger "set_health_snapshots_updated_at" for relation "public.health_snapshots" does not exist, skipping
+NOTICE:  trigger "set_app_settings_updated_at" for relation "public.app_settings" does not exist, skipping
+NOTICE:  trigger "set_food_entries_updated_at" for relation "public.food_entries" does not exist, skipping
+NOTICE:  trigger "set_exercise_entries_updated_at" for relation "public.exercise_entries" does not exist, skipping
+NOTICE:  trigger "set_weight_entries_updated_at" for relation "public.weight_entries" does not exist, skipping
+NOTICE:  policy "users_select_own" for relation "public.users" does not exist, skipping
+NOTICE:  policy "users_insert_own" for relation "public.users" does not exist, skipping
+NOTICE:  policy "users_update_own" for relation "public.users" does not exist, skipping
+NOTICE:  policy "users_delete_own" for relation "public.users" does not exist, skipping
+NOTICE:  policy "profiles_select_own" for relation "public.profiles" does not exist, skipping
+NOTICE:  policy "profiles_insert_own" for relation "public.profiles" does not exist, skipping
+NOTICE:  policy "profiles_update_own" for relation "public.profiles" does not exist, skipping
+NOTICE:  policy "profiles_delete_own" for relation "public.profiles" does not exist, skipping
+NOTICE:  policy "goals_select_own" for relation "public.goals" does not exist, skipping
+NOTICE:  policy "goals_insert_own" for relation "public.goals" does not exist, skipping
+NOTICE:  policy "goals_update_own" for relation "public.goals" does not exist, skipping
+NOTICE:  policy "goals_delete_own" for relation "public.goals" does not exist, skipping
+NOTICE:  policy "nutrition_settings_select_own" for relation "public.nutrition_settings" does not exist, skipping
+NOTICE:  policy "nutrition_settings_insert_own" for relation "public.nutrition_settings" does not exist, skipping
+NOTICE:  policy "nutrition_settings_update_own" for relation "public.nutrition_settings" does not exist, skipping
+NOTICE:  policy "nutrition_settings_delete_own" for relation "public.nutrition_settings" does not exist, skipping
+NOTICE:  policy "health_snapshots_select_own" for relation "public.health_snapshots" does not exist, skipping
+NOTICE:  policy "health_snapshots_insert_own" for relation "public.health_snapshots" does not exist, skipping
+NOTICE:  policy "health_snapshots_update_own" for relation "public.health_snapshots" does not exist, skipping
+NOTICE:  policy "health_snapshots_delete_own" for relation "public.health_snapshots" does not exist, skipping
+NOTICE:  policy "app_settings_select_own" for relation "public.app_settings" does not exist, skipping
+NOTICE:  policy "app_settings_insert_own" for relation "public.app_settings" does not exist, skipping
+NOTICE:  policy "app_settings_update_own" for relation "public.app_settings" does not exist, skipping
+NOTICE:  policy "app_settings_delete_own" for relation "public.app_settings" does not exist, skipping
+NOTICE:  policy "food_entries_select_own" for relation "public.food_entries" does not exist, skipping
+NOTICE:  policy "food_entries_insert_own" for relation "public.food_entries" does not exist, skipping
+NOTICE:  policy "food_entries_update_own" for relation "public.food_entries" does not exist, skipping
+NOTICE:  policy "food_entries_delete_own" for relation "public.food_entries" does not exist, skipping
+NOTICE:  policy "exercise_entries_select_own" for relation "public.exercise_entries" does not exist, skipping
+NOTICE:  policy "exercise_entries_insert_own" for relation "public.exercise_entries" does not exist, skipping
+NOTICE:  policy "exercise_entries_update_own" for relation "public.exercise_entries" does not exist, skipping
+NOTICE:  policy "exercise_entries_delete_own" for relation "public.exercise_entries" does not exist, skipping
+NOTICE:  policy "weight_entries_select_own" for relation "public.weight_entries" does not exist, skipping
+NOTICE:  policy "weight_entries_insert_own" for relation "public.weight_entries" does not exist, skipping
+NOTICE:  policy "weight_entries_update_own" for relation "public.weight_entries" does not exist, skipping
+NOTICE:  policy "weight_entries_delete_own" for relation "public.weight_entries" does not exist, skipping
+apply 20260723120000_add_food_master_public_v1_1.sql
+NOTICE:  trigger "sync_saved_foods_report_count" for relation "public.food_reports" does not exist, skipping
+apply 20260727120000_add_saved_foods_version.sql
+apply 20260728120000_add_workout_templates_v1.sql
+NOTICE:  policy "workout_templates_own" for relation "public.workout_templates" does not exist, skipping
+NOTICE:  policy "workout_template_items_own" for relation "public.workout_template_items" does not exist, skipping
+apply 20260729120000_add_saved_foods_serving_unit_label.sql
+apply 20260801120000_create_alcohol_entries.sql
+NOTICE:  trigger "set_alcohol_entries_updated_at" for relation "public.alcohol_entries" does not exist, skipping
+NOTICE:  policy "alcohol_entries_select_own" for relation "public.alcohol_entries" does not exist, skipping
+NOTICE:  policy "alcohol_entries_insert_own" for relation "public.alcohol_entries" does not exist, skipping
+NOTICE:  policy "alcohol_entries_update_own" for relation "public.alcohol_entries" does not exist, skipping
+NOTICE:  policy "alcohol_entries_delete_own" for relation "public.alcohol_entries" does not exist, skipping
+apply 20260801180000_add_exercise_entry_calculation_columns.sql
+apply 20260801200000_tighten_public_grants_v1.sql
+apply 20260802120000_add_goal_pace_to_goals.sql
+NOTICE:  constraint "goals_goal_pace_check" of relation "goals" does not exist, skipping
+apply 20260920120000_delete_own_account_keep_public_foods.sql
+apply 20260927120000_reject_banned_public_food_names.sql
+apply 20260927140000_subscription_events.sql
+NOTICE:  trigger "subscription_events_force_row" for relation "public.subscription_events" does not exist, skipping
+NOTICE:  policy "subscription_events_insert_own" for relation "public.subscription_events" does not exist, skipping
+apply 20260927150000_protect_owner_deleted_and_revoke_sessions.sql
+NOTICE:  trigger "saved_foods_reject_owner_deleted_change" for relation "public.saved_foods" does not exist, skipping
+apply 20260927160000_delete_subscription_events_on_account_deletion.sql
+NOTICE:  RESULT T1_save OK insert 3 private rows
+NOTICE:  RESULT T2_update OK update private
+NOTICE:  RESULT T3_publish OK publish 2 (ぶっかけうどん, エリンギソテー)
+NOTICE:  RESULT T3b_publish_banned OK rejected: public food name is not allowed
+NOTICE:  RESULT T4_edit_public OK ordinary rename ok
+NOTICE:  RESULT T4b_edit_public_banned OK rejected: public food name is not allowed
+NOTICE:  RESULT T5_owner_deleted_client OK rejected: permission denied for table saved_foods
+NOTICE:  RESULT T6_report OK report inserted
+NOTICE:  RESULT T6b_report_by_A OK A report inserted
+NOTICE:  RESULT T7_subevents OK 2 events
+NOTICE:  RESULT T7b_vault OK N/A
+NOTICE:  RESULT T8_auth_delete_denied OK N/A (zero-arg era; client RPC by design)
+NOTICE:  RESULT T8b_email_fail NG function returned success; private=0 identities=2 sessions=0 email=a@test.local
+ after T8b: private=0 identities=2 sessions=0 users.email=NULL
+NOTICE:  RESULT T9_delete OK returned
+NOTICE:  RESULT T10_private_deleted OK 
+NOTICE:  RESULT T10_public_owner_deleted OK n_public=2
+NOTICE:  RESULT T10_report_by_B_kept OK 
+NOTICE:  RESULT T10_report_by_A_deleted OK 
+NOTICE:  RESULT T10_subevents_0 OK n=0
+NOTICE:  RESULT T10_identities_0 OK 
+NOTICE:  RESULT T10_sessions_0 OK 
+NOTICE:  RESULT T10_refresh_0 OK 
+NOTICE:  RESULT T10_B_untouched OK 
+NOTICE:  RESULT T10_auth_email OK 
+NOTICE:  RESULT T10_users_email_null OK 
+NOTICE:  INFO vault token rows after delete_own_account (Edge Function deletes separately) = -1
+=== h29
+apply 20260722130000_create_v1_1_schema.sql
+NOTICE:  trigger "set_profiles_updated_at" for relation "public.profiles" does not exist, skipping
+NOTICE:  trigger "set_goals_updated_at" for relation "public.goals" does not exist, skipping
+NOTICE:  trigger "set_nutrition_settings_updated_at" for relation "public.nutrition_settings" does not exist, skipping
+NOTICE:  trigger "set_health_snapshots_updated_at" for relation "public.health_snapshots" does not exist, skipping
+NOTICE:  trigger "set_app_settings_updated_at" for relation "public.app_settings" does not exist, skipping
+NOTICE:  trigger "set_food_entries_updated_at" for relation "public.food_entries" does not exist, skipping
+NOTICE:  trigger "set_exercise_entries_updated_at" for relation "public.exercise_entries" does not exist, skipping
+NOTICE:  trigger "set_weight_entries_updated_at" for relation "public.weight_entries" does not exist, skipping
+NOTICE:  policy "users_select_own" for relation "public.users" does not exist, skipping
+NOTICE:  policy "users_insert_own" for relation "public.users" does not exist, skipping
+NOTICE:  policy "users_update_own" for relation "public.users" does not exist, skipping
+NOTICE:  policy "users_delete_own" for relation "public.users" does not exist, skipping
+NOTICE:  policy "profiles_select_own" for relation "public.profiles" does not exist, skipping
+NOTICE:  policy "profiles_insert_own" for relation "public.profiles" does not exist, skipping
+NOTICE:  policy "profiles_update_own" for relation "public.profiles" does not exist, skipping
+NOTICE:  policy "profiles_delete_own" for relation "public.profiles" does not exist, skipping
+NOTICE:  policy "goals_select_own" for relation "public.goals" does not exist, skipping
+NOTICE:  policy "goals_insert_own" for relation "public.goals" does not exist, skipping
+NOTICE:  policy "goals_update_own" for relation "public.goals" does not exist, skipping
+NOTICE:  policy "goals_delete_own" for relation "public.goals" does not exist, skipping
+NOTICE:  policy "nutrition_settings_select_own" for relation "public.nutrition_settings" does not exist, skipping
+NOTICE:  policy "nutrition_settings_insert_own" for relation "public.nutrition_settings" does not exist, skipping
+NOTICE:  policy "nutrition_settings_update_own" for relation "public.nutrition_settings" does not exist, skipping
+NOTICE:  policy "nutrition_settings_delete_own" for relation "public.nutrition_settings" does not exist, skipping
+NOTICE:  policy "health_snapshots_select_own" for relation "public.health_snapshots" does not exist, skipping
+NOTICE:  policy "health_snapshots_insert_own" for relation "public.health_snapshots" does not exist, skipping
+NOTICE:  policy "health_snapshots_update_own" for relation "public.health_snapshots" does not exist, skipping
+NOTICE:  policy "health_snapshots_delete_own" for relation "public.health_snapshots" does not exist, skipping
+NOTICE:  policy "app_settings_select_own" for relation "public.app_settings" does not exist, skipping
+NOTICE:  policy "app_settings_insert_own" for relation "public.app_settings" does not exist, skipping
+NOTICE:  policy "app_settings_update_own" for relation "public.app_settings" does not exist, skipping
+NOTICE:  policy "app_settings_delete_own" for relation "public.app_settings" does not exist, skipping
+NOTICE:  policy "food_entries_select_own" for relation "public.food_entries" does not exist, skipping
+NOTICE:  policy "food_entries_insert_own" for relation "public.food_entries" does not exist, skipping
+NOTICE:  policy "food_entries_update_own" for relation "public.food_entries" does not exist, skipping
+NOTICE:  policy "food_entries_delete_own" for relation "public.food_entries" does not exist, skipping
+NOTICE:  policy "exercise_entries_select_own" for relation "public.exercise_entries" does not exist, skipping
+NOTICE:  policy "exercise_entries_insert_own" for relation "public.exercise_entries" does not exist, skipping
+NOTICE:  policy "exercise_entries_update_own" for relation "public.exercise_entries" does not exist, skipping
+NOTICE:  policy "exercise_entries_delete_own" for relation "public.exercise_entries" does not exist, skipping
+NOTICE:  policy "weight_entries_select_own" for relation "public.weight_entries" does not exist, skipping
+NOTICE:  policy "weight_entries_insert_own" for relation "public.weight_entries" does not exist, skipping
+NOTICE:  policy "weight_entries_update_own" for relation "public.weight_entries" does not exist, skipping
+NOTICE:  policy "weight_entries_delete_own" for relation "public.weight_entries" does not exist, skipping
+apply 20260723120000_add_food_master_public_v1_1.sql
+NOTICE:  trigger "sync_saved_foods_report_count" for relation "public.food_reports" does not exist, skipping
+apply 20260727120000_add_saved_foods_version.sql
+apply 20260728120000_add_workout_templates_v1.sql
+NOTICE:  policy "workout_templates_own" for relation "public.workout_templates" does not exist, skipping
+NOTICE:  policy "workout_template_items_own" for relation "public.workout_template_items" does not exist, skipping
+apply 20260729120000_add_saved_foods_serving_unit_label.sql
+apply 20260801120000_create_alcohol_entries.sql
+NOTICE:  trigger "set_alcohol_entries_updated_at" for relation "public.alcohol_entries" does not exist, skipping
+NOTICE:  policy "alcohol_entries_select_own" for relation "public.alcohol_entries" does not exist, skipping
+NOTICE:  policy "alcohol_entries_insert_own" for relation "public.alcohol_entries" does not exist, skipping
+NOTICE:  policy "alcohol_entries_update_own" for relation "public.alcohol_entries" does not exist, skipping
+NOTICE:  policy "alcohol_entries_delete_own" for relation "public.alcohol_entries" does not exist, skipping
+apply 20260801180000_add_exercise_entry_calculation_columns.sql
+apply 20260801200000_tighten_public_grants_v1.sql
+apply 20260802120000_add_goal_pace_to_goals.sql
+NOTICE:  constraint "goals_goal_pace_check" of relation "goals" does not exist, skipping
+apply 20260920120000_delete_own_account_keep_public_foods.sql
+apply 20260927120000_reject_banned_public_food_names.sql
+apply 20260927140000_subscription_events.sql
+NOTICE:  trigger "subscription_events_force_row" for relation "public.subscription_events" does not exist, skipping
+NOTICE:  policy "subscription_events_insert_own" for relation "public.subscription_events" does not exist, skipping
+apply 20260927150000_protect_owner_deleted_and_revoke_sessions.sql
+NOTICE:  trigger "saved_foods_reject_owner_deleted_change" for relation "public.saved_foods" does not exist, skipping
+apply 20260927160000_delete_subscription_events_on_account_deletion.sql
+apply 20260927170000_store_apple_refresh_tokens.sql
+apply 20260927180000_delete_own_account_service_role_only.sql
+NOTICE:  RESULT T1_save OK insert 3 private rows
+NOTICE:  RESULT T2_update OK update private
+NOTICE:  RESULT T3_publish OK publish 2 (ぶっかけうどん, エリンギソテー)
+NOTICE:  RESULT T3b_publish_banned OK rejected: public food name is not allowed
+NOTICE:  RESULT T4_edit_public OK ordinary rename ok
+NOTICE:  RESULT T4b_edit_public_banned OK rejected: public food name is not allowed
+NOTICE:  RESULT T5_owner_deleted_client OK rejected: permission denied for table saved_foods
+NOTICE:  RESULT T6_report OK report inserted
+NOTICE:  RESULT T6b_report_by_A OK A report inserted
+NOTICE:  RESULT T7_subevents OK 2 events
+NOTICE:  RESULT T7b_vault OK store/read as service_role
+NOTICE:  RESULT T7c_vault_auth_denied OK permission denied for function read_apple_refresh_token
+NOTICE:  RESULT T8_auth_delete_denied OK permission denied for function delete_own_account
+NOTICE:  RESULT T8b_email_fail OK aborted: injected auth.users failure
+ after T8b: private=1 identities=2 sessions=2 users.email=a@test.local
+NOTICE:  RESULT T9_delete OK returned
+NOTICE:  RESULT T10_private_deleted OK 
+NOTICE:  RESULT T10_public_owner_deleted OK n_public=2
+NOTICE:  RESULT T10_report_by_B_kept OK 
+NOTICE:  RESULT T10_report_by_A_deleted OK 
+NOTICE:  RESULT T10_subevents_0 OK n=0
+NOTICE:  RESULT T10_identities_0 OK 
+NOTICE:  RESULT T10_sessions_0 OK 
+NOTICE:  RESULT T10_refresh_0 OK 
+NOTICE:  RESULT T10_B_untouched OK 
+NOTICE:  RESULT T10_auth_email OK 
+NOTICE:  RESULT T10_users_email_null OK 
+NOTICE:  INFO vault token rows after delete_own_account (Edge Function deletes separately) = 1

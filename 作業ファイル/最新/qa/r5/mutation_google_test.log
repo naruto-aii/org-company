@@ -1,0 +1,2 @@
+mutant ident (identities delete removed) -> ASSERT FAILED: auth.identities rows, including identity_data, are removed
+mutant meta (raw_user_meta_data not cleared) -> ASSERT FAILED: raw_user_meta_data is cleared

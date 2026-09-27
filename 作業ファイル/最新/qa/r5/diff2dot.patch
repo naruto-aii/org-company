@@ -1,0 +1,531 @@
+--- /workspace/qa/r4/h29/docs/app-review/app-privacy-draft.md	2026-09-27 21:11:03.661839651 +0900
++++ h/docs/app-review/app-privacy-draft.md	2026-09-27 21:48:08.327698285 +0900
+@@ -82,7 +82,34 @@
+ 
+ - Google または Sign in with Apple がメールを渡した場合、`public.users.email`（`supabase/migrations/20260722130000_create_v1_1_schema.sql`）
+ - マニフェスト: `NSPrivacyCollectedDataTypeEmailAddress`、目的は App Functionality
+-- 氏名は要求しない。`lib/repositories/supabase_authentication_repository.dart` の `SignInWithApple.getAppleIDCredential` の scopes は `AppleIDAuthorizationScopes.email` のみ。givenName / familyName は受け取らず、保存もしない。Name は収集しない
++- Sign in with Apple は氏名を要求しない。`lib/repositories/supabase_authentication_repository.dart` の `SignInWithApple.getAppleIDCredential` の scopes は `AppleIDAuthorizationScopes.email` のみ。givenName / familyName は受け取らず、Apple のログインでは氏名を保存しない
++- Google ログインでサーバーに残る氏名は、下の Contact Info > Name で申告する。アプリの画面はその氏名を使わない
++
++### Contact Info > Name
++
++App Store Connect では、この表のとおり Contact Info > Name を申告する。
++
++| 項目 | 回答 |
++| --- | --- |
++| 収集する | はい |
++| ユーザーに紐づく | はい |
++| トラッキング | いいえ |
++| 目的 | App Functionality |
++
++申告する理由: アプリは Google の氏名もプロフィール画像も表示しない。`AuthUser` は `id` と `email` だけ（`lib/repositories/supabase_authentication_repository.dart` の `_mapUser`）。`public.profiles` は生年月日・性別・身長・体重で、Google の氏名ではない。それでも Supabase Auth は Google ログインのとき、氏名と画像 URL を `auth.users.raw_user_meta_data` に入れる。既定のキーは `full_name`、`name`、`avatar_url`、`picture` で、同じ内容は `auth.identities.identity_data` にも残る。アカウント削除が成功すると、`delete_own_account` が `raw_user_meta_data` を `{}` にし、`auth.identities` の行を消す。
++
++保存を避けなかった理由:
++
++- ネイティブの Google ログインは `lib/repositories/google_sign_in_factory.dart` の `GoogleSignIn` で、追加スコープを渡していない。`google_sign_in` 6.3.0 の `scopes` は追加分だけ。iOS 実装（`google_sign_in_ios` 5.9.0 の `signInWithHint:additionalScopes:`）も、渡した配列を additional scopes として渡す。Google の Sign-In SDK は `openid`、`email`、`profile` を常に要求する。ID トークンには `name` と `picture` が入る
++- その ID トークンと access token を `signInWithIdToken`（`OAuthProvider.google`）で Supabase に渡す。氏名を落とす処理はアプリ側にない。次のログインで Supabase が同じクレームを書き戻すので、ログイン直後に `updateUser` で空にしても残る
++- Web と、iOS クライアント ID が無いときの Safari 経路は `signInWithOAuth` で、`scopes` を渡していない。`supabase/config.toml` に Google プロバイダのスコープ上書きはない。Supabase の Google プロバイダ既定は profile を含む
++- `auth.users` だけをトリガーで削っても `auth.identities.identity_data` に氏名が残る。auth スキーマへのトリガーは Supabase がサポートする保存方法ではなく、この変更では入れない。両方をログイン時に消すには、ダッシュボードの Auth Hook と関数のデプロイが要る。この PR はデプロイしない
++
++Sign in with Apple は上のとおり email のみで、こちらの Name には含めない。画像のファイルは受け取らない。Photos or Videos は収集しない、のままにする。残るのは URL の文字列だけ。
++
++`legal/privacy.html` 第3章に入れた文:
++
++> Google ログインに伴い保存される、Google アカウントの氏名とプロフィール画像の URL。アプリの画面では使わない。ログインの処理としてサーバーのアカウント情報に保存し、アカウントの削除が完了したときに消去する。
+ 
+ ### Health & Fitness > Health
+ 
+@@ -174,7 +201,7 @@
+ 
+ これは Sign in with Apple の refresh token です。
+ 
+-申告する理由: Apple は、認証トークンをサーバー呼び出しで送るだけで保存しない場合は申告不要としています。このトークンは保存します。ネイティブの Sign in with Apple のあと、Edge Function `store-apple-refresh-token` が認可コードを refresh token に交換し、`public.store_apple_refresh_token` で Vault（`vault.secrets`、名前の接頭辞 `apple_refresh_token:`）に入れます。アカウント削除が完了したあと `delete_apple_refresh_token` で消します（`supabase/functions/delete-account`）。その削除に失敗したときは行が残ることがあります。保存しているので、「保存しないトークン」の例外には当たりません。
++申告する理由: Apple は、認証トークンをサーバー呼び出しで送るだけで保存しない場合は申告不要としています。このトークンは保存します。ネイティブの Sign in with Apple のあと、Edge Function `store-apple-refresh-token` が認可コードを refresh token に交換し、`public.store_apple_refresh_token` で Vault（`vault.secrets`、名前の接頭辞 `apple_refresh_token:`）に入れます。アカウント削除が完了したあと `delete_apple_refresh_token` で消します（`supabase/functions/delete-account`）。その削除に失敗したときはトークンが残ることがあります。保存しているので、「保存しないトークン」の例外には当たりません。
+ 
+ 用途は、アカウント削除が成功したあと `https://appleid.apple.com/auth/revoke` で Apple との連携を解除することだけです。削除に失敗したときは Apple を呼びません。トークンを保存していない Apple ログイン（この機能より前、または認可コードを受け取れないログイン）は revoke せず、アプリが設定画面での解除を案内します。Analytics には使いません。User ID としても申告しません。
+ 
+--- /workspace/qa/r4/h29/legal/account-deletion.html	2026-09-27 21:11:04.333837888 +0900
++++ h/legal/account-deletion.html	2026-09-27 21:48:08.751697148 +0900
+@@ -41,7 +41,7 @@
+         <li>プロフィール、目標、Health から取り込んだ個人向けデータ</li>
+         <li>アカウント情報（メールアドレス等）と利用状況の記録</li>
+         <li>
+-          Sign in with Apple の更新用トークンを保存している場合は、アカウントの削除が完了したあと、そのトークンで Apple 側の連携を解除します。解除の依頼のあと、保存したトークンも削除します。トークンの削除に失敗したときは、その行が残ることがあります。
++          Sign in with Apple の更新用トークンを保存している場合は、アカウントの削除が完了したあと、そのトークンで Apple 側の連携を解除します。解除の依頼のあと、保存したトークンも削除します。トークンの削除に失敗したときは、トークンが残ることがあります。
+         </li>
+         <li>
+           更新用トークンを保存していない場合（この機能より前のログイン、Web または Android の Apple ログインなど）は、サーバーから Apple 側の連携を解除しません。アカウント削除後に、設定 &gt; Apple ID &gt; サインインとセキュリティ から解除できます。連携の解除に失敗したときも、同じ手順で解除できます。
+--- /workspace/qa/r4/h29/legal/privacy.html	2026-09-27 21:11:04.613837153 +0900
++++ h/legal/privacy.html	2026-09-27 21:48:09.031696397 +0900
+@@ -45,6 +45,9 @@
+           アカウント識別子（Google LLC の Google ログイン、または Apple Inc. の
+           Sign in with Apple。提供される場合のメールアドレス）
+         </li>
++        <li>
++          Google ログインに伴い保存される、Google アカウントの氏名とプロフィール画像の URL。アプリの画面では使わない。ログインの処理としてサーバーのアカウント情報に保存し、アカウントの削除が完了したときに消去する。
++        </li>
+         <li>基本情報（生年月日、性別、身長、体重）と目標</li>
+         <li>
+           食事・アルコール・運動・体重の記録、保存食品、公開食品として投稿した内容
+@@ -62,7 +65,7 @@
+           利用状況（無料枠の上限に初めて達した日時、および有料プラン「カロナビ+」へ最初に切り替えた日時）。ユーザーIDに紐づけて記録します。食事の内容、レシートや取引番号は含みません
+         </li>
+         <li>
+-          Sign in with Apple で認可コードを受け取れた場合に保存する更新用のトークン。アカウントの削除が完了したあと、Apple との連携を解除するためだけに使い、暗号化してサーバーに保存します。認可コードを保存していないログインでは、削除時に Apple へ連携解除の通信は行いません
++          Sign in with Apple で認可コードを受け取れた場合に保存する更新用のトークン。アカウントの削除が完了したあと、Apple との連携を解除するためだけに使い、暗号化してサーバーに保存します。更新用トークンを保存していないログインでは、削除時に Apple へ連携解除の通信は行いません
+         </li>
+       </ul>
+       <p>
+@@ -156,7 +159,7 @@
+           利用状況（無料枠の上限に初めて達した日時、および有料プランへ最初に切り替えた日時）は、アカウント削除時に削除します。バックアップからの消去までの日数は【バックアップの保持日数：社長確認後に記入】です。
+         </li>
+         <li>
+-          Sign in with Apple の更新用トークンは、アカウントの削除が完了したあとに削除します。その削除に失敗したときは、トークンの行が残ることがあります。トークンを保存している場合に限り、削除が完了したあと Apple に連携解除を依頼します。トークンが無い場合、連携解除の通信は行いません。
++          Sign in with Apple の更新用トークンは、アカウントの削除が完了したあとに削除します。その削除に失敗したときは、トークンが残ることがあります。トークンを保存している場合に限り、削除が完了したあと Apple に連携解除を依頼します。トークンが無い場合、連携解除の通信は行いません。
+         </li>
+         <li>問い合わせメールは、対応に必要な期間保管します。</li>
+         <li>法令で保管が必要な場合は、その期間保管します。</li>
+--- /workspace/qa/r4/h29/supabase/functions/README.md	2026-09-27 21:11:06.733831589 +0900
++++ h/supabase/functions/README.md	2026-09-27 21:48:10.055693652 +0900
+@@ -55,13 +55,16 @@
+ not fall back to a committed client id.
+ 
+ `SUPABASE_URL`, `SUPABASE_ANON_KEY`, and `SUPABASE_SERVICE_ROLE_KEY` are injected
+-by the platform. Do not commit those either.
++by the platform. Do not commit those either. Do not set
++`ALLOW_LOCALHOST_ORIGIN` on the production project. It is off when unset, and
++only `https://naruto-aii.github.io` can call these functions from a browser.
+ 
+ Keep `verify_jwt = true` for both functions.
+ 
+-Browsers calling either function must send `Origin: https://naruto-aii.github.io`
+-(the web preview) or `http://localhost` / `http://127.0.0.1` on any port.
+-`OPTIONS` is answered for those origins only. Other origins get no
++Production allows only `Origin: https://naruto-aii.github.io` (the web preview).
++`http://localhost` and `http://127.0.0.1` on any port are allowed only when
++`ALLOW_LOCALHOST_ORIGIN=true` is set. Leave that variable unset in production.
++Any other origin, including localhost while the variable is unset, gets no
+ `Access-Control-Allow-Origin` header. Native apps do not send `Origin`.
+ 
+ Deploy, in this order, before the app that calls `delete-account` is released:
+@@ -112,5 +115,5 @@
+ ## Tests
+ 
+ ```sh
+-deno test supabase/functions/_shared/apple_account_test.ts
++deno test --allow-env=ALLOW_LOCALHOST_ORIGIN --config supabase/functions/deno.json supabase/functions/_shared/apple_account_test.ts
+ ```
+--- /workspace/qa/r4/h29/supabase/functions/_shared/apple_account.ts	2026-09-27 21:11:06.977830948 +0900
++++ h/supabase/functions/_shared/apple_account.ts	2026-09-27 21:48:10.267693083 +0900
+@@ -240,6 +240,16 @@
+ 
+ const corsAllowHeaders = "authorization, x-client-info, apikey, content-type";
+ 
++// Local origins stay off unless this is set. Production must not set it.
++// A missing env permission is the same as unset: localhost stays closed.
++function localhostOriginsAllowed(): boolean {
++  try {
++    return Deno.env.get("ALLOW_LOCALHOST_ORIGIN") === "true";
++  } catch {
++    return false;
++  }
++}
++
+ export function isAllowedWebOrigin(origin: string | null): boolean {
+   if (!origin) {
+     return false;
+@@ -247,6 +257,9 @@
+   if (origin === publishedWebOrigin) {
+     return true;
+   }
++  if (!localhostOriginsAllowed()) {
++    return false;
++  }
+   let url: URL;
+   try {
+     url = new URL(origin);
+--- /workspace/qa/r4/h29/supabase/functions/_shared/apple_account_test.ts	2026-09-27 21:11:07.201830360 +0900
++++ h/supabase/functions/_shared/apple_account_test.ts	2026-09-27 21:48:10.571692269 +0900
+@@ -469,52 +469,86 @@
+ }
+ 
+ Deno.test("web preflight allows only the app origins", async () => {
+-  const calls: Call[] = [];
+-  const deps = deleteDepsFrom(platformEnv(), fakeFetch(calls, {}));
+-  const allowed = await handleDeleteAccount(
+-    new Request("https://fn.local/fn", {
+-      method: "OPTIONS",
+-      headers: { Origin: publishedWebOrigin },
+-    }),
+-    deps,
+-  );
+-  assert(allowed.status === 204, "status");
+-  assert(
+-    allowed.headers.get("Access-Control-Allow-Origin") === publishedWebOrigin,
+-    "origin echoed",
+-  );
+-  assert(
+-    allowed.headers.get("Access-Control-Allow-Methods")?.includes("POST"),
+-    "methods",
+-  );
+-  assert(
+-    allowed.headers.get("Access-Control-Allow-Origin") !== "*",
+-    "not wildcard",
+-  );
+-  assert(calls.length === 0, "preflight does no work");
+-
+-  const local = await handleStoreAppleRefreshToken(
+-    new Request("https://fn.local/fn", {
+-      method: "OPTIONS",
+-      headers: { Origin: "http://127.0.0.1:54321" },
+-    }),
+-    storeDepsFrom(platformEnv(), fakeFetch([], {})),
+-  );
+-  assert(local.status === 204, "local status");
+-  assert(
+-    local.headers.get("Access-Control-Allow-Origin") === "http://127.0.0.1:54321",
+-    "local origin",
+-  );
+-
+-  const denied = await handleDeleteAccount(
+-    new Request("https://fn.local/fn", {
+-      method: "OPTIONS",
+-      headers: { Origin: "https://evil.example" },
+-    }),
+-    deps,
+-  );
+-  assert(denied.status === 403, "denied");
+-  assert(denied.headers.get("Access-Control-Allow-Origin") === null, "no header");
++  const previous = Deno.env.get("ALLOW_LOCALHOST_ORIGIN");
++  Deno.env.delete("ALLOW_LOCALHOST_ORIGIN");
++  try {
++    const calls: Call[] = [];
++    const deps = deleteDepsFrom(platformEnv(), fakeFetch(calls, {}));
++    const allowed = await handleDeleteAccount(
++      new Request("https://fn.local/fn", {
++        method: "OPTIONS",
++        headers: { Origin: publishedWebOrigin },
++      }),
++      deps,
++    );
++    assert(allowed.status === 204, "status");
++    assert(
++      allowed.headers.get("Access-Control-Allow-Origin") === publishedWebOrigin,
++      "origin echoed",
++    );
++    assert(
++      allowed.headers.get("Access-Control-Allow-Methods")?.includes("POST"),
++      "methods",
++    );
++    assert(
++      allowed.headers.get("Access-Control-Allow-Origin") !== "*",
++      "not wildcard",
++    );
++    assert(calls.length === 0, "preflight does no work");
++
++    const localOff = await handleStoreAppleRefreshToken(
++      new Request("https://fn.local/fn", {
++        method: "OPTIONS",
++        headers: { Origin: "http://127.0.0.1:54321" },
++      }),
++      storeDepsFrom(platformEnv(), fakeFetch([], {})),
++    );
++    assert(localOff.status === 403, "localhost is off by default");
++    assert(
++      localOff.headers.get("Access-Control-Allow-Origin") === null,
++      "no localhost header by default",
++    );
++
++    Deno.env.set("ALLOW_LOCALHOST_ORIGIN", "TRUE");
++    const localWrongCase = await handleDeleteAccount(
++      new Request("https://fn.local/fn", {
++        method: "OPTIONS",
++        headers: { Origin: "http://localhost:3000" },
++      }),
++      deps,
++    );
++    assert(localWrongCase.status === 403, "only the exact value true");
++
++    Deno.env.set("ALLOW_LOCALHOST_ORIGIN", "true");
++    const local = await handleStoreAppleRefreshToken(
++      new Request("https://fn.local/fn", {
++        method: "OPTIONS",
++        headers: { Origin: "http://127.0.0.1:54321" },
++      }),
++      storeDepsFrom(platformEnv(), fakeFetch([], {})),
++    );
++    assert(local.status === 204, "local status");
++    assert(
++      local.headers.get("Access-Control-Allow-Origin") === "http://127.0.0.1:54321",
++      "local origin",
++    );
++
++    const denied = await handleDeleteAccount(
++      new Request("https://fn.local/fn", {
++        method: "OPTIONS",
++        headers: { Origin: "https://evil.example" },
++      }),
++      deps,
++    );
++    assert(denied.status === 403, "denied");
++    assert(denied.headers.get("Access-Control-Allow-Origin") === null, "no header");
++  } finally {
++    if (previous === undefined) {
++      Deno.env.delete("ALLOW_LOCALHOST_ORIGIN");
++    } else {
++      Deno.env.set("ALLOW_LOCALHOST_ORIGIN", previous);
++    }
++  }
+ });
+ 
+ Deno.test("a web delete response carries the preview origin", async () => {
+--- /workspace/qa/r4/h29/supabase/migrations/20260927180000_delete_own_account_service_role_only.sql	2026-09-27 21:11:11.373819413 +0900
++++ h/supabase/migrations/20260927180000_delete_own_account_service_role_only.sql	2026-09-27 21:48:14.467681823 +0900
+@@ -81,6 +81,9 @@
+ 
+   -- Prevent the same Google/Apple identity from signing back into this row.
+   -- Public foods stay attached to this anonymized user id.
++  -- Deleting the identities row removes identity_data, including the Google
++  -- name and profile-image URL. Replacing raw_user_meta_data removes the
++  -- same claims from auth.users.
+   -- Do not catch errors here. A failed email rewrite must abort the function
+   -- so the address is not left in auth.users while deletion is reported as
+   -- success. The statement runs in the caller's transaction, so the personal
+--- /workspace/qa/r4/h29/supabase/rollback/20260927120000_reject_banned_public_food_names_down.sql	2026-09-27 21:11:11.909818007 +0900
++++ h/supabase/rollback/20260927120000_reject_banned_public_food_names_down.sql	2026-09-27 21:48:14.875680729 +0900
+@@ -1,5 +1,6 @@
+ -- Down for 20260927120000_reject_banned_public_food_names.sql.
+ -- Not under supabase/migrations, so `db push` does not apply it.
++-- Full down-order: supabase/rollback/README.md. Run this last.
+ -- Restores validate_saved_foods_public_row and publish_saved_food to the
+ -- bodies from 20260723120000_add_food_master_public_v1_1.sql.
+ -- Does not drop the validate_saved_foods_public_row trigger.
+--- /workspace/qa/r4/h29/supabase/rollback/20260927140000_subscription_events_down.sql	2026-09-27 21:11:12.121817450 +0900
++++ h/supabase/rollback/20260927140000_subscription_events_down.sql	2026-09-27 21:48:15.083680172 +0900
+@@ -1,5 +1,7 @@
+ -- Manual rollback for 20260927140000_subscription_events.sql.
+ -- This file is not a migration. Do not move it into supabase/migrations.
++-- Full down-order: supabase/rollback/README.md. Run this after the
++-- 20260927150000 down and before the 20260927120000 down.
+ -- Apply it by hand only when reverting the subscription metrics change.
+ -- Never run this against production unless that revert is intentional.
+ 
+--- /workspace/qa/r4/h29/supabase/rollback/20260927150000_protect_owner_deleted_and_revoke_sessions_down.sql	2026-09-27 21:11:12.309816957 +0900
++++ h/supabase/rollback/20260927150000_protect_owner_deleted_and_revoke_sessions_down.sql	2026-09-27 21:48:15.291679614 +0900
+@@ -9,6 +9,14 @@
+ -- column that is already applied (public.users.deleted_at, or
+ -- saved_foods.owner_deleted after this migration). Dropping owner_deleted
+ -- is only this manual script, and it removes the 削除済みユーザー label.
++--
++-- Run this only after 20260927160000_delete_subscription_events_on_account_deletion_down.sql
++-- when that migration was applied. This file drops saved_foods.owner_deleted.
++-- The 160000 down reinstalls delete_own_account that writes owner_deleted.
++-- Running this file first makes the next account deletion fail.
++-- This file restores the already-applied 20260920120000 body, which still
++-- ignores a failed auth.users email rewrite. That is the production
++-- function this migration replaced. Full order: supabase/rollback/README.md.
+ 
+ begin;
+ 
+--- /workspace/qa/r4/h29/supabase/rollback/20260927160000_delete_subscription_events_on_account_deletion_down.sql	2026-09-27 21:11:12.501816453 +0900
++++ h/supabase/rollback/20260927160000_delete_subscription_events_on_account_deletion_down.sql	2026-09-27 21:48:15.495679067 +0900
+@@ -1,7 +1,14 @@
+ -- Down for 20260927160000_delete_subscription_events_on_account_deletion.sql.
+ -- Not under supabase/migrations, so `db push` does not apply it.
+--- Restores delete_own_account to the 20260927150000 body, which does not
+--- delete subscription_events. Does not drop the subscription_events table.
++-- Restores the zero-argument delete_own_account that sets owner_deleted
++-- and does not delete subscription_events. Does not drop the table.
++-- The auth.users email rewrite stays outside an exception handler.
++-- A failed anonymization aborts and rolls the deletion back.
++-- Run this after 20260927180000_delete_own_account_service_role_only_down.sql
++-- and before 20260927150000_protect_owner_deleted_and_revoke_sessions_down.sql.
++-- The 150000 down drops saved_foods.owner_deleted. Running it first, then
++-- this file, reinstalls a function that writes that column, and the next
++-- account deletion fails. Full order: supabase/rollback/README.md.
+ 
+ begin;
+ 
+@@ -63,22 +70,21 @@
+ 
+   -- Prevent the same Google/Apple identity from signing back into this row.
+   -- Public foods stay attached to this anonymized user id.
+-  -- Failures here are swallowed so a locked auth.users row does not abort
+-  -- the personal-data delete. Session revocation below is NOT in this block.
+-  begin
+-    delete from auth.identities where user_id = uid;
+-    update auth.users
+-    set email = 'deleted+' || uid::text || '@invalid.local',
+-        raw_user_meta_data = '{}'::pg_catalog.jsonb
+-    where id = uid;
+-  exception
+-    when others then
+-      raise notice 'delete_own_account: skipped auth.users update: %', sqlerrm;
+-  end;
++  -- Do not catch errors here. A failed email rewrite must abort the function
++  -- so the address is not left in auth.users while deletion is reported as
++  -- success. The statement runs in the caller's transaction, so the personal
++  -- data deletes above roll back with it. Deleting the identities row
++  -- removes identity_data. Replacing raw_user_meta_data removes the Google
++  -- name and profile-image URL stored at sign-in.
++  delete from auth.identities where user_id = uid;
++  update auth.users
++  set email = 'deleted+' || uid::text || '@invalid.local',
++      raw_user_meta_data = '{}'::pg_catalog.jsonb
++  where id = uid;
+ 
+   -- End existing logins immediately. user_id is uuid on sessions and often
+-  -- varchar on refresh_tokens, so compare as text. These statements are
+-  -- outside the exception handler above: a failure must not be swallowed.
++  -- varchar on refresh_tokens, so compare as text. A failure here also
++  -- aborts the function and rolls the deletion back.
+   delete from auth.refresh_tokens where user_id::text = uid::text;
+   delete from auth.sessions where user_id::text = uid::text;
+ end;
+--- /workspace/qa/r4/h29/supabase/rollback/20260927170000_store_apple_refresh_tokens_down.sql	2026-09-27 21:11:12.697815939 +0900
++++ h/supabase/rollback/20260927170000_store_apple_refresh_tokens_down.sql	2026-09-27 21:48:15.715678477 +0900
+@@ -1,5 +1,7 @@
+ -- Hand rollback for 20260927170000_store_apple_refresh_tokens.sql.
+ -- Not picked up by supabase db push. Run it yourself in the SQL editor.
++-- Full down-order: supabase/rollback/README.md. This file is second,
++-- after the 20260927180000 down and before the 20260927160000 down.
+ --
+ -- Drops the three Vault RPCs and deletes this app's Sign in with Apple
+ -- secrets. Does not drop the supabase_vault extension and does not change
+--- /workspace/qa/r4/h29/supabase/rollback/20260927180000_delete_own_account_service_role_only_down.sql	2026-09-27 21:11:12.893815425 +0900
++++ h/supabase/rollback/20260927180000_delete_own_account_service_role_only_down.sql	2026-09-27 21:48:15.923677920 +0900
+@@ -1,8 +1,13 @@
+ -- Down for 20260927180000_delete_own_account_service_role_only.sql.
+ -- Not under supabase/migrations, so `db push` does not apply it.
+ -- Drops the service_role-only function and restores the zero-argument
+--- delete_own_account from 20260927160000, including EXECUTE for authenticated.
+--- Run this before the 20260927160000 down file if both are being rolled back.
++-- delete_own_account, including EXECUTE for authenticated.
++-- The auth.users email rewrite stays outside an exception handler, matching
++-- 20260927180000. Rolling back must not restore the older behavior that
++-- ignores a failed anonymization.
++-- Run this before the 20260927160000 down file. That down keeps the
++-- email-anonymization error handling and must itself run before the
++-- 20260927150000 down. Full order: supabase/rollback/README.md.
+ 
+ begin;
+ 
+@@ -71,22 +76,19 @@
+ 
+   -- Prevent the same Google/Apple identity from signing back into this row.
+   -- Public foods stay attached to this anonymized user id.
+-  -- Failures here are swallowed so a locked auth.users row does not abort
+-  -- the personal-data delete. Session revocation below is NOT in this block.
+-  begin
+-    delete from auth.identities where user_id = uid;
+-    update auth.users
+-    set email = 'deleted+' || uid::text || '@invalid.local',
+-        raw_user_meta_data = '{}'::pg_catalog.jsonb
+-    where id = uid;
+-  exception
+-    when others then
+-      raise notice 'delete_own_account: skipped auth.users update: %', sqlerrm;
+-  end;
++  -- Do not catch errors here. A failed email rewrite must abort the function
++  -- so the address is not left in auth.users while deletion is reported as
++  -- success. The statement runs in the caller's transaction, so the personal
++  -- data deletes above roll back with it.
++  delete from auth.identities where user_id = uid;
++  update auth.users
++  set email = 'deleted+' || uid::text || '@invalid.local',
++      raw_user_meta_data = '{}'::pg_catalog.jsonb
++  where id = uid;
+ 
+   -- End existing logins immediately. user_id is uuid on sessions and often
+-  -- varchar on refresh_tokens, so compare as text. These statements are
+-  -- outside the exception handler above: a failure must not be swallowed.
++  -- varchar on refresh_tokens, so compare as text. A failure here also
++  -- aborts the function and rolls the deletion back.
+   delete from auth.refresh_tokens where user_id::text = uid::text;
+   delete from auth.sessions where user_id::text = uid::text;
+ end;
+--- /workspace/qa/r4/h29/supabase/tests/run_sql_smoke.sh	2026-09-27 21:11:15.341809004 +0900
++++ h/supabase/tests/run_sql_smoke.sh	2026-09-27 21:48:18.787670242 +0900
+@@ -71,6 +71,9 @@
+ $$;
+ SQL
+ 
+-psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f supabase/tests/public_food_banned_name_test.sql
++# The banned-name assertions ship with that migration. #25 does not have them.
++if [[ -f supabase/tests/public_food_banned_name_test.sql ]]; then
++  psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f supabase/tests/public_food_banned_name_test.sql
++fi
+ psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f supabase/tests/sql_runtime_smoke.sql
+ echo "sql smoke passed"
+--- /workspace/qa/r4/h29/supabase/tests/sql_runtime_smoke.sql	2026-09-27 21:11:15.589808353 +0900
++++ h/supabase/tests/sql_runtime_smoke.sql	2026-09-27 21:48:18.995669685 +0900
+@@ -1,5 +1,5 @@
+--- Executes the banned-name functions and the public-food update paths that
+--- account deletion and reports use. Local Postgres only.
++-- Executes save, publish, report, and delete. When the banned-name functions
++-- exist, it also calls them. Local Postgres only. Not applied to production.
+ 
+ do $$
+ declare
+@@ -7,6 +7,10 @@
+   v_reporter uuid := 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbb2';
+   v_email text;
+ begin
++  if to_regprocedure('public.public_food_name_is_banned(text)') is null then
++    -- This branch has no banned-name migration. Publish and delete still run.
++    null;
++  else
+   perform ayg_test.assert_true(
+     public.compose_halfwidth_voiced('ｱ') is not null,
+     'compose_halfwidth_voiced runs'
+@@ -56,6 +60,7 @@
+     public.public_food_name_is_banned('フェラチオ'),
+     'katakana compound is rejected'
+   );
++  end if;
+ 
+   delete from public.food_reports where reporter_user_id = v_reporter;
+   delete from public.saved_foods where user_id in (v_owner, v_reporter);
+@@ -67,10 +72,20 @@
+ 
+   insert into auth.users (id, aud, role, email, raw_user_meta_data)
+   values
+-    (v_owner, 'authenticated', 'authenticated', 'owner@test.local', '{"provider":"apple"}'::jsonb),
++    (
++      v_owner,
++      'authenticated',
++      'authenticated',
++      'owner@test.local',
++      '{"provider":"google","full_name":"Ada","name":"Ada","avatar_url":"https://example.invalid/a.png","picture":"https://example.invalid/a.png"}'::jsonb
++    ),
+     (v_reporter, 'authenticated', 'authenticated', 'reporter@test.local', '{}'::jsonb);
+-  insert into auth.identities (user_id, provider)
+-  values (v_owner, 'apple');
++  insert into auth.identities (user_id, provider, identity_data)
++  values (
++    v_owner,
++    'google',
++    '{"full_name":"Ada","name":"Ada","avatar_url":"https://example.invalid/a.png","picture":"https://example.invalid/a.png"}'::jsonb
++  );
+   insert into public.users (id, email) values
+     (v_owner, 'owner@test.local'),
+     (v_reporter, 'reporter@test.local');
+@@ -127,5 +142,17 @@
+     ),
+     'public food remains and is marked owner_deleted'
+   );
++  perform ayg_test.assert_true(
++    not exists (select 1 from auth.identities where user_id = v_owner),
++    'auth.identities rows, including identity_data, are removed'
++  );
++  perform ayg_test.assert_true(
++    (
++      select raw_user_meta_data
++      from auth.users
++      where id = v_owner
++    ) = '{}'::jsonb,
++    'raw_user_meta_data is cleared'
++  );
+ end
+ $$;

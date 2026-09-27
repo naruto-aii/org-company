@@ -1,0 +1,8 @@
+  [before rollback] 1
+  [before rollback] delete OK: private=0 public=1 sessions=0 fns=delete_own_account(uuid) owner_deleted_col=1
+down 20260927160000: ok
+  [after 20260927160000 down] 1
+  [after 20260927160000 down] delete OK: private=0 public=1 sessions=0 fns=delete_own_account(),delete_own_account(uuid) owner_deleted_col=1
+down 20260927180000: ok
+  [after 20260927180000 down] 1
+  [after 20260927180000 down] delete OK: private=0 public=1 sessions=0 fns=delete_own_account() owner_deleted_col=1

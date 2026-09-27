@@ -1,0 +1,75 @@
+From 8c901c7085651a570affc434d88ee8597f26ab6d Mon Sep 17 00:00:00 2001
+From: Cursor Agent <cursoragent@cursor.com>
+Date: Sun, 20 Sep 2026 01:48:08 +0000
+Subject: [PATCH] docs: order remaining App Store launch tasks
+
+Record the current leftover work in launch order: Apple login, production delete SQL, Calonavi+ products, device QA, then TestFlight.
+
+Co-authored-by: naruto.futuree <naruto.futuree@gmail.com>
+---
+ docs/01_Project.md   |  7 ++++---
+ docs/legal/README.md | 36 +++++++++++++++++++++++++++---------
+ 2 files changed, 31 insertions(+), 12 deletions(-)
+
+diff --git a/docs/01_Project.md b/docs/01_Project.md
+index 0dc2bf7..3b2ccab 100644
+--- a/docs/01_Project.md
++++ b/docs/01_Project.md
+@@ -399,9 +399,10 @@ Core Value は、プロダクト一言定義 **「エネルギー管理におけ
+ 
+ | # | タスク | 【Current Implementation】 |
+ |---|--------|---------------------------|
+-| 1 | **Apple ログイン** | 未実装（Google ログインは実装済み） |
+-| 2 | **App Store 公開に必要な法務・Privacy・審査対応** | 未完了 |
+-| 3 | **TestFlight 配布準備** | 未完了 |
++| 1 | **Apple ログイン** | Developer の capability 済み。アプリ未配線 |
++| 2 | **カロナビ+（380円 / 4,180円）** | 無料枠と購入画面は実装済み。Store 商品は未作成 |
++| 3 | **アカウント削除 RPC** | アプリ実装済み。本番 SQL 未適用 |
++| 4 | **App Store 掲載・TestFlight** | 未完了 |
+ 
+ ---
+ 
+diff --git a/docs/legal/README.md b/docs/legal/README.md
+index 7c1ee26..8d7d734 100644
+--- a/docs/legal/README.md
++++ b/docs/legal/README.md
+@@ -51,12 +51,30 @@ Owner が本番 Supabase の SQL Editor で適用する。エージェントは
+ 
+ App Store Connect で上記 Product ID の自動更新サブスクリプションを作るのは Owner 作業。
+ 
+-## Owner の作業
+-
+-1. **本番 Supabase**: 上記 SQL を適用する。適用前にバックアップ。`service_role` は共有しない
+-2. **サポートメール**: 住所・電話の請求と削除依頼を、本人確認のうえ遅滞なく返す
+-3. **App Store Connect**: プライバシー / 利用規約 / アカウント削除 URL、Privacy Nutrition Labels、年齢
+-4. **Sign in with Apple**: アプリ側は未実装。Developer 登録だけでは足りない。実装後に提出する
+-5. **アプリ内課金**: 商品が決まってから App Store Connect と StoreKit
+-6. **番地・私用電話を公開ページに載せない**
+-7. **TestFlight / 審査提出**
++## 残タスク（推奨着手順）
++
++提出を止めるものから先。括弧は主担当。
++
++1. **Sign in with Apple をアプリで通す**（Owner コンソール + エージェント実装）
++   - Developer: App ID の capability は済み。Services ID の Configure で Return URL を `https://<Supabaseプロジェクト>.supabase.co/auth/v1/callback` にする
++   - Supabase Auth に Apple プロバイダを入れる。`.p8` はリポジトリに置かない
++   - アプリの `loginWithApple()` と iOS entitlement は未配線
++2. **本番 Supabase に削除 SQL を適用**（Owner）
++   - `supabase/migrations/20260920120000_delete_own_account_keep_public_foods.sql`
++   - 適用前にバックアップ。未適用だとアプリ内削除がメール頼みになる
++3. **App Store Connect でカロナビ+ を作る**（Owner）
++   - グループ: カロナビ+
++   - `calonavi_plus_monthly` 380円 / 1ヶ月
++   - `calonavi_plus_yearly` 4,180円 / 1年
++4. **実機確認**（Owner、不具合はエージェント）
++   - Google / Apple ログイン、アカウント削除、公開食品の「削除済みユーザー」、検索5回とテンプレ3件の上限、カロナビ+ 購入と復元、Health
++5. **App Store Connect の掲載情報**（Owner）
++   - プライバシー / 利用規約 / アカウント削除 URL
++   - Privacy Nutrition Labels（Health は目標計算のみ。広告・マーケティングに使わない）
++   - 年齢、スクリーンショット、審査メモ（公開食品が残ること、削除手順、Health の用途）
++6. **TestFlight → 審査提出**（Owner）
++7. **日常運用**（Owner）
++   - `calonavi.ayg.support@gmail.com` を見る。住所・電話請求と削除依頼は本人確認のうえ遅滞なく返す
++   - 番地・私用電話を公開ページに載せない
++
++初回にやらなくてよい: Google Play、法人名義、体重タブ本格 UI、Health Workout の運動反映、写真解析。

@@ -1,0 +1,127 @@
+'カフェラテ' dart-> None sqlport-> None 
+'ポークソテー' dart-> None sqlport-> None 
+'ポークソーセージ' dart-> None sqlport-> None 
+'ミルクソフト' dart-> None sqlport-> None 
+'ブラックソース' dart-> None sqlport-> None 
+'スモークソルト' dart-> None sqlport-> None 
+'やくそう' dart-> None sqlport-> None 
+'サンマンコ' dart-> None sqlport-> None 
+'Cock tail' dart-> None sqlport-> None 
+'rape seed oil' dart-> None sqlport-> None 
+'cocktail' dart-> None sqlport-> None 
+'rapeseed oil' dart-> None sqlport-> None 
+'Cocktail sauce' dart-> None sqlport-> None 
+'ちんぽ' dart-> ちんぽ sqlport-> ちんぽ 
+'まんこ' dart-> まんこ sqlport-> まんこ 
+'fuck' dart-> fuck sqlport-> fuck 
+'FUCK' dart-> fuck sqlport-> fuck 
+'ｆｕｃｋ' dart-> fuck sqlport-> fuck 
+'f u c k' dart-> fuck sqlport-> fuck 
+'fúck' dart-> fuck sqlport-> fuck 
+'ﾁﾝﾎﾟ' dart-> ちんぽ sqlport-> ちんぽ 
+'ﾁﾝﾎ' dart-> None sqlport-> None 
+'チンポ' dart-> ちんぽ sqlport-> ちんぽ 
+'うんこ' dart-> うんこ sqlport-> うんこ 
+'くそ' dart-> くそ sqlport-> くそ 
+'クソ' dart-> くそ sqlport-> くそ 
+'フェラ' dart-> フェラ sqlport-> フェラ 
+'エロ' dart-> エロ sqlport-> エロ 
+'cock' dart-> cock sqlport-> cock 
+'rape' dart-> rape sqlport-> rape 
+'おまんこ' dart-> おまんこ sqlport-> おまんこ 
+'クソまずい' dart-> None sqlport-> None 
+'クソうまいカレー' dart-> None sqlport-> None 
+'クソ うまい' dart-> くそ sqlport-> くそ 
+'フェラチオ' dart-> フェラチオ sqlport-> フェラチオ 
+'エロい' dart-> None sqlport-> None 
+'エロ肉' dart-> None sqlport-> None 
+'くそったれ' dart-> くそったれ sqlport-> くそったれ 
+'ちんこ' dart-> ちんこ sqlport-> ちんこ 
+'cock tail' dart-> None sqlport-> None 
+'Cock-tail' dart-> None sqlport-> None 
+'fuck rape seed oil' dart-> fuck sqlport-> fuck 
+'rape seed' dart-> None sqlport-> None 
+'shit cock tail' dart-> shit sqlport-> shit 
+'cock tail cock' dart-> cock sqlport-> cock 
+'カロリー100' dart-> None sqlport-> None 
+'1日分の野菜' dart-> None sqlport-> None 
+'S&B' dart-> None sqlport-> None 
+'7種の具' dart-> None sqlport-> None 
+'ドリンク5本' dart-> None sqlport-> None 
+'エロンガ' dart-> None sqlport-> None 
+'ベーコンエッグ' dart-> None sqlport-> None 
+'チンゲン菜' dart-> None sqlport-> None 
+'パチンコ玉' dart-> ちんこ sqlport-> ちんこ 
+'ちんすこう' dart-> None sqlport-> None 
+'豚まん' dart-> None sqlport-> None 
+'ちくわ' dart-> None sqlport-> None 
+"Dick's burger" dart-> dick sqlport-> dick 
+'Hancock' dart-> None sqlport-> None 
+'scunthorpe' dart-> None sqlport-> None 
+'Shiitake' dart-> None sqlport-> None 
+'Assam tea' dart-> None sqlport-> None 
+'Bitchu' dart-> None sqlport-> None 
+'Cocoa' dart-> None sqlport-> None 
+'d1ck' dart-> dick sqlport-> dick 
+'D!ck' dart-> dick sqlport-> dick 
+'grape' dart-> None sqlport-> None 
+'ｴﾛ' dart-> エロ sqlport-> エロ 
+'ﾏﾝｺ' dart-> まんこ sqlport-> まんこ 
+'ま ん こ' dart-> まんこ sqlport-> まんこ 
+'マ・ン・コ' dart-> まんこ sqlport-> まんこ 
+'ち ん ぽ' dart-> ちんぽ sqlport-> ちんぽ 
+'ﾁﾝﾎﾞ' dart-> None sqlport-> None 
+'ちんぼ' dart-> None sqlport-> None 
+'チ〇ポ' dart-> None sqlport-> None 
+'ちんﾎﾟ' dart-> ちんぽ sqlport-> ちんぽ 
+'ｾｯｸｽ' dart-> セックス sqlport-> セックス 
+'中出し' dart-> 中出し sqlport-> 中出し 
+'中 出し' dart-> 中出し sqlport-> 中出し 
+'fck' dart-> None sqlport-> None 
+'phuck' dart-> None sqlport-> None 
+'sh1t' dart-> shit sqlport-> shit 
+'5h1t' dart-> shit sqlport-> shit 
+'c0ck' dart-> cock sqlport-> cock 
+'$hit' dart-> shit sqlport-> shit 
+'オマンコ' dart-> おまんこ sqlport-> おまんこ 
+'ﾌｪﾗﾁｵ' dart-> フェラチオ sqlport-> フェラチオ 
+'エロ本' dart-> None sqlport-> None 
+'イラマチオ' dart-> イラマチオ sqlport-> イラマチオ 
+'クンニ' dart-> クンニ sqlport-> クンニ 
+'パイズリ' dart-> パイズリ sqlport-> パイズリ 
+'顔射' dart-> 顔射 sqlport-> 顔射 
+'ぶっかけ' dart-> ぶっかけ sqlport-> ぶっかけ 
+'ぶっかけうどん' dart-> ぶっかけ sqlport-> ぶっかけ 
+'冷やしぶっかけそば' dart-> ぶっかけ sqlport-> ぶっかけ 
+'ぶっかけ飯' dart-> ぶっかけ sqlport-> ぶっかけ 
+'ごっくん' dart-> ごっくん sqlport-> ごっくん 
+'ごっくんゼリー' dart-> ごっくん sqlport-> ごっくん 
+'ごっくん青汁' dart-> ごっくん sqlport-> ごっくん 
+'飲むゼリー ごっくん' dart-> ごっくん sqlport-> ごっくん 
+'ザーメン' dart-> ザーメン sqlport-> ザーメン 
+'オナニー' dart-> オナニー sqlport-> オナニー 
+'潮吹き' dart-> 潮吹き sqlport-> 潮吹き 
+'潮吹き貝' dart-> 潮吹き sqlport-> 潮吹き 
+'素股' dart-> 素股 sqlport-> 素股 
+'手コキ' dart-> 手コキ sqlport-> 手コキ 
+'手マン' dart-> 手マン sqlport-> 手マン 
+'肉便器' dart-> 肉便器 sqlport-> 肉便器 
+'fellatio' dart-> fellatio sqlport-> fellatio 
+'cunnilingus' dart-> cunnilingus sqlport-> cunnilingus 
+'クンニャン' dart-> クンニ sqlport-> クンニ 
+'手マンゴー' dart-> 手マン sqlport-> 手マン 
+'マンゴー' dart-> None sqlport-> None 
+'手作りマンゴープリン' dart-> None sqlport-> None 
+'手マンゴスチン' dart-> 手マン sqlport-> 手マン 
+'素股肉' dart-> 素股 sqlport-> 素股 
+'潮吹きあさり' dart-> 潮吹き sqlport-> 潮吹き 
+'ロッテ ごっくんヨーグルト' dart-> ごっくん sqlport-> ごっくん 
+'ぶっかけ丼' dart-> ぶっかけ sqlport-> ぶっかけ 
+'おろしぶっかけ' dart-> ぶっかけ sqlport-> ぶっかけ 
+'顔射揚げ' dart-> 顔射 sqlport-> 顔射 
+'オナニ' dart-> None sqlport-> None 
+'くさや' dart-> None sqlport-> None 
+'さくそう' dart-> None sqlport-> None 
+'エクレア' dart-> None sqlport-> None 
+'エロティック' dart-> None sqlport-> None 
+'ごっくんチョコ' dart-> ごっくん sqlport-> ごっくん 

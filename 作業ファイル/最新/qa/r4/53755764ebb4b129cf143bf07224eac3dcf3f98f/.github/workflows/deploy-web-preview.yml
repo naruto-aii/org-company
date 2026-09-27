@@ -1,0 +1,19 @@
+name: Deploy Web Preview
+
+on:
+  push:
+    branches:
+      - web-preview
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  publish:
+    # GitHub Pages はリポジトリにつき1サイト。ここから直接 deploy すると
+    # LP か Web の後勝ちでルートが消える。合成デプロイだけが両方を残す。
+    uses: naruto-aii/AYG/.github/workflows/publish-pages.yml@main
+    secrets: inherit

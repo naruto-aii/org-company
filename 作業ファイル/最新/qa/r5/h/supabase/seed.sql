@@ -1,0 +1,7 @@
+-- Local Supabase seed: test data only (INSERT / UPDATE / DELETE rows).
+-- Privileges, RLS, functions, and schema are owned by supabase/migrations/*.sql.
+-- Applied by `supabase db reset` only — not deployed to production.
+--
+-- Integration tests create their own fixtures via authenticated clients or psql.
+-- Add local-only seed rows here when a shared baseline dataset is needed, e.g.:
+--   insert into public.users (id, email) values ('...', 'local@test.local');

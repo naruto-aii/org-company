@@ -1,0 +1,355 @@
+{
+  "url": "https://api.github.com/repos/naruto-aii/AYG/compare/947a8b1386e3edfd69056188e4efae7d79eb3831...12485a8bde2deb9da67d5a998a41b2c6cbebe330",
+  "html_url": "https://github.com/naruto-aii/AYG/compare/947a8b1386e3edfd69056188e4efae7d79eb3831...12485a8bde2deb9da67d5a998a41b2c6cbebe330",
+  "permalink_url": "https://github.com/naruto-aii/AYG/compare/naruto-aii:947a8b1...naruto-aii:12485a8",
+  "diff_url": "https://github.com/naruto-aii/AYG/compare/947a8b1386e3edfd69056188e4efae7d79eb3831...12485a8bde2deb9da67d5a998a41b2c6cbebe330.diff",
+  "patch_url": "https://github.com/naruto-aii/AYG/compare/947a8b1386e3edfd69056188e4efae7d79eb3831...12485a8bde2deb9da67d5a998a41b2c6cbebe330.patch",
+  "base_commit": {
+    "sha": "947a8b1386e3edfd69056188e4efae7d79eb3831",
+    "node_id": "C_kwDOTeJwqdoAKDk0N2E4YjEzODZlM2VkZmQ2OTA1NjE4OGU0ZWZhZTdkNzllYjM4MzE",
+    "commit": {
+      "author": {
+        "name": "Cursor Agent",
+        "email": "cursoragent@cursor.com",
+        "date": "2026-09-27T09:39:08Z"
+      },
+      "committer": {
+        "name": "Cursor Agent",
+        "email": "cursoragent@cursor.com",
+        "date": "2026-09-27T09:39:08Z"
+      },
+      "message": "fix: show Japanese errors and note that revert keeps applied columns\n\nSnackbars and dialogs no longer include exception text. Document that\nreverting this pull request does not drop an already-applied column.\n\nCo-authored-by: naruto-aii <naruto-aii@users.noreply.github.com>",
+      "tree": {
+        "sha": "e8ea94b7a7cce60bad9b69fdb949ab506b01e75f",
+        "url": "https://api.github.com/repos/naruto-aii/AYG/git/trees/e8ea94b7a7cce60bad9b69fdb949ab506b01e75f"
+      },
+      "url": "https://api.github.com/repos/naruto-aii/AYG/git/commits/947a8b1386e3edfd69056188e4efae7d79eb3831",
+      "comment_count": 0,
+      "verification": {
+        "verified": true,
+        "reason": "valid",
+        "signature": "-----BEGIN SSH SIGNATURE-----\nU1NIU0lHAAAAAQAAADMAAAALc3NoLWVkMjU1MTkAAAAg+qImwGMCy/grKZ50VxRHz3VfWW\nAL3QNbzIy2Nwcn+nQAAAADZ2l0AAAAAAAAAAZzaGE1MTIAAABTAAAAC3NzaC1lZDI1NTE5\nAAAAQN0/OCUPsHa3d6E1YnM+tngD/tKmIjVVyXyWFHEWssh2/0DzK+eBNpWM0PtxUxhBUM\n2gfH1G88mrDPenk4YCsQA=\n-----END SSH SIGNATURE-----",
+        "payload": "tree e8ea94b7a7cce60bad9b69fdb949ab506b01e75f\nparent 58e02210a0f71b46322a8bf854a8c1e40acd6862\nauthor Cursor Agent <cursoragent@cursor.com> 1790501948 +0000\ncommitter Cursor Agent <cursoragent@cursor.com> 1790501948 +0000\n\nfix: show Japanese errors and note that revert keeps applied columns\n\nSnackbars and dialogs no longer include exception text. Document that\nreverting this pull request does not drop an already-applied column.\n\nCo-authored-by: naruto-aii <naruto-aii@users.noreply.github.com>\n",
+        "verified_at": "2026-09-27T09:39:10Z"
+      }
+    },
+    "url": "https://api.github.com/repos/naruto-aii/AYG/commits/947a8b1386e3edfd69056188e4efae7d79eb3831",
+    "html_url": "https://github.com/naruto-aii/AYG/commit/947a8b1386e3edfd69056188e4efae7d79eb3831",
+    "comments_url": "https://api.github.com/repos/naruto-aii/AYG/commits/947a8b1386e3edfd69056188e4efae7d79eb3831/comments",
+    "author": {
+      "login": "cursoragent",
+      "id": 199161495,
+      "node_id": "U_kgDOC972lw",
+      "avatar_url": "https://avatars.githubusercontent.com/u/199161495?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/cursoragent",
+      "html_url": "https://github.com/cursoragent",
+      "followers_url": "https://api.github.com/users/cursoragent/followers",
+      "following_url": "https://api.github.com/users/cursoragent/following{/other_user}",
+      "gists_url": "https://api.github.com/users/cursoragent/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/cursoragent/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/cursoragent/subscriptions",
+      "organizations_url": "https://api.github.com/users/cursoragent/orgs",
+      "repos_url": "https://api.github.com/users/cursoragent/repos",
+      "events_url": "https://api.github.com/users/cursoragent/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/cursoragent/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "committer": {
+      "login": "cursoragent",
+      "id": 199161495,
+      "node_id": "U_kgDOC972lw",
+      "avatar_url": "https://avatars.githubusercontent.com/u/199161495?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/cursoragent",
+      "html_url": "https://github.com/cursoragent",
+      "followers_url": "https://api.github.com/users/cursoragent/followers",
+      "following_url": "https://api.github.com/users/cursoragent/following{/other_user}",
+      "gists_url": "https://api.github.com/users/cursoragent/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/cursoragent/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/cursoragent/subscriptions",
+      "organizations_url": "https://api.github.com/users/cursoragent/orgs",
+      "repos_url": "https://api.github.com/users/cursoragent/repos",
+      "events_url": "https://api.github.com/users/cursoragent/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/cursoragent/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "parents": [
+      {
+        "sha": "58e02210a0f71b46322a8bf854a8c1e40acd6862",
+        "url": "https://api.github.com/repos/naruto-aii/AYG/commits/58e02210a0f71b46322a8bf854a8c1e40acd6862",
+        "html_url": "https://github.com/naruto-aii/AYG/commit/58e02210a0f71b46322a8bf854a8c1e40acd6862"
+      }
+    ]
+  },
+  "merge_base_commit": {
+    "sha": "947a8b1386e3edfd69056188e4efae7d79eb3831",
+    "node_id": "C_kwDOTeJwqdoAKDk0N2E4YjEzODZlM2VkZmQ2OTA1NjE4OGU0ZWZhZTdkNzllYjM4MzE",
+    "commit": {
+      "author": {
+        "name": "Cursor Agent",
+        "email": "cursoragent@cursor.com",
+        "date": "2026-09-27T09:39:08Z"
+      },
+      "committer": {
+        "name": "Cursor Agent",
+        "email": "cursoragent@cursor.com",
+        "date": "2026-09-27T09:39:08Z"
+      },
+      "message": "fix: show Japanese errors and note that revert keeps applied columns\n\nSnackbars and dialogs no longer include exception text. Document that\nreverting this pull request does not drop an already-applied column.\n\nCo-authored-by: naruto-aii <naruto-aii@users.noreply.github.com>",
+      "tree": {
+        "sha": "e8ea94b7a7cce60bad9b69fdb949ab506b01e75f",
+        "url": "https://api.github.com/repos/naruto-aii/AYG/git/trees/e8ea94b7a7cce60bad9b69fdb949ab506b01e75f"
+      },
+      "url": "https://api.github.com/repos/naruto-aii/AYG/git/commits/947a8b1386e3edfd69056188e4efae7d79eb3831",
+      "comment_count": 0,
+      "verification": {
+        "verified": true,
+        "reason": "valid",
+        "signature": "-----BEGIN SSH SIGNATURE-----\nU1NIU0lHAAAAAQAAADMAAAALc3NoLWVkMjU1MTkAAAAg+qImwGMCy/grKZ50VxRHz3VfWW\nAL3QNbzIy2Nwcn+nQAAAADZ2l0AAAAAAAAAAZzaGE1MTIAAABTAAAAC3NzaC1lZDI1NTE5\nAAAAQN0/OCUPsHa3d6E1YnM+tngD/tKmIjVVyXyWFHEWssh2/0DzK+eBNpWM0PtxUxhBUM\n2gfH1G88mrDPenk4YCsQA=\n-----END SSH SIGNATURE-----",
+        "payload": "tree e8ea94b7a7cce60bad9b69fdb949ab506b01e75f\nparent 58e02210a0f71b46322a8bf854a8c1e40acd6862\nauthor Cursor Agent <cursoragent@cursor.com> 1790501948 +0000\ncommitter Cursor Agent <cursoragent@cursor.com> 1790501948 +0000\n\nfix: show Japanese errors and note that revert keeps applied columns\n\nSnackbars and dialogs no longer include exception text. Document that\nreverting this pull request does not drop an already-applied column.\n\nCo-authored-by: naruto-aii <naruto-aii@users.noreply.github.com>\n",
+        "verified_at": "2026-09-27T09:39:10Z"
+      }
+    },
+    "url": "https://api.github.com/repos/naruto-aii/AYG/commits/947a8b1386e3edfd69056188e4efae7d79eb3831",
+    "html_url": "https://github.com/naruto-aii/AYG/commit/947a8b1386e3edfd69056188e4efae7d79eb3831",
+    "comments_url": "https://api.github.com/repos/naruto-aii/AYG/commits/947a8b1386e3edfd69056188e4efae7d79eb3831/comments",
+    "author": {
+      "login": "cursoragent",
+      "id": 199161495,
+      "node_id": "U_kgDOC972lw",
+      "avatar_url": "https://avatars.githubusercontent.com/u/199161495?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/cursoragent",
+      "html_url": "https://github.com/cursoragent",
+      "followers_url": "https://api.github.com/users/cursoragent/followers",
+      "following_url": "https://api.github.com/users/cursoragent/following{/other_user}",
+      "gists_url": "https://api.github.com/users/cursoragent/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/cursoragent/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/cursoragent/subscriptions",
+      "organizations_url": "https://api.github.com/users/cursoragent/orgs",
+      "repos_url": "https://api.github.com/users/cursoragent/repos",
+      "events_url": "https://api.github.com/users/cursoragent/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/cursoragent/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "committer": {
+      "login": "cursoragent",
+      "id": 199161495,
+      "node_id": "U_kgDOC972lw",
+      "avatar_url": "https://avatars.githubusercontent.com/u/199161495?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/cursoragent",
+      "html_url": "https://github.com/cursoragent",
+      "followers_url": "https://api.github.com/users/cursoragent/followers",
+      "following_url": "https://api.github.com/users/cursoragent/following{/other_user}",
+      "gists_url": "https://api.github.com/users/cursoragent/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/cursoragent/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/cursoragent/subscriptions",
+      "organizations_url": "https://api.github.com/users/cursoragent/orgs",
+      "repos_url": "https://api.github.com/users/cursoragent/repos",
+      "events_url": "https://api.github.com/users/cursoragent/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/cursoragent/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "parents": [
+      {
+        "sha": "58e02210a0f71b46322a8bf854a8c1e40acd6862",
+        "url": "https://api.github.com/repos/naruto-aii/AYG/commits/58e02210a0f71b46322a8bf854a8c1e40acd6862",
+        "html_url": "https://github.com/naruto-aii/AYG/commit/58e02210a0f71b46322a8bf854a8c1e40acd6862"
+      }
+    ]
+  },
+  "status": "ahead",
+  "ahead_by": 2,
+  "behind_by": 0,
+  "total_commits": 2,
+  "commits": [
+    {
+      "sha": "9c57a4266e906ca21a66fbdbd93f13b730f90fbf",
+      "node_id": "C_kwDOTeJwqdoAKDljNTdhNDI2NmU5MDZjYTIxYTY2ZmJkYmQ5M2YxM2I3MzBmOTBmYmY",
+      "commit": {
+        "author": {
+          "name": "Cursor Agent",
+          "email": "cursoragent@cursor.com",
+          "date": "2026-09-27T11:11:03Z"
+        },
+        "committer": {
+          "name": "Cursor Agent",
+          "email": "cursoragent@cursor.com",
+          "date": "2026-09-27T11:11:03Z"
+        },
+        "message": "ci: run flutter analyze and flutter test on pull requests\n\nThe workflow checks lib and test. Existing warnings stay visible and do not hide a later test failure. Prototype files under tool are outside this job.\n\nCo-authored-by: naruto-aii <naruto-aii@users.noreply.github.com>",
+        "tree": {
+          "sha": "2735b9c807427c7ec99ce88638c56025f406a51d",
+          "url": "https://api.github.com/repos/naruto-aii/AYG/git/trees/2735b9c807427c7ec99ce88638c56025f406a51d"
+        },
+        "url": "https://api.github.com/repos/naruto-aii/AYG/git/commits/9c57a4266e906ca21a66fbdbd93f13b730f90fbf",
+        "comment_count": 0,
+        "verification": {
+          "verified": true,
+          "reason": "valid",
+          "signature": "-----BEGIN SSH SIGNATURE-----\nU1NIU0lHAAAAAQAAADMAAAALc3NoLWVkMjU1MTkAAAAg+qImwGMCy/grKZ50VxRHz3VfWW\nAL3QNbzIy2Nwcn+nQAAAADZ2l0AAAAAAAAAAZzaGE1MTIAAABTAAAAC3NzaC1lZDI1NTE5\nAAAAQBhbfp7bV0BE8XivLeZqkciyR7Std7HFGCBXv+h7BDFvEoKtY5xLvZNTUSb3umzjkq\ninFtnn0XWT/oCrRR99gQ4=\n-----END SSH SIGNATURE-----",
+          "payload": "tree 2735b9c807427c7ec99ce88638c56025f406a51d\nparent 947a8b1386e3edfd69056188e4efae7d79eb3831\nauthor Cursor Agent <cursoragent@cursor.com> 1790507463 +0000\ncommitter Cursor Agent <cursoragent@cursor.com> 1790507463 +0000\n\nci: run flutter analyze and flutter test on pull requests\n\nThe workflow checks lib and test. Existing warnings stay visible and do not hide a later test failure. Prototype files under tool are outside this job.\n\nCo-authored-by: naruto-aii <naruto-aii@users.noreply.github.com>\n",
+          "verified_at": "2026-09-27T11:11:05Z"
+        }
+      },
+      "url": "https://api.github.com/repos/naruto-aii/AYG/commits/9c57a4266e906ca21a66fbdbd93f13b730f90fbf",
+      "html_url": "https://github.com/naruto-aii/AYG/commit/9c57a4266e906ca21a66fbdbd93f13b730f90fbf",
+      "comments_url": "https://api.github.com/repos/naruto-aii/AYG/commits/9c57a4266e906ca21a66fbdbd93f13b730f90fbf/comments",
+      "author": {
+        "login": "cursoragent",
+        "id": 199161495,
+        "node_id": "U_kgDOC972lw",
+        "avatar_url": "https://avatars.githubusercontent.com/u/199161495?v=4",
+        "gravatar_id": "",
+        "url": "https://api.github.com/users/cursoragent",
+        "html_url": "https://github.com/cursoragent",
+        "followers_url": "https://api.github.com/users/cursoragent/followers",
+        "following_url": "https://api.github.com/users/cursoragent/following{/other_user}",
+        "gists_url": "https://api.github.com/users/cursoragent/gists{/gist_id}",
+        "starred_url": "https://api.github.com/users/cursoragent/starred{/owner}{/repo}",
+        "subscriptions_url": "https://api.github.com/users/cursoragent/subscriptions",
+        "organizations_url": "https://api.github.com/users/cursoragent/orgs",
+        "repos_url": "https://api.github.com/users/cursoragent/repos",
+        "events_url": "https://api.github.com/users/cursoragent/events{/privacy}",
+        "received_events_url": "https://api.github.com/users/cursoragent/received_events",
+        "type": "User",
+        "user_view_type": "public",
+        "site_admin": false
+      },
+      "committer": {
+        "login": "cursoragent",
+        "id": 199161495,
+        "node_id": "U_kgDOC972lw",
+        "avatar_url": "https://avatars.githubusercontent.com/u/199161495?v=4",
+        "gravatar_id": "",
+        "url": "https://api.github.com/users/cursoragent",
+        "html_url": "https://github.com/cursoragent",
+        "followers_url": "https://api.github.com/users/cursoragent/followers",
+        "following_url": "https://api.github.com/users/cursoragent/following{/other_user}",
+        "gists_url": "https://api.github.com/users/cursoragent/gists{/gist_id}",
+        "starred_url": "https://api.github.com/users/cursoragent/starred{/owner}{/repo}",
+        "subscriptions_url": "https://api.github.com/users/cursoragent/subscriptions",
+        "organizations_url": "https://api.github.com/users/cursoragent/orgs",
+        "repos_url": "https://api.github.com/users/cursoragent/repos",
+        "events_url": "https://api.github.com/users/cursoragent/events{/privacy}",
+        "received_events_url": "https://api.github.com/users/cursoragent/received_events",
+        "type": "User",
+        "user_view_type": "public",
+        "site_admin": false
+      },
+      "parents": [
+        {
+          "sha": "947a8b1386e3edfd69056188e4efae7d79eb3831",
+          "url": "https://api.github.com/repos/naruto-aii/AYG/commits/947a8b1386e3edfd69056188e4efae7d79eb3831",
+          "html_url": "https://github.com/naruto-aii/AYG/commit/947a8b1386e3edfd69056188e4efae7d79eb3831"
+        }
+      ]
+    },
+    {
+      "sha": "12485a8bde2deb9da67d5a998a41b2c6cbebe330",
+      "node_id": "C_kwDOTeJwqdoAKDEyNDg1YThiZGUyZGViOWRhNjdkNWE5OThhNDFiMmM2Y2JlYmUzMzA",
+      "commit": {
+        "author": {
+          "name": "Cursor Agent",
+          "email": "cursoragent@cursor.com",
+          "date": "2026-09-27T11:11:26Z"
+        },
+        "committer": {
+          "name": "Cursor Agent",
+          "email": "cursoragent@cursor.com",
+          "date": "2026-09-27T11:11:26Z"
+        },
+        "message": "ci: keep analyzer warnings from blocking the test run\n\nExisting warnings in lib and test stay in the log. Errors still fail the job. Prototype files under tool are not part of this check.\n\nCo-authored-by: naruto-aii <naruto-aii@users.noreply.github.com>",
+        "tree": {
+          "sha": "21e063f9a7eff3351dc1da7e16f59c5ecd904feb",
+          "url": "https://api.github.com/repos/naruto-aii/AYG/git/trees/21e063f9a7eff3351dc1da7e16f59c5ecd904feb"
+        },
+        "url": "https://api.github.com/repos/naruto-aii/AYG/git/commits/12485a8bde2deb9da67d5a998a41b2c6cbebe330",
+        "comment_count": 0,
+        "verification": {
+          "verified": true,
+          "reason": "valid",
+          "signature": "-----BEGIN SSH SIGNATURE-----\nU1NIU0lHAAAAAQAAADMAAAALc3NoLWVkMjU1MTkAAAAg+qImwGMCy/grKZ50VxRHz3VfWW\nAL3QNbzIy2Nwcn+nQAAAADZ2l0AAAAAAAAAAZzaGE1MTIAAABTAAAAC3NzaC1lZDI1NTE5\nAAAAQMapfiWoJHnwtgoWvmMcXROUNE7Dx7sBLusYQdzk7ziB+AxFcwbSsJ4vXFu/V9J0RP\nJYBKI3o+rolNtt6F5VhAE=\n-----END SSH SIGNATURE-----",
+          "payload": "tree 21e063f9a7eff3351dc1da7e16f59c5ecd904feb\nparent 9c57a4266e906ca21a66fbdbd93f13b730f90fbf\nauthor Cursor Agent <cursoragent@cursor.com> 1790507486 +0000\ncommitter Cursor Agent <cursoragent@cursor.com> 1790507486 +0000\n\nci: keep analyzer warnings from blocking the test run\n\nExisting warnings in lib and test stay in the log. Errors still fail the job. Prototype files under tool are not part of this check.\n\nCo-authored-by: naruto-aii <naruto-aii@users.noreply.github.com>\n",
+          "verified_at": "2026-09-27T11:11:31Z"
+        }
+      },
+      "url": "https://api.github.com/repos/naruto-aii/AYG/commits/12485a8bde2deb9da67d5a998a41b2c6cbebe330",
+      "html_url": "https://github.com/naruto-aii/AYG/commit/12485a8bde2deb9da67d5a998a41b2c6cbebe330",
+      "comments_url": "https://api.github.com/repos/naruto-aii/AYG/commits/12485a8bde2deb9da67d5a998a41b2c6cbebe330/comments",
+      "author": {
+        "login": "cursoragent",
+        "id": 199161495,
+        "node_id": "U_kgDOC972lw",
+        "avatar_url": "https://avatars.githubusercontent.com/u/199161495?v=4",
+        "gravatar_id": "",
+        "url": "https://api.github.com/users/cursoragent",
+        "html_url": "https://github.com/cursoragent",
+        "followers_url": "https://api.github.com/users/cursoragent/followers",
+        "following_url": "https://api.github.com/users/cursoragent/following{/other_user}",
+        "gists_url": "https://api.github.com/users/cursoragent/gists{/gist_id}",
+        "starred_url": "https://api.github.com/users/cursoragent/starred{/owner}{/repo}",
+        "subscriptions_url": "https://api.github.com/users/cursoragent/subscriptions",
+        "organizations_url": "https://api.github.com/users/cursoragent/orgs",
+        "repos_url": "https://api.github.com/users/cursoragent/repos",
+        "events_url": "https://api.github.com/users/cursoragent/events{/privacy}",
+        "received_events_url": "https://api.github.com/users/cursoragent/received_events",
+        "type": "User",
+        "user_view_type": "public",
+        "site_admin": false
+      },
+      "committer": {
+        "login": "cursoragent",
+        "id": 199161495,
+        "node_id": "U_kgDOC972lw",
+        "avatar_url": "https://avatars.githubusercontent.com/u/199161495?v=4",
+        "gravatar_id": "",
+        "url": "https://api.github.com/users/cursoragent",
+        "html_url": "https://github.com/cursoragent",
+        "followers_url": "https://api.github.com/users/cursoragent/followers",
+        "following_url": "https://api.github.com/users/cursoragent/following{/other_user}",
+        "gists_url": "https://api.github.com/users/cursoragent/gists{/gist_id}",
+        "starred_url": "https://api.github.com/users/cursoragent/starred{/owner}{/repo}",
+        "subscriptions_url": "https://api.github.com/users/cursoragent/subscriptions",
+        "organizations_url": "https://api.github.com/users/cursoragent/orgs",
+        "repos_url": "https://api.github.com/users/cursoragent/repos",
+        "events_url": "https://api.github.com/users/cursoragent/events{/privacy}",
+        "received_events_url": "https://api.github.com/users/cursoragent/received_events",
+        "type": "User",
+        "user_view_type": "public",
+        "site_admin": false
+      },
+      "parents": [
+        {
+          "sha": "9c57a4266e906ca21a66fbdbd93f13b730f90fbf",
+          "url": "https://api.github.com/repos/naruto-aii/AYG/commits/9c57a4266e906ca21a66fbdbd93f13b730f90fbf",
+          "html_url": "https://github.com/naruto-aii/AYG/commit/9c57a4266e906ca21a66fbdbd93f13b730f90fbf"
+        }
+      ]
+    }
+  ],
+  "files": [
+    {
+      "sha": "8bd37099e9b54c62157b27208dae5b028ca61e09",
+      "filename": ".github/workflows/ci.yml",
+      "status": "added",
+      "additions": 24,
+      "deletions": 0,
+      "changes": 24,
+      "blob_url": "https://github.com/naruto-aii/AYG/blob/12485a8bde2deb9da67d5a998a41b2c6cbebe330/.github%2Fworkflows%2Fci.yml",
+      "raw_url": "https://github.com/naruto-aii/AYG/raw/12485a8bde2deb9da67d5a998a41b2c6cbebe330/.github%2Fworkflows%2Fci.yml",
+      "contents_url": "https://api.github.com/repos/naruto-aii/AYG/contents/.github%2Fworkflows%2Fci.yml?ref=12485a8bde2deb9da67d5a998a41b2c6cbebe330",
+      "patch": "@@ -0,0 +1,24 @@\n+name: CI\n+\n+on:\n+  pull_request:\n+  push:\n+    branches:\n+      - web-preview\n+      - main\n+\n+jobs:\n+  flutter:\n+    runs-on: ubuntu-latest\n+    timeout-minutes: 30\n+    steps:\n+      - uses: actions/checkout@v4\n+      - uses: subosito/flutter-action@v2\n+        with:\n+          channel: stable\n+          cache: true\n+      - run: flutter pub get\n+      # lib and test already have warnings. Errors still fail the job.\n+      # tool/ holds prototypes that are not part of the app.\n+      - run: flutter analyze lib test --no-fatal-infos --no-fatal-warnings\n+      - run: flutter test"
+    }
+  ]
+}
